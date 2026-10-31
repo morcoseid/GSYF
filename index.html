@@ -250,6 +250,18 @@ body.youth #staff{text-align:center}
 .wa-btn svg{width:24px;height:24px;fill:#fff;flex:none}
 .wa-btn small{font-weight:500;opacity:.9;font-size:.82rem;direction:ltr;unicode-bidi:isolate}
 .y-reg .wa-btn{align-self:flex-start}
+
+.ap-head{display:flex;justify-content:space-between;align-items:center;font-size:1.1rem}
+.ap-head b{font-size:1.6rem;color:var(--accent)}
+.ap-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;transition:opacity .4s}
+.ap-card.is-ok{border-color:#3C8D5A}.ap-card.is-no{opacity:.5}
+.ap-top{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}.ap-top b{font-size:1.1rem}
+.ap-meta{display:flex;flex-direction:column;gap:2px;font-size:.9rem;color:var(--muted)}.ap-meta a{color:var(--muted);text-decoration:none;align-self:flex-end}
+.ap-meta span[dir=ltr]{align-self:flex-end}
+.ap-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ap-btns button{font-size:1.05rem;padding:12px;border-radius:12px;font-weight:700}
+.ap-ok{background:#2E7D4F!important;border-color:#2E7D4F!important;color:#fff!important}
+.ap-no{background:transparent;color:#B23A2E!important;border-color:#B23A2E!important}
 </style>
 </head>
 <body>
@@ -289,6 +301,7 @@ body.youth #staff{text-align:center}
   <nav class="views" id="views" aria-label="الصفحات"></nav>
   <div id="home" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="follow" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+  <div id="approve" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="year" class="months"></div>
   <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
@@ -670,9 +683,25 @@ function renderFollow(){
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
 
+
+/* ================= موافقة سريعة على طلبات التسجيل (#approve) ================= */
+function renderApprove(){
+  const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني").slice(0,15);
+  const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(r.name)}</b><span class="muted small">${esc(r.at)}</span></div>
+    <div class="ap-meta"><span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}<span dir="ltr">✉️ ${esc(r.email)}</span></div>
+    <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
+  $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
+    ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
+    ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span></div></div>`).join("")}</details>`:""}`;
+  $("apRef").onclick=()=>{$("apRef").textContent="…";load()};
+  $("approve").querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row),c=b.closest(".ap-card");c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
+    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;c.classList.add(b.dataset.v==="مقبول"?"is-ok":"is-no");c.querySelector(".ap-btns").innerHTML=`<b>${b.dataset.v==="مقبول"?"اتقبل ✓":"اترفض"}</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
+      m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent=m})});
+}
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
-  const items=[["follow","المتابعة"],["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
+  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length;
+  const items=[["approve","الطلبات"+(nw?` (${nw})`:"")],["follow","المتابعة"],["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===cur?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
 
@@ -680,14 +709,15 @@ function route(){
   let h=location.hash.slice(1);
   if(!D.level)h="home";                                   // الشباب بيشوفوا صفحتهم بس
   else if(!h)h="follow";
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow";
-  $("year").hidden=!!(m||mt||isHome||isFollow);$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp);$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome);$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow?"follow":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":"year");
+  if(isAp)renderApprove();
   if(isHome)renderHome();
   if(isFollow)renderFollow();
   if(m)renderMonth(m[1]);
