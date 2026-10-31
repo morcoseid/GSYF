@@ -530,10 +530,11 @@ function renderHome(){
   const dbox=s=>{const d=parse(s);return `<div class="y-date"><b class="num">${d.getDate()}</b><span>${GM[d.getMonth()]}</span></div>`};
   const fq=feat&&D.evalQs[feat.title],fDone=feat&&lsGet("rt_"+feat.row+feat.title+feat.date);
   const locked=!regOk();
+  const pend=!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مستني";
   const spT=Object.keys(SURPRISE).find(k=>t<SURPRISE[k].until),spW=spT&&D.weekly.find(w=>w.title===spT),spD=spT&&parse(SURPRISE[spT].until);
-  const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${locked?`<p>حاجة جديدة جاية… سجّل عشان تعرف التفاصيل</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
+  const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
-  const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg"><b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم</span><button type="button" class="primary go-reg">سجّل دلوقتي</button></div><div class="lock-body" aria-hidden="true" inert>`:"";
+  const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك</span>`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
   $("home").innerHTML=`
     ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">قيّم الحفلة 🎉</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في الحفلة الجاية. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
@@ -563,9 +564,9 @@ function renderHome(){
 
 
 /* ================= التسجيل (الشباب) ================= */
-const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع، هنرد عليك قريب."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
-// مسجل = بعت طلب ومش مرفوض (الصفحة بتتفتح له)
-const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")!=="مرفوض";
+const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع. أول ما يتقبل الصفحة كلها هتتفتح لك."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
+// الصفحة بتتفتح بس لما الخدام يقبلوا الطلب
+const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مقبول";
 const toEn=x=>String(x||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 const normPhone=x=>{let v=toEn(x).replace(/[\s\-().]/g,"");v=v.replace(/^(\+|00)?20(?=1)/,"0");return v};
 const REG_CHECK={
@@ -577,7 +578,7 @@ const REG_CHECK={
 };
 function regForm(box){
   box.innerHTML=`<form class="rgf" novalidate>
-    <div class="rg-head"><b>سجّل في دقيقة</b><span>بعد التسجيل هتتفتح لك الاجتماعات والإيفنتات والحجز</span></div>
+    <div class="rg-head"><b>سجّل في دقيقة</b><span>بعد ما الخدام يوافقوا على طلبك هتتفتح لك الاجتماعات والإيفنتات والحجز</span></div>
     <label class="fld"><span>الاسم ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
