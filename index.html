@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أجندة خدمة الشباب</title>
+<script>(function(){var q=new URLSearchParams(location.search);window.VIEW_KEY=q.get("k")||"";var m=q.get("m");window.START_VIEW=/^\d+$/.test(m||"")?"meet-"+m:"";})();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Year at a glance: 12 calm month cards answering 3 questions (busy?, church, trip?). Click a card for that month's meetings. */
+:root{
+  --bg:#F4F5F1; --surface:#FFFFFF; --fg:#1A221E; --muted:#66726B; --line:#E0E5DE;
+  --accent:#1E6B57; --accent-soft:#E2EFE9;
+  --calm:#2F7A4F; --calm-soft:#E1F0E6; --mid:#99630A; --mid-soft:#F8EBD3; --busy:#B23A2E; --busy-soft:#F8E2DE; --blue:#2D5AA0; --blue-soft:#E3EBF8;
+  --display:"Readex Pro","IBM Plex Sans Arabic",Tahoma,sans-serif;
+  --body:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101513; --surface:#171E1B; --fg:#E7ECE9; --muted:#9AA8A1; --line:#27312D;
+  --accent:#5BC2A2; --accent-soft:#1A2E28;
+  --calm:#6CCB93; --calm-soft:#16291E; --mid:#E6B05C; --mid-soft:#2E2414; --busy:#EE8678; --busy-soft:#331C19; --blue:#8DB0EC; --blue-soft:#1A2436; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101513; --surface:#171E1B; --fg:#E7ECE9; --muted:#9AA8A1; --line:#27312D;
+  --accent:#5BC2A2; --accent-soft:#1A2E28;
+  --calm:#6CCB93; --calm-soft:#16291E; --mid:#E6B05C; --mid-soft:#2E2414; --busy:#EE8678; --busy-soft:#331C19; --blue:#8DB0EC; --blue-soft:#1A2436; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+a{color:var(--accent)}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.65;direction:rtl;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+.muted{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px}
+header h1{font-size:1.6rem}
+header .sub{color:var(--muted);font-size:.9rem}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+button,.btn{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);padding:6px 14px;border-radius:8px;cursor:pointer;text-decoration:none}
+button:hover,.btn:hover{border-color:var(--accent)}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{background:var(--accent)!important;border-color:var(--accent)!important;color:var(--surface)!important;font-weight:600}
+.note{font-size:.85rem;background:var(--mid-soft);color:var(--mid);padding:8px 12px;border-radius:8px}
+.months{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.card{all:unset;box-sizing:border-box;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card:hover{border-color:var(--accent)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card.now{border-color:var(--accent);box-shadow:inset 0 3px 0 var(--accent)}
+.c-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.c-head h2{font-size:1.25rem;line-height:1.2}
+.c-head small{display:block;color:var(--muted);font-size:.78rem;font-family:var(--body)}
+.pill{flex:none;font-family:var(--display);font-weight:600;font-size:.82rem;padding:3px 12px;border-radius:999px}
+.p-0{background:var(--calm-soft);color:var(--calm)}.p-1{background:var(--mid-soft);color:var(--mid)}.p-2{background:var(--busy-soft);color:var(--busy)}
+.line{display:grid;grid-template-columns:62px minmax(0,1fr);gap:8px;font-size:.9rem;line-height:1.5}
+.line .k{color:var(--muted);font-size:.78rem;padding-top:2px}
+.line .v{min-width:0;overflow-wrap:anywhere}
+.trip-ok{color:var(--calm);font-weight:500}.trip-maybe{color:var(--mid);font-weight:500}.trip-no{color:var(--busy);font-weight:500}
+.why{font-size:.75rem;color:var(--muted)}
+/* month page */
+.mtop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.mtop h2{font-size:1.8rem}
+.answers{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.ans{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.ans .q{font-size:.8rem;color:var(--muted)}
+.ans .a{font-family:var(--display);font-weight:600;font-size:1.05rem}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.panel h3{font-size:1.05rem;margin-bottom:6px}
+.row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;padding-block:9px;border-top:1px solid var(--line);font-size:.93rem}
+.row:first-of-type{border-top:0}
+.row .d{font-family:var(--display);font-weight:600;line-height:1.3}
+.row .d small{display:block;font-family:var(--body);font-weight:400;color:var(--muted);font-size:.75rem}
+.row .t{min-width:0}
+.row a{font-size:.8rem;color:var(--muted)}
+.row.past{opacity:.5}
+.empty{color:var(--muted);font-size:.9rem}
+footer{font-size:.78rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 16px;justify-content:space-between}
+nav.views{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;width:fit-content;max-width:100%;overflow-x:auto}
+nav.views a{flex:none;padding:6px 14px;border-radius:7px;text-decoration:none;color:var(--muted);font-family:var(--display);font-weight:600;font-size:.9rem}
+nav.views a[aria-current="page"]{background:var(--fg);color:var(--bg)}
+.next{background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:18px 20px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px 28px}
+.next .when{grid-column:1/-1;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.next .when h2{font-size:1.4rem}
+.blk{display:flex;flex-direction:column;gap:6px;min-width:0;font-size:.93rem}
+.blk .lbl{font-size:.78rem;color:var(--muted)}
+.feast{color:var(--mid)}
+.hint{grid-column:1/-1;font-size:.88rem;background:var(--mid-soft);color:var(--mid);padding:8px 12px;border-radius:8px}
+.st{font-size:.75rem;font-weight:600;padding:1px 9px;border-radius:999px;white-space:nowrap}
+.st-out{background:var(--blue-soft);color:var(--blue)}.st-off{background:var(--busy-soft);color:var(--busy)}.st-join{background:var(--mid-soft);color:var(--mid)}
+.mrow{border-top:1px solid var(--line)}.mrow:first-of-type{border-top:0}
+.mrow>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:96px minmax(0,1fr) minmax(0,1fr) auto;gap:12px;padding-block:10px;align-items:baseline;font-size:.92rem}
+.mrow>summary::-webkit-details-marker{display:none}
+.mrow>summary .d{font-family:var(--display);font-weight:600;line-height:1.3}
+.mrow>summary .d small{display:block;font-family:var(--body);font-weight:400;color:var(--muted);font-size:.74rem}
+.mrow .more{padding:0 0 12px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px 24px}
+.mrow.past{opacity:.55}
+.todo{color:var(--muted)}
+details.syn summary{cursor:pointer;color:var(--accent);font-size:.85rem}
+details.syn p{white-space:pre-line;margin:6px 0 0;font-size:.86rem}
+/* youth + follow-up */
+.ev{display:flex;flex-direction:column;gap:6px}
+.ev .meta{font-size:.85rem;color:var(--muted)}
+.ev form,.fold{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:10px;padding:12px;margin-top:4px}
+.ev input,.ev textarea,.ev select,.fold input,.fold textarea,.fold select,#login input{font:inherit;font-size:.95rem;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);width:100%}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.ok{color:var(--calm);font-weight:600}.err{color:var(--busy)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips label{border:1px solid var(--line);border-radius:999px;padding:3px 12px;cursor:pointer;font-size:.88rem;background:var(--surface)}
+.chips input{display:none}.chips input:checked+span{color:var(--accent);font-weight:600}
+.late{color:var(--busy);font-weight:600}
+.news{background:var(--accent-soft);border-radius:12px;padding:12px 16px;font-size:.95rem}
+.small{font-size:.8rem}
+#login{display:flex;gap:8px;max-width:360px}
+@media (max-width:700px){.next,.mrow .more{grid-template-columns:1fr}.mrow>summary{grid-template-columns:72px minmax(0,1fr) auto}.mrow>summary .prog{display:none}}
+@media (max-width:520px){.row{grid-template-columns:84px minmax(0,1fr)}}
+@media print{
+  @page{size:A4;margin:12mm}
+  body{background:#fff;color:#000;padding:0;font-size:12px}
+  .actions,.note,#back,nav.views{display:none!important}
+  .mrow .more{display:grid!important}
+  .months{grid-template-columns:repeat(3,1fr);gap:8px}
+  .card,.ans,.panel{break-inside:avoid;border-color:#bbb;padding:10px}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div><span class="muted" style="font-size:.85rem">خدمة الشباب</span><h1 id="title">خطة السنة</h1><div class="sub" id="sub"></div></div>
+    <div class="actions">
+      <button type="button" id="back" hidden>→ السنة كلها</button>
+      <button type="button" class="primary" id="pdfBtn" hidden>تحميل PDF</button>
+      <a class="btn" id="sheetLink" href="#" target="_blank" rel="noopener" hidden>تعديل البيانات</a>
+    </div>
+  </header>
+  <div class="note" id="previewNote" hidden>نسخة تجربة. مواعيد الامتحانات وإجازات الجامعة تقريبية لحد ما تتأكد في الشيت.</div>
+
+  <nav class="views" id="views" aria-label="الصفحات"></nav>
+  <div id="home" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+  <div id="follow" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+  <div id="year" class="months"></div>
+  <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+  <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+
+  <details id="staff" class="small muted" hidden><summary style="cursor:pointer">دخول الخدام</summary><form id="login" style="margin-top:8px"><input type="password" id="pw" placeholder="الباسورد" autocomplete="current-password"><button type="submit">دخول</button></form><p id="loginMsg" class="err"></p></details>
+  <footer><span>الزحمة محسوبة من: الامتحانات، والصوم الكبير وأسبوع الآلام، وعدد الإيفنتات المتسجلة.</span><span id="updated"></span></footer>
+</div>
+
+<script>
+const PREVIEW_DATA = /*__DATA__*/null;
+const GM=["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+const WD=["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const LEVEL=["رايق","متوسط","زحمة"];
+const PDF_BASE="https://saintbishoy.ca/wp-content/uploads/";
+let D=null,startedOnce=false,hashBound=false;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const parse=s=>{const [y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const dm=s=>{const d=parse(s);return `${d.getDate()} ${GM[d.getMonth()]}`};
+const fastName=f=>f&&f.startsWith("صيام (")&&!f.includes("أربعاء")?f.replace(/^صيام \((.*)\)$/,"صوم $1"):"";
+
+/* ---- everything we know about one month ---- */
+function monthInfo(y,m){
+  const n=new Date(y,m+1,0).getDate(), first=iso(new Date(y,m,1)), last=iso(new Date(y,m,n));
+  const days=[];for(let i=1;i<=n;i++){const d=new Date(y,m,i);days.push({d,k:iso(d),c:D.cal[iso(d)]})}
+  // church: named fasts + main feasts
+  const fasts=[];days.forEach(x=>{const f=x.c&&fastName(x.c.fast);if(!f||f==="صوم الأربعاء/جمعة")return;let e=fasts.find(z=>z.name===f);if(!e)fasts.push(e={name:f,from:x.d.getDate(),to:x.d.getDate()});e.to=x.d.getDate()});
+  const feasts=[];days.forEach(x=>{if(x.c&&x.c.f&&x.c.m)x.c.f.split("\n").filter(t=>t.startsWith("عيد")||t.includes("القيامة")||t.includes("الشعانين")).slice(0,1).forEach(t=>feasts.push({t,day:x.d.getDate()}))});
+  const all=days.flatMap(x=>x.c&&x.c.f?x.c.f.split("\n"):[]);
+  const holyWeek=all.some(t=>t.includes("أسبوع الآلام")||t.includes("الجمعة العظيمة"));
+  const lentDays=days.filter(x=>x.c&&x.c.fast==="صيام (الكبير)").length;
+  const churchParts=[];
+  fasts.forEach(f=>churchParts.push(f.from===1&&f.to===n?`${f.name} طول الشهر`:f.from===1?`${f.name} لحد ${f.to}`:`${f.name} من ${f.from}`));
+  feasts.slice(0,3).forEach(f=>churchParts.push(`${f.t.replace(" المجيد","")} ${f.day}`));
+  // holidays
+  const hol=(D.holidays||[]).filter(h=>h.from<=last&&(h.to||h.from)>=first);
+  const ovl=h=>{const a=h.from<first?first:h.from,b=(h.to||h.from)>last?last:(h.to||h.from);return Math.round((parse(b)-parse(a))/864e5)+1};
+  const exams=hol.filter(h=>h.type==="امتحانات"), examDays=exams.reduce((s,h)=>s+ovl(h),0);
+  const offs=hol.filter(h=>h.type==="رسمية"||h.type==="إجازة جامعة");
+  const holParts=hol.filter(h=>h.type!=="ملاحظة").map(h=>h.type==="رسمية"?`${h.name} ${h.from===h.to||!h.to?parse(h.from).getDate():parse(h.from).getDate()+"–"+parse(h.to).getDate()}`:`${h.name}${h.from>=first?" من "+parse(h.from).getDate():""}${(h.to||h.from)<=last?" لحد "+parse(h.to).getDate():""}`);
+  // events
+  const ev=D.events.filter(e=>e.date&&e.status!=="اتلغى"&&e.date<=last&&(e.end||e.date)>=first).sort((a,b)=>a.date.localeCompare(b.date));
+  const bigEv=ev.filter(e=>e.type!=="ديدلاين");
+  // busy score
+  let score=0;const why=[];
+  if(examDays>=14){score+=4;why.push("امتحانات")}else if(examDays>=7){score+=2;why.push("امتحانات")}
+  if(holyWeek){score+=2;why.push("أسبوع الآلام")}else if(lentDays>=14){score+=1;why.push("الصوم الكبير")}
+  if(bigEv.length){score+=Math.ceil(bigEv.length/2);why.push(`${bigEv.length} إيفنت`)}
+  const level=score>=4?2:score>=2?1:0;
+  // trip
+  let trip,tc;
+  const uniOff=offs.filter(h=>h.type==="إجازة جامعة");
+  // official holidays that fall in Great Lent / Holy Week are not trip days
+  const official=offs.filter(h=>{const c=D.cal[h.from];return h.type==="رسمية"&&!(c&&c.fast==="صيام (الكبير)")&&!(c&&c.f&&/الآلام|العظيمة|سبت الفرح|خميس العهد/.test(c.f))});
+  const vacStart=uniOff.find(h=>h.from>=first);
+  if(examDays>=14&&vacStart){trip=`بعد الامتحانات، من ${parse(vacStart.from).getDate()} (${vacStart.name})`;tc="ok"}
+  else if(examDays>=14){trip="صعب، الشباب عندهم امتحانات";tc="no"}
+  else if(holyWeek||lentDays>=20){trip="الصوم الكبير: الأنسب يوم روحي أو خلوة";tc="maybe"}
+  else if(uniOff.length){trip=`مناسب في ${uniOff[0].name}`;tc="ok"}
+  else if(official.length){const h=official[0],d=parse(h.from),wd=d.getDay();const lw=[4,0,5,6].includes(wd);trip=`مناسب حوالين ${h.name} (${WD[wd]} ${d.getDate()})${lw?"، ويك إند طويل":""}`;tc="ok"}
+  else if(level===2){trip="الشهر زحمة، الأحسن نأجل";tc="no"}
+  else {trip="ممكن في أي ويك إند";tc="maybe"}
+  // coptic months
+  const cm=[...new Set(days.map(x=>x.c&&x.c.c.split(" ")[1]).filter(Boolean))].join(" ← ");
+  return {y,m,n,first,last,days,churchParts,holParts,ev,level,why,trip,tc,cm,examDays};
+}
+
+/* ---- one line about each weekly meeting ---- */
+function weekTheme(d){
+  for(let j=0;j<7;j++){const c=D.cal[iso(addDays(d,j))];if(c&&c.m&&c.f){const t=c.f.split("\n")[0];return j===0?t:`أسبوع ${t} (${WD[addDays(d,j).getDay()]})`}}
+  for(let j=0;j<7;j++){const c=D.cal[iso(addDays(d,j))];if(c&&c.f&&/بدء|برمون|كيهك|الصوم الكبير|الخمسين/.test(c.f)){return c.f.split("\n")[0]+(j?` (${WD[addDays(d,j).getDay()]})`:"")}}
+  const c=D.cal[iso(d)];if(!c)return "";
+  const f=fastName(c.fast);const s=(c.s==="الميلاد"&&d.getMonth()<=2&&iso(d)>=d.getFullYear()+"-01-20")?"الغطاس":c.s;return `موسم ${s}${f&&f!=="صوم أربعاء/جمعة"?" · "+f:""}`;
+}
+
+function startMonth(){const t=parse(D.today);const left=new Date(t.getFullYear(),t.getMonth()+1,0).getDate()-t.getDate();return new Date(t.getFullYear(),t.getMonth()+(left<7?1:0),1)}
+
+/* اللي اتعمل قبل كده في نفس الشهر (من جروب الاجتماع) */
+function pastFor(m){return (D.history||[]).filter(h=>h.m===m+1)}
+function shortName(n){return String(n).split(/[:(]/)[0].replace(/\s*\+.*$/,"").trim()}
+/* اللي اتعمل بالتاريخ: نفس الشهر في السنين اللي فاتت، الأحدث الأول */
+function pastDatesFor(m){return (D.pastDates||[]).filter(p=>+p.d.slice(5,7)===m+1).sort((a,b)=>b.d.slice(0,4)-a.d.slice(0,4)||a.d.localeCompare(b.d))}
+function pastPanel(m){
+  const rows=pastDatesFor(m);
+  if(rows.length)return `<section class="panel"><h3>اتعمل قبل كده في ${GM[m]}</h3>${rows.map(p=>{const d=parse(p.d);return `<div class="row"><div class="d num">${WD[d.getDay()]} ${d.getDate()}<small>${d.getFullYear()} · ${esc(p.type)}</small></div><div class="t">${esc(p.name)}${p.notes?`<div class="why">${esc(p.notes)}</div>`:""}</div></div>`}).join("")}</section>`;
+  const sum=pastFor(m);
+  return sum.length?`<section class="panel"><h3>اتعمل قبل كده في ${GM[m]}</h3>${sum.map(h=>`<div class="row"><div class="d"><small>${esc(h.type)}</small></div><div class="t">${esc(h.name)}<div class="why">اتعمل في ${esc(h.years)}${h.notes?" · "+esc(h.notes):""}</div></div></div>`).join("")}</section>`:"";
+}
+/* نفس الأسبوع في السنين اللي فاتت (من يوم الاجتماع لحد 6 أيام بعده، بنفس اليوم والشهر) */
+function pastWeek(d){
+  const keys=[];for(let j=0;j<7;j++){const x=addDays(d,j);keys.push(String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"))}
+  const rows=(D.pastDates||[]).filter(p=>keys.includes(p.d.slice(5))&&p.d<iso(d)).sort((a,b)=>b.d.localeCompare(a.d));
+  if(!rows.length)return "";
+  return `<div class="blk" style="grid-column:1/-1"><span class="lbl">قبل كده في نفس الأسبوع</span>${rows.map(p=>{const x=parse(p.d);return `<div>${x.getFullYear()}: ${esc(p.name)} <span class="muted">(${WD[x.getDay()]} ${x.getDate()} ${GM[x.getMonth()]})</span></div>`}).join("")}</div>`;
+}
+function renderYear(){
+  const s=startMonth();let html="";
+  for(let i=0;i<12;i++){
+    const d=new Date(s.getFullYear(),s.getMonth()+i,1),I=monthInfo(d.getFullYear(),d.getMonth());
+    const now=D.today.slice(0,7)===I.first.slice(0,7);
+    html+=`<button class="card ${now?"now":""}" data-m="${I.first.slice(0,7)}" aria-label="تفاصيل ${GM[I.m]}">
+      <div class="c-head"><h2>${GM[I.m]} ${I.y}<small>${esc(I.cm)}</small></h2><span class="pill p-${I.level}">${LEVEL[I.level]}</span></div>
+      <div class="line"><span class="k">الكنيسة</span><span class="v">${esc(I.churchParts.join(" · ")||"موسم عادي")}</span></div>
+      <div class="line"><span class="k">إجازات</span><span class="v">${esc(I.holParts.join(" · ")||"مفيش")}</span></div>
+      <div class="line"><span class="k">رحلة؟</span><span class="v trip-${I.tc}">${esc(I.trip)}</span></div>
+      ${pastFor(I.m).length?`<div class="line"><span class="k">قبل كده</span><span class="v muted">${esc(pastFor(I.m).slice(0,3).map(h=>shortName(h.name)).join(" · "))}</span></div>`:""}
+      ${I.why.length?`<div class="why">زحمة الشهر من: ${esc(I.why.join("، "))}</div>`:""}
+    </button>`;
+  }
+  $("year").innerHTML=html;
+  $("year").querySelectorAll(".card").forEach(b=>b.onclick=()=>{location.hash="m-"+b.dataset.m});
+}
+
+function renderMonth(ym){
+  const [y,mm]=ym.split("-").map(Number),I=monthInfo(y,mm-1);
+  const meets=[];
+  I.days.forEach(x=>D.weekly.forEach(w=>{if(x.d.getDay()===w.day)meets.push({x,w})}));
+  const rd=r=>r?(r.startsWith("http")?r:PDF_BASE+r):"";
+  $("month").innerHTML=`
+    <div class="mtop"><div><h2>${GM[I.m]} ${I.y}</h2><span class="muted">${esc(I.cm)}</span></div></div>
+    <div class="answers">
+      <div class="ans"><span class="q">الشهر زحمة؟</span><span class="a"><span class="pill p-${I.level}">${LEVEL[I.level]}</span></span>${I.why.length?`<span class="why">${esc(I.why.join("، "))}</span>`:""}</div>
+      <div class="ans"><span class="q">الكنيسة</span><span class="a">${esc(I.churchParts.join(" · ")||"موسم عادي")}</span></div>
+      <div class="ans"><span class="q">إجازات</span><span class="a">${esc(I.holParts.join(" · ")||"مفيش")}</span></div>
+      <div class="ans"><span class="q">رحلة؟</span><span class="a trip-${I.tc}">${esc(I.trip)}</span></div>
+    </div>
+    <section class="panel"><h3>الاجتماعات</h3>${meets.length?meets.map(({x,w})=>{const c=x.c||{};return `<div class="row ${x.k<D.today?"past":""}"><div class="d num">${WD[x.d.getDay()]} ${x.d.getDate()}<small>${esc(w.title.replace("اجتماع ",""))}${c.c?" · "+esc(c.c.split(" ").slice(0,2).join(" ")):""}</small></div><div class="t">${esc(weekTheme(x.d))}${c.r?` · <a href="${esc(rd(c.r))}" target="_blank" rel="noopener">القراءات</a>`:""}</div></div>`}).join(""):`<p class="empty">مفيش اجتماعات أسبوعية متسجلة.</p>`}</section>
+    <section class="panel"><h3>الإيفنتات</h3>${I.ev.length?I.ev.map(e=>`<div class="row ${(e.end||e.date)<D.today?"past":""}"><div class="d num">${dm(e.date)}${e.end&&e.end!==e.date?"–"+parse(e.end).getDate():""}<small>${esc(e.type||"")}</small></div><div class="t">${esc(e.title)}${e.committee?` <span class="muted">· ${esc(e.committee)}</span>`:""}</div></div>`).join(""):`<p class="empty">لسه مفيش إيفنتات متسجلة للشهر ده.</p>`}</section>
+    ${pastPanel(I.m)}`;
+}
+
+/* ---------- صفحة الاجتماع ---------- */
+const ST={"برا الكنيسة":"st-out","ملغي":"st-off","مع اجتماع تاني":"st-join"};
+let meetMonth=null;
+function prog(w,k){return ((D.programs||{})[w.title]||{})[k]||{}}
+function weekChurch(d){
+  const feasts=[];for(let j=0;j<7;j++){const x=addDays(d,j),c=D.cal[iso(x)];if(c&&c.f)c.f.split("\n").forEach(t=>feasts.push({t,x,j,m:c.m}))}
+  const c=D.cal[iso(d)]||{};return {c,feasts,fast:fastName(c.fast)}
+}
+function hintFor(d){
+  const k=iso(d),out=[];
+  (D.holidays||[]).forEach(h=>{const a=h.from,b=h.to||h.from;
+    if(h.type==="امتحانات"&&k>=a&&k<=b)out.push("الشباب في امتحانات: ممكن يتلغي أو يبقى قصير");
+    if(h.type==="رسمية"&&Math.abs((parse(a)-d)/864e5)<=1)out.push(`إجازة ${h.name}: فرصة يتعمل برا الكنيسة`)});
+  const c=D.cal[k];
+  if(c&&c.f&&/الآلام|العظيمة|خميس العهد/.test(c.f))out.push("أسبوع الآلام: الكل في صلوات البصخة");
+  else if(c&&c.m)out.push(`${c.f.split("\n")[0]} في نفس اليوم: ممكن يتلغي أو يبقى احتفال`);
+  return out;
+}
+const rd=r=>r?(r.startsWith("http")?r:PDF_BASE+r):"";
+function churchBlock(d,full){
+  const {c,feasts,fast}=weekChurch(d);
+  const fl=feasts.filter(f=>full||f.m||/بدء|برمون|كيهك/.test(f.t)).slice(0,full?8:3);
+  return `<div class="blk"><span class="lbl">الكنيسة الأسبوع ده</span>
+    <div>موسم ${esc(weekSeason(d,c))}${fast&&fast!=="صوم أربعاء/جمعة"?` · ${esc(fast)}`:""}</div>
+    ${fl.map(f=>`<div class="feast">◆ ${esc(f.t)} <span class="muted">(${f.j===0?"يوم الاجتماع":WD[f.x.getDay()]+" "+f.x.getDate()})</span></div>`).join("")}
+    ${weekSyn(d)}
+    ${c.r?`<a href="${esc(rd(c.r))}" target="_blank" rel="noopener">قراءات اليوم (القطمارس)</a>`:""}</div>`;
+}
+// سنكسار الأسبوع من يوم الاجتماع لحد اليوم اللي قبل الاجتماع الجاي
+function weekSyn(d){
+  const parts=[];let first="";
+  for(let j=0;j<7;j++){const x=addDays(d,j),c=D.cal[iso(x)];if(!c||!c.syn)continue;
+    if(!first)first=c.syn.split("\n")[0];
+    parts.push(`<b>${WD[x.getDay()]} ${x.getDate()} ${GM[x.getMonth()]}${c.c?" · "+esc(c.c.split(" ").slice(0,2).join(" ")):""}</b>\n${esc(c.syn)}`)}
+  if(!parts.length)return "";
+  return `<details class="syn"><summary>سنكسار الأسبوع (${parts.length} أيام): ${esc(first)}…</summary><p>${parts.join("\n\n")}</p></details>`;
+}
+function weekSeason(d,c){return (c.s==="الميلاد"&&d.getMonth()<=2&&iso(d)>=d.getFullYear()+"-01-20")?"الغطاس":(c.s||"")}
+function progBlock(p){
+  return `<div class="blk"><span class="lbl">البرنامج</span>${p.topic?`<div><b>${esc(p.topic)}</b></div>`:`<div class="todo">الموضوع لسه متكتبش</div>`}
+    ${p.speaker?`<div>${esc(p.speaker)}</div>`:""}${p.place?`<div class="muted">المكان: ${esc(p.place)}</div>`:""}${p.notes?`<div class="muted">${esc(p.notes)}</div>`:""}</div>`;
+}
+function renderMeet(idx){
+  const w=D.weekly[idx];if(!w){location.hash="year";return}
+  const t=parse(D.today);
+  let nx=t;for(let i=0;i<7;i++){const x=addDays(t,i);if(x.getDay()===w.day){nx=x;break}}
+  if(!meetMonth)meetMonth=new Date(nx.getFullYear(),nx.getMonth(),1);
+  const p=prog(w,iso(nx)),hints=hintFor(nx),c=D.cal[iso(nx)]||{};
+  const y=meetMonth.getFullYear(),m=meetMonth.getMonth(),n=new Date(y,m+1,0).getDate();
+  const rows=[];for(let i=1;i<=n;i++){const d=new Date(y,m,i);if(d.getDay()!==w.day)continue;const k=iso(d),pp=prog(w,k),cc=D.cal[k]||{},h=hintFor(d);
+    rows.push(`<details class="mrow ${k<D.today?"past":""}"><summary><span class="d num">${WD[d.getDay()]} ${d.getDate()}<small>${esc(cc.c?cc.c.split(" ").slice(0,2).join(" "):"")}</small></span><span>${esc(weekTheme(d))}</span><span class="prog ${pp.topic?"":"todo"}">${esc(pp.topic||"—")}</span><span>${pp.status&&pp.status!=="عادي"?`<span class="st ${ST[pp.status]||""}">${esc(pp.status)}</span>`:h.length?`<span class="st st-join">تنبيه</span>`:""}</span></summary>
+      <div class="more">${churchBlock(d,true)}${progBlock(pp)}${pastWeek(d)}${h.length?`<div class="hint" style="grid-column:1/-1">${h.map(esc).join("<br>")}</div>`:""}</div></details>`)}
+  $("meet").innerHTML=`
+    <div class="next">
+      <div class="when"><h2>الاجتماع الجاي: ${WD[nx.getDay()]} ${nx.getDate()} ${GM[nx.getMonth()]}</h2><span class="muted num">${esc(c.c||"")} · الساعة ${esc(w.time)}${p.status&&p.status!=="عادي"?` · <span class="st ${ST[p.status]||""}">${esc(p.status)}</span>`:""}</span></div>
+      ${churchBlock(nx,true)}${progBlock(p)}${pastWeek(nx)}
+      ${hints.length?`<div class="hint">${hints.map(esc).join("<br>")}</div>`:""}
+    </div>
+    <section class="panel">
+      <div class="mtop"><h3 style="margin:0">${GM[m]} ${y}</h3><div class="actions"><button type="button" id="mPrev">→</button><button type="button" id="mNext">←</button></div></div>
+      <div class="muted" style="font-size:.8rem;margin-bottom:4px">دوس على أي اجتماع تشوف تفاصيله</div>
+      ${rows.join("")||`<p class="empty">مفيش اجتماعات الشهر ده.</p>`}
+    </section>
+    ${D.sheetUrl?`<p class="muted" style="font-size:.85rem">البرنامج بيتكتب في تاب "برنامج ${esc(w.title.replace("اجتماع ",""))}" في الشيت.</p>`:""}`;
+  $("mPrev").onclick=()=>{meetMonth=new Date(y,m-1,1);renderMeet(idx)};
+  $("mNext").onclick=()=>{meetMonth=new Date(y,m+1,1);renderMeet(idx)};
+}
+
+/* ================= صفحة الشباب ================= */
+const tm=t=>{t=String(t||"");if(/^0?\.\d+$/.test(t)){const m=Math.round(parseFloat(t)*1440);return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}return t};
+const dl=s=>{const d=parse(s);return `${WD[d.getDay()]} ${d.getDate()} ${GM[d.getMonth()]}`};
+const daysAgo=s=>Math.round((parse(D.today)-parse(s))/864e5);
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const pub=e=>e.show==="الكل"&&e.status!=="اتلغى";
+const STARS=["1","2","3","4","5"];
+const Q_YOUTH=[{t:"stars",l:"تقييمك العام",req:1},{t:"text",l:"أحلى حاجة في اليوم؟"},{t:"text",l:"حاجة محتاجة تتحسن؟"},{t:"chips",l:"تيجي الإيفنت ده تاني؟",o:["أيوه","يمكن","لأ"],req:1}];
+const Q_MEET=[{t:"stars",l:"الاجتماع كان عامل إزاي؟",req:1},{t:"text",l:"أحلى حاجة؟"},{t:"text",l:"حاجة محتاجة تتحسن؟"},{t:"chips",l:"هتيجي الأسبوع الجاي؟",o:["أيوه","يمكن","لأ"],req:1}];
+const Q_SERV=[{t:"chips",l:"الحضور كان قد المتوقع؟",o:["أقل","زي ما توقعنا","أكتر"],req:1},{t:"stars",l:"التنظيم",req:1},{t:"stars",l:"الالتزام بالميعاد والميزانية",req:1},{t:"text",l:"أكبر مشكلة حصلت"},{t:"chips",l:"نعمله تاني السنة الجاية؟",o:["أيوه بنفس الشكل","أيوه بتعديل","لأ"],req:1}];
+const Q_MONTH=[{t:"chips",l:"حضور الاجتماعات الشهر ده",o:["أقل","زي العادي","أكتر"],req:1},{t:"stars",l:"الروح والتفاعل",req:1},{t:"stars",l:"التنظيم والتنسيق بين الخدام",req:1},{t:"chips",l:"الافتقاد اتعمل؟",o:["أيوه","جزئي","لأ"],req:1},{t:"text",l:"مشكلة واحدة أو اقتراح واحد"}];
+let FID=0;
+/* فورم صغير بيتفتح جوه الكارت */
+function openForm(box,qs,send,doneMsg,intro){
+  if(box.querySelector("form")){box.querySelector("form").remove();return}
+  const id="f"+(++FID),f=document.createElement("form");
+  f.innerHTML=(intro?`<p style="margin:0">${esc(intro)}</p>`:"")+qs.map((q,i)=>`<div><div class="small muted">${esc(q.l)}${q.req?" *":""}${q.t==="multi"?" (تقدر تختار أكتر من واحدة)":""}</div>${q.t==="text"?`<textarea name="q${i}" rows="2"></textarea>`:q.t==="input"?`<input name="q${i}" ${q.type?`type="${q.type}" inputmode="tel"`:""}>`:`<div class="chips">${(q.o||STARS).map(o=>`<label><input type="${q.t==="multi"?"checkbox":"radio"}" name="q${i}" value="${esc(o)}"><span>${q.t==="stars"?"★".repeat(+o):esc(o)}</span></label>`).join("")}</div>`}</div>`).join("")+`<div class="btns"><button type="submit" class="primary">ابعت</button></div><div class="msg small"></div>`;
+  f.onsubmit=e=>{e.preventDefault();const a=qs.map((q,i)=>{if(q.t==="multi")return [...f.querySelectorAll(`[name="q${i}"]:checked`)].map(x=>x.value).join("، ");const el=f.elements["q"+i];return el?(el.value||"").trim():""});
+    const miss=qs.findIndex((q,i)=>q.req&&!a[i]);const msg=f.querySelector(".msg");
+    if(miss>=0){msg.className="msg small err";msg.textContent="ناقص: "+qs[miss].l;return}
+    f.querySelector("button").disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
+    send(a,r=>{f.outerHTML=`<p class="ok">${doneMsg(r)}</p>`},err=>{f.querySelector("button").disabled=false;msg.className="msg small err";msg.textContent=err})};
+  box.appendChild(f);
+}
+function renderHome(){
+  const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
+  const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
+  // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
+  const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
+  const rate=lastMeets.concat(recent);
+  // مفاجأة: لحد يوم البداية، الاجتماع ده بيظهر للشباب كاجتماع الأحد من غير اسمه الجديد
+  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",day:0,short:"اجتماع الأحد"}};
+  const meets=D.weekly.map(w=>{const s=SURPRISE[w.title],hide=s&&t<s.until;if(hide)w=Object.assign({},w,{day:s.day,short:s.short});let d=parse(t);for(let i=0;i<7;i++){const x=addDays(d,i);if(x.getDay()===w.day){d=x;break}}const p=hide?{}:prog(w,iso(d));return {w,d,p}});
+  $("home").innerHTML=`
+    ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
+    <section class="panel"><h3>الاجتماعات الأسبوع ده</h3>${meets.map(({w,d,p})=>`<div class="row"><div class="d num">${esc(w.short||w.title.replace("اجتماع ",""))}<small>${esc(tm(w.time))}</small></div><div class="t"><b>${dl(iso(d))}</b>${p.status==="ملغي"?` · <span class="st st-off">مفيش اجتماع</span>`:`${p.topic?`<br>${esc(p.topic)}`:""}${p.status==="برا الكنيسة"?` · <span class="st st-out">برا الكنيسة${p.place?": "+esc(p.place):""}</span>`:""}`}</div></div>`).join("")}</section>
+    ${rate.length?`<section class="panel"><h3>قيّم اللي فات</h3>${rate.map(e=>`<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></div>`).join("")}<p class="muted small">التقييم من غير اسم.</p></section>`:""}
+    <section class="panel"><h3>الإيفنتات الجاية</h3>${soon.length?soon.map(e=>`<div class="row"><div class="d num">${dm(e.date)}<small>${esc(e.type)}</small></div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${e.booking?(lsGet("bk_"+e.row+e.title)?`<span class="ok small">اتحجز ✓</span>`:`<div class="btns"><button type="button" class="primary bk">احجز</button></div>`):""}</div></div>`).join(""):`<p class="empty">مفيش إيفنتات متأكدة دلوقتي.</p>`}</section>
+`;
+  const ev=r=>D.events.find(e=>e.row===+r);
+  $("home").querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=ev(box.dataset.row);
+    openForm(box,[{t:"input",l:"الاسم",req:1},{t:"input",l:"رقم الموبايل",type:"tel",req:1},{t:"text",l:"ملاحظات (اختياري)"}],
+      (a,ok,fail)=>callApi("book",{row:e.row,title:e.title,name:a[0],phone:a[1],notes:a[2]},r=>{lsSet("bk_"+e.row+e.title,"1");ok(r)},fail),
+      r=>`اتحجز ✓${r&&r.pay?"<br><span class='muted'>الدفع: "+esc(r.pay)+"</span>":""}`)});
+  $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rate.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
+    openForm(box,cq&&cq.qs.length?cq.qs:e.meet?Q_MEET:Q_YOUTH,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:e.title+" ("+e.date+")",answers:a},r=>{lsSet("rt_"+e.row+e.title+e.date,"1");ok(r)},fail),()=>esc(cq&&cq.thanks||"شكرا على رأيك ✓"),cq&&cq.intro)});
+}
+
+/* ================= المتابعة (للخدام) ================= */
+const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((a,b)=>a+b,0)/n.length).toFixed(1):""};
+function renderFollow(){
+  const t=D.today,in30=iso(addDays(parse(t),30));
+  const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
+  const late=open.filter(e=>(e.end||e.date)<t),now=open.filter(e=>(e.end||e.date)>=t&&e.date<=in30),later=open.filter(e=>e.date>in30);
+  const taskRow=e=>`<div class="row" data-row="${e.row}"><div class="d num">${dm(e.date)}<small>${esc(e.committee||e.type)}</small></div><div class="t"><b>${esc(e.title)}</b>${(e.end||e.date)<t?` <span class="late small">متأخر</span>`:""}<div class="why">${esc([e.owner&&"المسؤول: "+e.owner,e.status,e.notes].filter(Boolean).join(" · "))}</div><div class="btns" style="margin-top:4px"><button type="button" class="dn small">✓ خلصت</button></div></div></div>`;
+  // bookings grouped by event
+  const bk={};(D.bookings||[]).forEach(b=>{(bk[b.event+"|"+b.date]=bk[b.event+"|"+b.date]||[]).push(b)});
+  const bookEvents=D.events.filter(e=>e.booking||bk[e.title+"|"+e.date]).filter(e=>(e.end||e.date)>=iso(addDays(parse(t),-14)));
+  // evaluations
+  const ev=D.evals||[];
+  const recent=D.events.filter(e=>e.type!=="ديدلاين"&&e.status!=="اتلغى"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=30).sort((a,b)=>b.date.localeCompare(a.date));
+  const tgt=e=>e.title+" ("+e.date+")";
+  const notes=[];ev.forEach(r=>{if(r.closed)return;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])notes.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
+  const mName=GM[parse(t).getMonth()]+" "+parse(t).getFullYear(),prevD=new Date(parse(t).getFullYear(),parse(t).getMonth()-1,1),prevName=GM[prevD.getMonth()]+" "+prevD.getFullYear();
+  const mScore=n=>{const rs=ev.filter(r=>r.kind==="شهري"&&r.target===n);return rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""};
+  $("follow").innerHTML=`
+    ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
+    <section class="panel"><h3>مفتوح ومحتاج يتقفل (${late.length+now.length})</h3>
+      ${late.length+now.length?late.concat(now).map(taskRow).join(""):`<p class="empty">مفيش حاجة مفتوحة الشهر ده.</p>`}
+      ${later.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">بعد كده (${later.length})</summary>${later.map(taskRow).join("")}</details>`:""}
+    </section>
+    <section class="panel"><h3>الحجوزات</h3>${bookEvents.length?bookEvents.map(e=>{const L=bk[e.title+"|"+e.date]||[],paid=L.filter(b=>b.paid).length;return `<details class="mrow"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length} حجز · ${paid} دفع</span><span></span></summary>${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t">${esc(b.name)} · <span class="num" dir="ltr">${esc(b.phone)}</span>${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}</details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات.</p>`}</section>
+    <section class="panel"><h3>التقييمات</h3>
+      ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b><span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span><div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
+      <div class="row"><div class="d">الشهر</div><div class="t ev"><b>تقييم ${esc(mName)}</b><span class="meta">${mScore(mName)?`★ ${mScore(mName)}`:"لسه متقيمش"}${mScore(prevName)?` (الشهر اللي فات ★ ${mScore(prevName)})`:""}</span><div class="btns"><button type="button" class="mo small">قيّم الشهر</button></div></div></div>
+    </section>
+    ${notes.length?`<section class="panel"><h3>ملاحظات مفتوحة (${notes.length})</h3>${notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t">${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">اتقفلت</button></div></div></div>`).join("")}</section>`:""}
+    <p class="small muted">${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
+  const F=$("follow"),fail=b=>m=>{b.disabled=false;b.textContent=m};
+  F.querySelectorAll(".dn").forEach(b=>b.onclick=()=>{const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row);b.disabled=true;b.textContent="…";
+    callApi("done",{row,title:e.title},()=>{e.status="تم";renderFollow()},fail(b))});
+  F.querySelectorAll(".pd").forEach(c=>c.onchange=()=>{const b=(D.bookings||[]).find(x=>x.row===+c.dataset.row);c.disabled=true;callApi("paid",{row:b.row,value:c.checked},()=>{b.paid=c.checked;c.disabled=false},m=>{c.checked=!c.checked;c.disabled=false;alert(m)})});
+  F.querySelectorAll(".cl").forEach(b=>b.onclick=()=>{const r=ev.find(x=>x.row===+b.dataset.row);b.disabled=true;callApi("closeEval",{row:r.row},()=>{r.closed=true;renderFollow()},fail(b))});
+  F.querySelectorAll(".sv").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=D.events.find(x=>x.row===+box.dataset.row);
+    openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
+  F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:mName,answers:a},ok,f),()=>"اتسجل ✓"));
+  $("logout").onclick=e=>{e.preventDefault();logout()};
+}
+
+function renderNav(cur){
+  if(!D.level){$("views").hidden=true;return}
+  const items=[["follow","المتابعة"],["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
+  $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===cur?'aria-current="page"':""}>${esc(l)}</a>`).join("");
+}
+
+function route(){
+  let h=location.hash.slice(1);
+  if(!D.level)h="home";                                   // الشباب بيشوفوا صفحتهم بس
+  else if(!h)h="follow";
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow";
+  $("year").hidden=!!(m||mt||isHome||isFollow);$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  $("home").hidden=!isHome;$("follow").hidden=!isFollow;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow;
+  const w=mt&&D.weekly[+mt[1]-1];
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow?"follow":"year");
+  if(isHome)renderHome();
+  if(isFollow)renderFollow();
+  if(m)renderMonth(m[1]);
+  if(mt){meetMonth=null;renderMeet(+mt[1]-1)}
+  window.scrollTo(0,0);
+}
+
+function start(data){
+  D=data;D.holidays=D.holidays||[];
+  const t=parse(D.today),c=D.cal[D.today];
+  $("sub").textContent=`النهارده ${WD[t.getDay()]} ${t.getDate()} ${GM[t.getMonth()]}${c?" · "+c.c:""}`;
+  $("updated").textContent=D.updated?`آخر تحديث: ${D.updated}`:"";
+  $("previewNote").hidden=!D.preview;$("pdfBtn").hidden=!!D.preview;
+  $("staff").hidden=!!D.level;
+  document.querySelector("footer span").hidden=!D.level;
+  if(D.sheetUrl){$("sheetLink").href=D.sheetUrl;$("sheetLink").hidden=false}
+  $("pdfBtn").onclick=()=>window.print();
+  $("back").onclick=()=>{location.hash="year"};
+  if(!startedOnce){startedOnce=true;$("login").onsubmit=e=>{e.preventDefault();const k=$("pw").value.trim();if(!k)return;$("loginMsg").textContent="";load(k,true)}}
+  if(window.START_VIEW&&!location.hash){try{history.replaceState(null,"","#"+window.START_VIEW)}catch(e){location.hash=window.START_VIEW}}
+  renderYear();route();
+  if(!hashBound){hashBound=true;window.addEventListener("hashchange",route)}
+}
+
+/* الباسورد: من اللينك (?k=) أو اللي اتكتب قبل كده على نفس الموبايل */
+let KEY="";try{KEY=window.VIEW_KEY||localStorage.getItem("gsyf_key")||""}catch(e){KEY=window.VIEW_KEY||""}
+// كل البيانات بتيجي من Apps Script (نفس الشيت). الصفحة نفسها على GitHub Pages فبتفتح فورًا.
+const API="https://script.google.com/macros/s/AKfycbxIUqWldwsg62dQ9WzmNdkbJCPXYyj6XLdQXB615QJ048366UsdQpCrnQYZzmp_QnpZ/exec";
+const CACHE_KEY="gsyf_pub_data";
+function apiGet(params){return fetch(API+"?"+new URLSearchParams(params)).then(r=>r.json())}
+function load(k,fromLogin){
+  if(PREVIEW_DATA){start(PREVIEW_DATA);return}
+  const key=k===undefined?KEY:k;
+  // صفحة الشباب: اعرض آخر بيانات اتشافت على طول، وحدّث في الخلفية
+  if(!key&&!fromLogin&&!D){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");if(c){start(c);$("updated").textContent="بيتحدث…"}}catch(e){}}
+  else if(!D){$("sub").textContent="بيحمّل…"}
+  apiGet({api:"data",k:key}).then(d=>{
+    if(d&&d.ok===false)throw new Error(d.error);
+    if(fromLogin&&!d.level){$("loginMsg").textContent="الباسورد غلط";return}
+    if(k!==undefined)KEY=k;
+    try{d.level?localStorage.setItem("gsyf_key",KEY):localStorage.removeItem("gsyf_key")}catch(e){}
+    if(!d.level){try{localStorage.setItem(CACHE_KEY,JSON.stringify(d))}catch(e){}}
+    if(fromLogin)location.hash="follow";
+    const h=location.hash;start(d);if(h&&location.hash!==h)location.hash=h;
+  }).catch(err=>{if(!D)$("sub").textContent="مقدرناش نقرا البيانات، جرّب تاني: "+String(err&&err.message||err);else $("updated").textContent="مقدرناش نحدّث دلوقتي"});
+}
+/* أي كتابة في الشيت */
+function callApi(action,payload,ok,fail){
+  if(PREVIEW_DATA){setTimeout(()=>ok({ok:true,pay:"إنستاباي 01xxxxxxxxx (تجربة)"}),300);return}
+  apiGet({api:"write",a:action,p:JSON.stringify(payload),k:KEY}).then(r=>{if(r&&r.ok===false)fail(r.error||"حصلت مشكلة");else ok(r)}).catch(e=>fail("مفيش اتصال، جرّب تاني"));
+}
+function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}KEY="";location.hash="";load("")}
+load();
+</script>
+</body>
+</html>
