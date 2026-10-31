@@ -10,6 +10,12 @@
 <meta property="og:image" content="https://morcoseid.github.io/GSYF/og.png">
 <meta name="theme-color" content="#5A0E09">
 <link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="G.S.Y. Family">
 <script>(function(){var q=new URLSearchParams(location.search);window.VIEW_KEY=q.get("k")||"";var m=q.get("m");window.START_VIEW=/^\d+$/.test(m||"")?"meet-"+m:"";})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&family=Aref+Ruqaa:wght@700&family=Cinzel:wght@700&display=swap">
@@ -262,6 +268,10 @@ body.youth #staff{text-align:center}
 .ap-btns button{font-size:1.05rem;padding:12px;border-radius:12px;font-weight:700}
 .ap-ok{background:#2E7D4F!important;border-color:#2E7D4F!important;color:#fff!important}
 .ap-no{background:transparent;color:#B23A2E!important;border-color:#B23A2E!important}
+
+.inst-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
+.inst-btn{background:transparent!important;color:var(--goldhi)!important;border:1.5px solid var(--goldhi)!important;border-radius:999px;padding:8px 20px;font-weight:700}
+.inst-ios{max-width:300px;opacity:.85;margin:0}
 </style>
 </head>
 <body>
@@ -565,7 +575,7 @@ function renderHome(){
     ${rate.length?`<section class="y-sec"><h2 class="y-h">رأيك يفرق</h2><div class="y-cards">${rate.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
     ${lockClose}
     ${locked?"":regSec}
-    <section class="y-follow"><div class="wings sm" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div><div class="w" dir="ltr">G.S.Y. FAMILY</div><div>تابع أخبار الخدمة أول بأول</div><div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div><div class="small" dir="ltr" style="opacity:.75">WhatsApp: +20 120 069 0490</div></section>
+    <section class="y-follow"><div class="wings sm" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div><div class="w" dir="ltr">G.S.Y. FAMILY</div><div>تابع أخبار الخدمة أول بأول</div>${installBtn()}<div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div><div class="small" dir="ltr" style="opacity:.75">WhatsApp: +20 120 069 0490</div></section>
 `;
   const ev=r=>D.events.find(e=>e.row===+r);
   $("home").querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=ev(box.dataset.row);
@@ -581,6 +591,16 @@ function renderHome(){
 }
 
 
+
+/* ================= تنزيل الصفحة كأبلكيشن (PWA) ================= */
+let deferredInstall=null;
+const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;document.querySelectorAll(".inst-wrap").forEach(x=>x.hidden=false)});
+function installBtn(){if(isStandalone())return "";return `<div class="inst-wrap"${deferredInstall||isIOS()?"":" hidden"}><button type="button" class="inst-btn" onclick="doInstall(this)">📲 نزّل أبلكيشن G.S.Y. Family</button><p class="inst-ios small" hidden>على الآيفون: دوس على زرار المشاركة <b>⬆︎</b> تحت في Safari، وبعدين <b>Add to Home Screen</b>.</p></div>`}
+function doInstall(b){if(deferredInstall){deferredInstall.prompt();deferredInstall.userChoice.finally(()=>{deferredInstall=null;b.closest(".inst-wrap").hidden=true});return}
+  const t=b.parentElement.querySelector(".inst-ios");t.hidden=!t.hidden}
+if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 /* ================= التسجيل (الشباب) ================= */
 const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع. أول ما نوافق عليه الصفحة كلها هتتفتح لك."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
 // زرار واتساب الخدمة (بيفتح الشات على طول برسالة جاهزة)
