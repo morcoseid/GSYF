@@ -199,6 +199,24 @@ body.youth #staff{text-align:center}
 .wordmark{font-size:clamp(2.3rem,10vw,4rem);letter-spacing:.06em;margin-inline-start:0}
 @media (prefers-reduced-motion:reduce){.wings{animation:none}}
 .soc{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+
+.y-meet.pale{opacity:.45;filter:grayscale(.6)}
+.y-meet .cx{display:inline-block;background:rgba(0,0,0,.35);color:#fff;border-radius:999px;padding:1px 12px;font-weight:600}
+.y-meet.surprise{border-color:var(--goldhi);box-shadow:0 0 0 1px rgba(228,196,126,.35),0 10px 30px rgba(90,14,9,.35)}
+.y-meet.surprise .nm{font-family:var(--kufi);font-size:1.35rem;color:var(--goldhi)}
+.y-feat{position:relative;overflow:hidden;border-radius:22px;color:var(--onnavy);background:radial-gradient(120% 140% at 100% 0%,var(--navy2),var(--navy) 50%,var(--ink));border:1px solid rgba(228,196,126,.45);box-shadow:0 14px 40px rgba(90,14,9,.3)}
+.y-feat::before{content:"";position:absolute;inset:0;background:radial-gradient(60% 80% at 10% 100%,rgba(228,196,126,.18),transparent 70%);pointer-events:none}
+.y-feat .ft-in{position:relative;padding:22px 20px;display:flex;flex-direction:column;gap:8px}
+.ft-tag{align-self:flex-start;font-family:var(--kufi);font-size:.9rem;background:var(--goldhi);color:var(--ink);border-radius:999px;padding:2px 14px}
+.y-feat h2{font-family:var(--kufi);font-size:clamp(1.8rem,8vw,2.6rem);color:var(--goldhi);line-height:1.2}
+.ft-sub{margin:0;font-size:.88rem;opacity:.8}.ft-txt{margin:0;font-size:1.02rem}
+.y-feat .btns .primary{font-size:1.05rem;padding:10px 28px}
+.y-feat form{background:rgba(255,251,246,.97)!important;color:var(--y-fg,#1A0D0B);--surface:#FFFBF6;--fg:#1A0D0B;--muted:#6E5D55;--line:#E9DCCF}
+.y-feat .ok{color:var(--goldhi)}
+.y-reg{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.y-reg .btns{display:flex;flex-wrap:wrap;gap:8px}
+.rg-st{display:flex;gap:12px;align-items:center}.rg-ic{font-size:1.8rem;flex:none}
+.rg-msg{font-weight:600}
 </style>
 </head>
 <body>
@@ -456,7 +474,7 @@ let FID=0;
 function openForm(box,qs,send,doneMsg,intro){
   if(box.querySelector("form")){box.querySelector("form").remove();return}
   const id="f"+(++FID),f=document.createElement("form");
-  f.innerHTML=(intro?`<p style="margin:0">${esc(intro)}</p>`:"")+qs.map((q,i)=>`<div><div class="small muted">${esc(q.l)}${q.req?" *":""}${q.t==="multi"?" (تقدر تختار أكتر من واحدة)":""}</div>${q.t==="text"?`<textarea name="q${i}" rows="2"></textarea>`:q.t==="input"?`<input name="q${i}" ${q.type?`type="${q.type}" inputmode="tel"`:""}>`:`<div class="chips">${(q.o||STARS).map(o=>`<label><input type="${q.t==="multi"?"checkbox":"radio"}" name="q${i}" value="${esc(o)}"><span>${q.t==="stars"?"★".repeat(+o):esc(o)}</span></label>`).join("")}</div>`}</div>`).join("")+`<div class="btns"><button type="submit" class="primary">ابعت</button></div><div class="msg small"></div>`;
+  f.innerHTML=(intro?`<p style="margin:0">${esc(intro)}</p>`:"")+qs.map((q,i)=>`<div><div class="small muted">${esc(q.l)}${q.req?" *":""}${q.t==="multi"?" (تقدر تختار أكتر من واحدة)":""}</div>${q.t==="text"?`<textarea name="q${i}" rows="2"></textarea>`:q.t==="input"?`<input name="q${i}" ${q.type?`type="${q.type}"${q.type==="tel"?` inputmode="tel"`:""}${q.type==="email"?` dir="ltr" autocomplete="email"`:""}`:""}>`:`<div class="chips">${(q.o||STARS).map(o=>`<label><input type="${q.t==="multi"?"checkbox":"radio"}" name="q${i}" value="${esc(o)}"><span>${q.t==="stars"?"★".repeat(+o):esc(o)}</span></label>`).join("")}</div>`}</div>`).join("")+`<div class="btns"><button type="submit" class="primary">ابعت</button></div><div class="msg small"></div>`;
   f.onsubmit=e=>{e.preventDefault();const a=qs.map((q,i)=>{if(q.t==="multi")return [...f.querySelectorAll(`[name="q${i}"]:checked`)].map(x=>x.value).join("، ");const el=f.elements["q"+i];return el?(el.value||"").trim():""});
     const miss=qs.findIndex((q,i)=>q.req&&!a[i]);const msg=f.querySelector(".msg");
     if(miss>=0){msg.className="msg small err";msg.textContent="ناقص: "+qs[miss].l;return}
@@ -469,15 +487,25 @@ function renderHome(){
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
   // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
-  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",day:0,short:"اجتماع الأحد"}};
-  const rate=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
-  // مفاجأة: لحد يوم البداية، الاجتماع ده بيظهر للشباب كاجتماع الأحد من غير اسمه الجديد
-  const meets=D.weekly.map(w=>{const s=SURPRISE[w.title],hide=s&&t<s.until;if(hide)w=Object.assign({},w,{day:s.day,short:s.short});let d=parse(t);for(let i=0;i<7;i++){const x=addDays(d,i);if(x.getDay()===w.day){d=x;break}}const p=hide?{}:prog(w,iso(d));return {w,d,p}});
+  // مفاجأة +25: لحد 20 نوفمبر الجمعة بتظهر "انتظروا مفاجأة" بتاريخ البداية، والأحد القديم باهت ومكتوب ملغي
+  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",old:"اجتماع الأحد",oldDay:0}};
+  const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
+  // إيفنت ليه فورم تقييم خاص = بيظهر كبير فوق خالص لحد ما يخلص وقت التقييم
+  const feat=recent.filter(e=>(D.evalQs||{})[e.title]).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const rate=rate0.filter(e=>e!==feat);
+  const meets=[];
+  D.weekly.forEach(w=>{const sp=SURPRISE[w.title];
+    if(sp&&t<sp.until){meets.push({w:Object.assign({},w,{short:"انتظروا مفاجأة ✨"}),d:parse(sp.until),p:{},cls:"surprise"});
+      let o=parse(t);for(let i=0;i<7&&o.getDay()!==sp.oldDay;i++)o=addDays(o,1);meets.push({w:{title:sp.old,short:sp.old},d:o,p:{status:"ملغي"},cls:"pale"});return}
+    let d=parse(t);for(let i=0;i<7;i++){const x=addDays(d,i);if(x.getDay()===w.day){d=x;break}}meets.push({w,d,p:prog(w,iso(d))})});
   const E='<svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg>';
   const dbox=s=>{const d=parse(s);return `<div class="y-date"><b class="num">${d.getDate()}</b><span>${GM[d.getMonth()]}</span></div>`};
+  const fq=feat&&D.evalQs[feat.title],fDone=feat&&lsGet("rt_"+feat.row+feat.title+feat.date);
   $("home").innerHTML=`
+    ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">قيّم الحفلة 🎉</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في الحفلة الجاية. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
     ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="y-news"><span class="y-tag">إعلان</span><div>${esc(n.text)}</div></div>`).join("")}
-    <section class="y-sec"><h2 class="y-h">اجتماعات الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
+    <section class="y-sec"><h2 class="y-h">اجتماعات الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
+    <section class="y-sec" id="regSec"><h2 class="y-h">انضم لـ G.S.Y. Family</h2><div class="y-reg" id="regBox"></div></section>
     <section class="y-sec"><h2 class="y-h">الإيفنتات الجاية</h2>${soon.length?`<div class="y-cards">${soon.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${e.booking?(lsGet("bk_"+e.row+e.title)?`<span class="ok small">اتحجز ✓</span>`:`<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>`):""}</div></article>`).join("")}</div>`:`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
     ${rate.length?`<section class="y-sec"><h2 class="y-h">رأيك يفرق</h2><div class="y-cards">${rate.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
     <section class="y-follow"><div class="wings sm" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div><div class="w" dir="ltr">G.S.Y. FAMILY</div><div>تابع أخبار الخدمة أول بأول</div><div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div><div class="small" dir="ltr" style="opacity:.75">WhatsApp: +20 120 069 0490</div></section>
@@ -487,12 +515,40 @@ function renderHome(){
     openForm(box,[{t:"input",l:"الاسم",req:1},{t:"input",l:"رقم الموبايل",type:"tel",req:1},{t:"text",l:"ملاحظات (اختياري)"}],
       (a,ok,fail)=>callApi("book",{row:e.row,title:e.title,name:a[0],phone:a[1],notes:a[2]},r=>{lsSet("bk_"+e.row+e.title,"1");ok(r)},fail),
       r=>`اتحجز ✓${r&&r.pay?"<br><span class='muted'>الدفع: "+esc(r.pay)+"</span>":""}`)});
+  const fg=$("home").querySelector(".ft-go");if(fg)fg.onclick=()=>{const box=fg.closest(".ev");fg.parentElement.remove();box.querySelector(".ft-txt").remove();
+    openForm(box,fq.qs,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:feat.title+" ("+feat.date+")",answers:a},r=>{lsSet("rt_"+feat.row+feat.title+feat.date,"1");ok(r)},fail),()=>esc(fq.thanks||"شكرا على رأيك 💛"),fq.intro)};
+  renderReg();
   $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rate.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
     openForm(box,cq&&cq.qs.length?cq.qs:e.meet?Q_MEET:Q_YOUTH,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:e.title+" ("+e.date+")",answers:a},r=>{lsSet("rt_"+e.row+e.title+e.date,"1");ok(r)},fail),()=>esc(cq&&cq.thanks||"شكرا على رأيك ✓"),cq&&cq.intro)});
 }
 
+
+/* ================= التسجيل (الشباب) ================= */
+const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع، هنرد عليك قريب."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
+function renderReg(){
+  const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
+  if(em){box.innerHTML=`<div class="rg-st"><span class="rg-ic">…</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">بنشوف…</div></div></div><div class="btns"><button type="button" class="rg-out small">مش أنا / إيميل تاني</button></div>`;
+    box.querySelector(".rg-out").onclick=()=>{lsSet("gsyf_reg","");renderReg()};
+    callApi("regStatus",{email:em},r=>{const st=REG_ST[r.status];if(!st){box.querySelector(".rg-msg").textContent="مش لاقيين طلب بالإيميل ده.";box.querySelector(".rg-ic").textContent="?";return}
+      box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1];box.querySelector(".rg-st").dataset.s=r.status},m=>{box.querySelector(".rg-msg").textContent=m});
+    return}
+  box.innerHTML=`<p style="margin:0">سجّل بياناتك عشان تبقى من الأسرة وتوصلك كل أخبارنا. بعد ما تبعت هنراجع الطلب وتقدر تتابع حالته من هنا.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">سجلت قبل كده؟ تابع طلبك</button></div>`;
+  box.querySelector(".rg-new").onclick=()=>{box.querySelector(".btns").remove();
+    openForm(box,[{t:"input",l:"الاسم بالكامل",req:1},{t:"input",l:"تاريخ الميلاد",type:"date",req:1},{t:"input",l:"الإيميل",type:"email",req:1}],
+      (a,ok,fail)=>{if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a[2]))return fail("الإيميل مش مظبوط");callApi("register",{name:a[0],birth:a[1],email:a[2]},r=>{lsSet("gsyf_reg",a[2].toLowerCase());ok(r)},fail)},
+      r=>{setTimeout(renderReg,1800);return r&&r.existed?"إنت مسجل قبل كده، هنوريك حالة طلبك…":"طلبك وصل ✓ هنراجعه ونرد عليك قريب"})};
+  box.querySelector(".rg-chk").onclick=()=>{box.querySelector(".btns").remove();
+    openForm(box,[{t:"input",l:"الإيميل اللي سجلت بيه",type:"email",req:1}],(a,ok)=>{lsSet("gsyf_reg",a[0].trim().toLowerCase());renderReg()},()=>"")};
+}
 /* ================= المتابعة (للخدام) ================= */
 const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((a,b)=>a+b,0)/n.length).toFixed(1):""};
+
+const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return isNaN(a)?"":a};
+function regPanel(){
+  const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
+  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(r.email)}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
+  return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
+}
 function renderFollow(){
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
@@ -514,6 +570,7 @@ function renderFollow(){
       ${late.length+now.length?late.concat(now).map(taskRow).join(""):`<p class="empty">مفيش حاجة مفتوحة الشهر ده.</p>`}
       ${later.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">بعد كده (${later.length})</summary>${later.map(taskRow).join("")}</details>`:""}
     </section>
+    ${regPanel()}
     <section class="panel"><h3>الحجوزات</h3>${bookEvents.length?bookEvents.map(e=>{const L=bk[e.title+"|"+e.date]||[],paid=L.filter(b=>b.paid).length;return `<details class="mrow"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length} حجز · ${paid} دفع</span><span></span></summary>${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t">${esc(b.name)} · <span class="num" dir="ltr">${esc(b.phone)}</span>${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}</details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات.</p>`}</section>
     <section class="panel"><h3>التقييمات</h3>
       ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b><span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span><div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
@@ -529,6 +586,8 @@ function renderFollow(){
   F.querySelectorAll(".sv").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=D.events.find(x=>x.row===+box.dataset.row);
     openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:mName,answers:a},ok,f),()=>"اتسجل ✓"));
+  F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
+    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
 
