@@ -217,6 +217,34 @@ body.youth #staff{text-align:center}
 .y-reg .btns{display:flex;flex-wrap:wrap;gap:8px}
 .rg-st{display:flex;gap:12px;align-items:center}.rg-ic{font-size:1.8rem;flex:none}
 .rg-msg{font-weight:600}
+
+.lockwrap{position:relative;display:flex;flex-direction:column;gap:22px}
+.lockwrap.locked .lock-body{filter:blur(7px);opacity:.75;pointer-events:none;user-select:none;max-height:900px;overflow:hidden;-webkit-mask:linear-gradient(#000 55%,transparent);mask:linear-gradient(#000 55%,transparent)}
+.lock-body{display:flex;flex-direction:column;gap:22px}
+.lock-msg{position:absolute;z-index:2;top:90px;left:50%;transform:translateX(-50%);width:min(92%,420px);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:20px 18px;border-radius:18px;background:var(--ink);color:var(--onnavy);border:1px solid rgba(228,196,126,.5);box-shadow:0 16px 40px rgba(18,6,6,.35)}
+.lock-msg b{font-family:var(--kufi);font-size:1.3rem;color:var(--goldhi)}
+.lock-msg span{font-size:.9rem;opacity:.85}
+.y-surp{border-radius:22px;overflow:hidden;position:relative;color:var(--onnavy);text-align:center;background:radial-gradient(90% 120% at 50% 0%,#3a0a07,var(--ink) 70%);border:1px solid var(--goldhi);box-shadow:0 0 0 4px rgba(228,196,126,.12),0 16px 40px rgba(18,6,6,.35)}
+.y-surp::before{content:"";position:absolute;inset:0;background:repeating-conic-gradient(from 0deg at 50% 0%,rgba(228,196,126,.07) 0 6deg,transparent 6deg 18deg);pointer-events:none}
+.sp-in{position:relative;padding:26px 18px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.sp-gift{font-size:2.6rem;animation:bob 2.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-6deg)}}
+.y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
+.y-surp p{margin:0;font-size:1rem}.sp-when{font-family:var(--kufi);font-size:1.25rem!important;color:var(--goldhi)}
+.rg-pitch{margin:0;font-size:1.02rem}
+.rgf{display:flex;flex-direction:column;gap:12px}
+.rg-head{display:flex;flex-direction:column;gap:2px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.rg-head b{font-family:var(--kufi);font-size:1.25rem;color:var(--accent)}
+.rg-head span{font-size:.85rem;color:var(--muted)}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld>span{font-size:.85rem;font-weight:600}
+.fld input{font:inherit;font-size:1rem;padding:11px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg);width:100%;transition:border-color .15s,box-shadow .15s}
+.fld input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(169,122,34,.18)}
+.fld.bad input{border-color:#C0392B;box-shadow:0 0 0 3px rgba(192,57,43,.12)}
+.fld.good input{border-color:#3C8D5A}
+.fld em{font-style:normal;font-size:.8rem;color:#C0392B;min-height:0}
+.rg-send{align-self:stretch;font-size:1.05rem!important;padding:12px!important}
+@media (prefers-reduced-motion:reduce){.sp-gift{animation:none}}
 </style>
 </head>
 <body>
@@ -487,7 +515,7 @@ function renderHome(){
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
   // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
-  // مفاجأة +25: لحد 20 نوفمبر الجمعة بتظهر "انتظروا مفاجأة" بتاريخ البداية، والأحد القديم باهت ومكتوب ملغي
+  // مفاجأة +25: لحد 20 نوفمبر مش بتظهر في الاجتماعات خالص (كارت "مفاجأة" لوحده فوق الإيفنتات)، والأحد القديم باهت ومكتوب ملغي
   const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",old:"اجتماع الأحد",oldDay:0}};
   const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
   // إيفنت ليه فورم تقييم خاص = بيظهر كبير فوق خالص لحد ما يخلص وقت التقييم
@@ -495,19 +523,29 @@ function renderHome(){
   const rate=rate0.filter(e=>e!==feat);
   const meets=[];
   D.weekly.forEach(w=>{const sp=SURPRISE[w.title];
-    if(sp&&t<sp.until){meets.push({w:Object.assign({},w,{short:"انتظروا مفاجأة ✨"}),d:parse(sp.until),p:{},cls:"surprise"});
+    if(sp&&t<sp.until){
       let o=parse(t);for(let i=0;i<7&&o.getDay()!==sp.oldDay;i++)o=addDays(o,1);meets.push({w:{title:sp.old,short:sp.old},d:o,p:{status:"ملغي"},cls:"pale"});return}
     let d=parse(t);for(let i=0;i<7;i++){const x=addDays(d,i);if(x.getDay()===w.day){d=x;break}}meets.push({w,d,p:prog(w,iso(d))})});
   const E='<svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg>';
   const dbox=s=>{const d=parse(s);return `<div class="y-date"><b class="num">${d.getDate()}</b><span>${GM[d.getMonth()]}</span></div>`};
   const fq=feat&&D.evalQs[feat.title],fDone=feat&&lsGet("rt_"+feat.row+feat.title+feat.date);
+  const locked=!regOk();
+  const spT=Object.keys(SURPRISE).find(k=>t<SURPRISE[k].until),spW=spT&&D.weekly.find(w=>w.title===spT),spD=spT&&parse(SURPRISE[spT].until);
+  const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${locked?`<p>حاجة جديدة جاية… سجّل عشان تعرف التفاصيل</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
+  const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
+  const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg"><b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم</span><button type="button" class="primary go-reg">سجّل دلوقتي</button></div><div class="lock-body" aria-hidden="true" inert>`:"";
+  const lockClose=locked?`</div></div>`:"";
   $("home").innerHTML=`
     ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">قيّم الحفلة 🎉</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في الحفلة الجاية. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
     ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="y-news"><span class="y-tag">إعلان</span><div>${esc(n.text)}</div></div>`).join("")}
+    ${locked?regSec:""}
+    ${surprise}
+    ${lockOpen}
     <section class="y-sec"><h2 class="y-h">اجتماعات الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
-    <section class="y-sec" id="regSec"><h2 class="y-h">انضم لـ G.S.Y. Family</h2><div class="y-reg" id="regBox"></div></section>
     <section class="y-sec"><h2 class="y-h">الإيفنتات الجاية</h2>${soon.length?`<div class="y-cards">${soon.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${e.booking?(lsGet("bk_"+e.row+e.title)?`<span class="ok small">اتحجز ✓</span>`:`<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>`):""}</div></article>`).join("")}</div>`:`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
     ${rate.length?`<section class="y-sec"><h2 class="y-h">رأيك يفرق</h2><div class="y-cards">${rate.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
+    ${lockClose}
+    ${locked?"":regSec}
     <section class="y-follow"><div class="wings sm" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div><div class="w" dir="ltr">G.S.Y. FAMILY</div><div>تابع أخبار الخدمة أول بأول</div><div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div><div class="small" dir="ltr" style="opacity:.75">WhatsApp: +20 120 069 0490</div></section>
 `;
   const ev=r=>D.events.find(e=>e.row===+r);
@@ -518,6 +556,7 @@ function renderHome(){
   const fg=$("home").querySelector(".ft-go");if(fg)fg.onclick=()=>{const box=fg.closest(".ev");fg.parentElement.remove();box.querySelector(".ft-txt").remove();
     openForm(box,fq.qs,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:feat.title+" ("+feat.date+")",answers:a},r=>{lsSet("rt_"+feat.row+feat.title+feat.date,"1");ok(r)},fail),()=>esc(fq.thanks||"شكرا على رأيك 💛"),fq.intro)};
   renderReg();
+  const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rate.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
     openForm(box,cq&&cq.qs.length?cq.qs:e.meet?Q_MEET:Q_YOUTH,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:e.title+" ("+e.date+")",answers:a},r=>{lsSet("rt_"+e.row+e.title+e.date,"1");ok(r)},fail),()=>esc(cq&&cq.thanks||"شكرا على رأيك ✓"),cq&&cq.intro)});
 }
@@ -525,28 +564,60 @@ function renderHome(){
 
 /* ================= التسجيل (الشباب) ================= */
 const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع، هنرد عليك قريب."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
+// مسجل = بعت طلب ومش مرفوض (الصفحة بتتفتح له)
+const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")!=="مرفوض";
+const toEn=x=>String(x||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+const normPhone=x=>{let v=toEn(x).replace(/[\s\-().]/g,"");v=v.replace(/^(\+|00)?20(?=1)/,"0");return v};
+const REG_CHECK={
+  name:v=>{v=v.trim().replace(/\s+/g," ");if(!/^[ء-ي٠-٩ ]+$/.test(v))return "اكتب اسمك بالعربي";const w=v.split(" ").filter(x=>x.length>=2);return w.length<3?"اكتب اسمك ثلاثي على الأقل (اسمك واسم الأب والجد)":""},
+  birth:v=>{if(!v)return "اختار تاريخ ميلادك";const y=+v.slice(0,4),now=new Date().getFullYear();return y<now-60||y>now-12?"تاريخ الميلاد مش مظبوط":""},
+  phone:v=>/^01[0125]\d{8}$/.test(normPhone(v))?"":"اكتب رقم موبايل مصري صح: 11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015",
+  email:v=>/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim())?"":"الإيميل مش مظبوط",
+  email2:(v,f)=>v.trim().toLowerCase()===f.elements.email.value.trim().toLowerCase()?"":"الإيميلين مش زي بعض"
+};
+function regForm(box){
+  box.innerHTML=`<form class="rgf" novalidate>
+    <div class="rg-head"><b>سجّل في دقيقة</b><span>بعد التسجيل هتتفتح لك الاجتماعات والإيفنتات والحجز</span></div>
+    <label class="fld"><span>الاسم ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
+    <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
+    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
+    <label class="fld"><span>الإيميل</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
+    <label class="fld"><span>أكّد الإيميل</span><input name="email2" type="email" dir="ltr" autocomplete="off" placeholder="اكتبه تاني"><em></em></label>
+    <button type="submit" class="primary rg-send">ابعت طلب التسجيل</button><p class="msg small"></p>
+    <p class="small muted" style="margin:0">بياناتك بتوصل لخدام الخدمة بس.</p></form>`;
+  const f=box.querySelector("form");
+  const check=(n,show)=>{const el=f.elements[n],e=REG_CHECK[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
+  Object.keys(REG_CHECK).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
+  f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(REG_CHECK).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
+    const msg=f.querySelector(".msg");if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
+    const btn=f.querySelector(".rg-send"),em=f.elements.email.value.trim().toLowerCase();btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
+    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone:normPhone(f.elements.phone.value),email:em},
+      r=>{lsSet("gsyf_reg",em);lsSet("gsyf_reg_st",r&&r.status||"مستني");renderHome();setTimeout(()=>{const x=$("regSec");if(x)x.scrollIntoView({block:"center"})},50)},
+      e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
+}
 function renderReg(){
   const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
-  if(em){box.innerHTML=`<div class="rg-st"><span class="rg-ic">…</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">بنشوف…</div></div></div><div class="btns"><button type="button" class="rg-out small">مش أنا / إيميل تاني</button></div>`;
-    box.querySelector(".rg-out").onclick=()=>{lsSet("gsyf_reg","");renderReg()};
-    callApi("regStatus",{email:em},r=>{const st=REG_ST[r.status];if(!st){box.querySelector(".rg-msg").textContent="مش لاقيين طلب بالإيميل ده.";box.querySelector(".rg-ic").textContent="?";return}
-      box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1];box.querySelector(".rg-st").dataset.s=r.status},m=>{box.querySelector(".rg-msg").textContent=m});
+  if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
+    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div><div class="btns"><button type="button" class="rg-out small">مش أنا / إيميل تاني</button></div>`;
+    box.querySelector(".rg-out").onclick=()=>{lsSet("gsyf_reg","");lsSet("gsyf_reg_st","");renderHome()};
+    callApi("regStatus",{email:em},r=>{const was=regOk();lsSet("gsyf_reg_st",r.status||"");
+      if(!r.status){lsSet("gsyf_reg","");renderHome();return}
+      if(was!==regOk()){renderHome();return}
+      const st=REG_ST[r.status];if(st){box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1]}},()=>{});
     return}
-  box.innerHTML=`<p style="margin:0">سجّل بياناتك عشان تبقى من الأسرة وتوصلك كل أخبارنا. بعد ما تبعت هنراجع الطلب وتقدر تتابع حالته من هنا.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">سجلت قبل كده؟ تابع طلبك</button></div>`;
-  box.querySelector(".rg-new").onclick=()=>{box.querySelector(".btns").remove();
-    openForm(box,[{t:"input",l:"الاسم بالكامل",req:1},{t:"input",l:"تاريخ الميلاد",type:"date",req:1},{t:"input",l:"الإيميل",type:"email",req:1}],
-      (a,ok,fail)=>{if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(a[2]))return fail("الإيميل مش مظبوط");callApi("register",{name:a[0],birth:a[1],email:a[2]},r=>{lsSet("gsyf_reg",a[2].toLowerCase());ok(r)},fail)},
-      r=>{setTimeout(renderReg,1800);return r&&r.existed?"إنت مسجل قبل كده، هنوريك حالة طلبك…":"طلبك وصل ✓ هنراجعه ونرد عليك قريب"})};
+  box.innerHTML=`<p class="rg-pitch">إنت مننا! سجّل بياناتك وكل حاجة تتفتح لك: مواعيد الاجتماعات، الرحلات والإيفنتات، الحجز، ورأيك في كل حاجة.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">سجلت قبل كده؟</button></div>`;
+  box.querySelector(".rg-new").onclick=()=>regForm(box);
   box.querySelector(".rg-chk").onclick=()=>{box.querySelector(".btns").remove();
-    openForm(box,[{t:"input",l:"الإيميل اللي سجلت بيه",type:"email",req:1}],(a,ok)=>{lsSet("gsyf_reg",a[0].trim().toLowerCase());renderReg()},()=>"")};
+    openForm(box,[{t:"input",l:"الإيميل اللي سجلت بيه",type:"email",req:1}],(a)=>{lsSet("gsyf_reg",a[0].trim().toLowerCase());lsSet("gsyf_reg_st","");renderHome()},()=>"")};
 }
+
 /* ================= المتابعة (للخدام) ================= */
 const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((a,b)=>a+b,0)/n.length).toFixed(1):""};
 
 const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return isNaN(a)?"":a};
 function regPanel(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
-  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(r.email)}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
+  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(r.email)}${r.phone?" · "+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
   return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
 function renderFollow(){
