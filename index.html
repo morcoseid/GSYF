@@ -248,6 +248,21 @@ body.youth #staff{text-align:center}
 .bell-p a:hover{background:#F6ECD6}.bell-p a.new{background:#FBF3E2}
 .bell-p a .e{font-size:1.2rem}.bell-p a small{display:block;color:#6E5D55}
 .bell-p .none{padding:16px 8px;color:#6E5D55;text-align:center}
+.y-kas{border-radius:18px;background:var(--surface,#fff);border:1px solid var(--line);border-inline-start:4px solid var(--gold);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.y-kas .kh{display:flex;align-items:center;gap:12px}
+.y-kas .kh .tr{font-size:2rem;line-height:1}
+.y-kas .kh b{display:block;font-family:var(--kufi);font-size:1.2rem;color:var(--navy)}
+.y-kas .kh small{color:var(--muted)}
+.y-kas .dl{font-size:.8rem;font-weight:700;color:var(--navy);background:rgba(201,160,74,.18);border-radius:99px;padding:2px 10px;white-space:nowrap;margin-inline-start:auto}
+.y-kas details summary{cursor:pointer;color:var(--muted);font-size:.9rem;list-style:none}
+.y-kas details summary::-webkit-details-marker{display:none}
+.y-kas details[open] summary{margin-bottom:6px}
+.y-kas ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.92rem}
+.y-kas .subj{display:flex;flex-wrap:wrap;gap:6px}.y-kas .subj span{background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:1px 10px;font-size:.82rem}
+.y-kas .kb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.y-kas .kb a{text-decoration:none}
+.y-kas .kgo{background:var(--navy);color:#FFF7EC;border-radius:99px;padding:7px 18px;font-weight:700}
+.y-kas .kwa{color:var(--muted);font-size:.85rem}
 .y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
 .y-surp p{margin:0;font-size:1rem}.sp-when{font-family:var(--kufi);font-size:1.25rem!important;color:var(--goldhi)}
 .rg-pitch{margin:0;font-size:1.02rem}
@@ -595,6 +610,16 @@ function renderHome(){
   const locked=!regOk();
   const pend=!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مستني";
   const spT=Object.keys(SURPRISE).find(k=>t<=SURPRISE[k].until),spW=spT&&D.weekly.find(w=>w.title===spT),spD=spT&&parse(SURPRISE[spT].until);
+  // الكأس لمين: كارت صغير لحد آخر ميعاد التسجيل
+  const KAS={until:"2026-11-04",form:"https://docs.google.com/forms/d/e/1FAIpQLSdH2YiG0-wnxJwlcMOsTNJOXyrs2X3s92IKhhuyRWoiOT2WzA/viewform",wa:"201281224011",who:"مارينا شكري"};
+  const kasLeft=Math.round((parse(KAS.until)-parse(t))/864e5);
+  const kas=t<=KAS.until?`<section class="y-kas"><div class="kh"><span class="tr">🏆</span><div><b>الكأس لمين <span dir="ltr">2026-27</span></b><small>هدفنا السنة دي: نوصل النهائيات 🔥</small></div><span class="dl">${kasLeft<=0?"آخر يوم النهارده":kasLeft===1?"آخر ميعاد بكرة":"آخر ميعاد الأربعاء ٤ نوفمبر"}</span></div>
+    <details><summary>التفاصيل ▾</summary><ul>
+      <li class="subj"><span>📖 الكتاب المقدس</span><span>⛪ العقيدة والتاريخ والثقافة</span><span>🎶 الألحان</span><span>🧠 الحفظ</span></li>
+      <li>📅 امتحان كل شهر يوم الإتنين ٦ م في كنيسة العذراء والمجدلية (أولهم ١٦ نوفمبر)</li>
+      <li>👥 الفريق لحد ١٥ واحد، مواليد ١٩٩٦ وأصغر</li>
+      <li>مسابقة بين فرق الشباب على مستوى الأسقفية، وبقالنا ٤ سنين بندخلها 💪</li></ul></details>
+    <div class="kb"><a class="kgo" href="${KAS.form}" target="_blank" rel="noopener">سجّل في الفريق</a><a class="kwa" href="https://wa.me/${KAS.wa}" target="_blank" rel="noopener">للتواصل: ${KAS.who} · واتساب</a></div></section>`:"";
   const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${cdBox(spD,spW&&spW.time)}${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
@@ -604,6 +629,7 @@ function renderHome(){
     ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="y-news"><span class="y-tag">إعلان</span><div>${esc(n.text)}</div></div>`).join("")}
     ${locked?regSec:""}
     ${surprise}
+    ${kas}
     ${lockOpen}
     <section class="y-sec"><h2 class="y-h">اجتماعات الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
     <section class="y-sec"><h2 class="y-h">الإيفنتات الجاية</h2>${soon.length?`<div class="y-cards">${soon.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${e.booking?(lsGet("bk_"+e.row+e.title)?`<span class="ok small">اتحجز ✓</span>`:`<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>`):""}</div></article>`).join("")}</div>`:`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
@@ -623,6 +649,7 @@ function renderHome(){
   const bi=[];
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
   if(spT)bi.push({id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:locked?"سجّل عشان تعرف التفاصيل":WD[spD.getDay()]+" "+spD.getDate()+" "+GM[spD.getMonth()],go:".y-surp"});
+  if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
   (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
   if(!locked)soon.slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
   renderBell(bi);
