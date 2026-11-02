@@ -235,6 +235,19 @@ body.youth #staff{text-align:center}
 .sp-in{position:relative;padding:26px 18px;display:flex;flex-direction:column;align-items:center;gap:6px}
 .sp-gift{font-size:2.6rem;animation:bob 2.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-6px) rotate(-6deg)}}
+.cd{display:flex;justify-content:center;gap:8px;margin:6px 0 4px;direction:ltr}
+.cd-u{min-width:62px;background:rgba(228,196,126,.1);border:1px solid rgba(228,196,126,.45);border-radius:12px;padding:6px 4px;display:flex;flex-direction:column;align-items:center}
+.cd-u b{font-family:var(--kufi);font-size:1.7rem;line-height:1.1;color:var(--goldhi);font-variant-numeric:tabular-nums}
+.cd-u span{font-size:.72rem;opacity:.8}
+.bell{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:50;width:46px;height:46px;border-radius:50%;border:1px solid rgba(228,196,126,.6);background:rgba(26,7,6,.82);color:#fff;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3);backdrop-filter:blur(6px)}
+.bell i{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#E4C47E;color:#1A0706;font:700 .75rem/20px var(--body,sans-serif);font-style:normal;padding:0 5px}
+.bell.ring{animation:ring 1.2s ease 2}@keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
+.bell-p{position:fixed;top:calc(64px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:50;width:min(340px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:#FFFBF6;color:#1A0D0B;border:1px solid #E9DCCF;border-radius:16px;box-shadow:0 16px 40px rgba(0,0,0,.25);padding:8px}
+.bell-p h4{margin:6px 8px 8px;font-size:1rem}
+.bell-p a{display:flex;gap:10px;padding:10px 8px;border-radius:10px;color:inherit;text-decoration:none;align-items:flex-start}
+.bell-p a:hover{background:#F6ECD6}.bell-p a.new{background:#FBF3E2}
+.bell-p a .e{font-size:1.2rem}.bell-p a small{display:block;color:#6E5D55}
+.bell-p .none{padding:16px 8px;color:#6E5D55;text-align:center}
 .y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
 .y-surp p{margin:0;font-size:1rem}.sp-when{font-family:var(--kufi);font-size:1.25rem!important;color:var(--goldhi)}
 .rg-pitch{margin:0;font-size:1.02rem}
@@ -297,6 +310,8 @@ body.youth #staff{text-align:center}
   </div>
 </section>
 
+<button type="button" id="bell" class="bell" hidden aria-label="الإشعارات">🔔<i id="bellN" hidden></i></button>
+<div id="bellPanel" class="bell-p" hidden></div>
 <div class="wrap">
   <header>
     <div><span class="muted" style="font-size:.85rem">خدمة الشباب</span><h1 id="title">خطة السنة</h1><div class="sub" id="sub"></div></div>
@@ -538,6 +553,26 @@ function openForm(box,qs,send,doneMsg,intro){
     send(a,r=>{f.outerHTML=`<p class="ok">${doneMsg(r)}</p>`},err=>{f.querySelector("button").disabled=false;msg.className="msg small err";msg.textContent=err})};
   box.appendChild(f);
 }
+/* عداد تنازلي للمفاجأة: بيعد لحد يوم وساعة الاجتماع */
+function cdBox(d,time){const m=String(time||"18:00").match(/(\d{1,2})[:.](\d{2})/)||[0,18,0];let h=+m[1];if(h<9&&!/ص|am/i.test(time||""))h+=12;
+  const at=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,+m[2]).getTime();
+  return `<div class="cd" data-at="${at}">${["ثانية","دقيقة","ساعة","يوم"].map(u=>`<div class="cd-u"><b>--</b><span>${u}</span></div>`).join("")}</div>`}
+function cdTick(){document.querySelectorAll(".cd").forEach(el=>{let s=Math.max(0,Math.floor((+el.dataset.at-Date.now())/1000));
+  if(!s){el.outerHTML=`<p class="sp-when">النهارده! 🎉</p>`;return}
+  const v=[s%60,Math.floor(s/60)%60,Math.floor(s/3600)%24,Math.floor(s/86400)];el.querySelectorAll("b").forEach((b,i)=>b.textContent=String(v[i]).padStart(2,"0"))})}
+setInterval(cdTick,1000);
+/* ===== جرس الإشعارات: الجديد من آخر مرة الشاب فتح الصفحة (إعلانات، إيفنتات، المفاجأة) ===== */
+function renderBell(items){const b=$("bell"),pn=$("bellPanel");if(!b)return;
+  let seen=[];try{seen=JSON.parse(lsGet("gsyf_seen")||"[]")}catch(e){}
+  const unseen=items.filter(x=>!seen.includes(x.id)),n=unseen.length;
+  b.hidden=false;$("bellN").hidden=!n;$("bellN").textContent=n>9?"9+":n;
+  if(n&&!b.dataset.rung){b.classList.add("ring");b.dataset.rung=1}
+  try{if(navigator.setAppBadge){n?navigator.setAppBadge(n):navigator.clearAppBadge()}}catch(e){}
+  pn.innerHTML=`<h4>🔔 الإشعارات</h4>`+(items.length?items.map(x=>`<a href="#" data-go="${x.go||""}" class="${seen.includes(x.id)?"":"new"}"><span class="e">${x.e}</span><span><b>${esc(x.t)}</b>${x.s?`<small>${esc(x.s)}</small>`:""}</span></a>`).join(""):`<p class="none">مفيش جديد دلوقتي</p>`);
+  b.onclick=()=>{pn.hidden=!pn.hidden;if(!pn.hidden){lsSet("gsyf_seen",JSON.stringify(items.map(x=>x.id).concat(seen).slice(0,200)));$("bellN").hidden=true;try{navigator.clearAppBadge&&navigator.clearAppBadge()}catch(e){}}};
+  pn.querySelectorAll("a").forEach(a=>a.onclick=ev=>{ev.preventDefault();pn.hidden=true;const g=a.dataset.go&&document.querySelector(a.dataset.go);if(g)g.scrollIntoView({behavior:"smooth",block:"center"})});
+}
+document.addEventListener("click",e=>{const pn=$("bellPanel");if(pn&&!pn.hidden&&!e.target.closest("#bell,#bellPanel"))pn.hidden=true});
 function renderHome(){
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
@@ -559,8 +594,8 @@ function renderHome(){
   const fq=feat&&D.evalQs[feat.title],fDone=feat&&lsGet("rt_"+feat.row+feat.title+feat.date);
   const locked=!regOk();
   const pend=!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مستني";
-  const spT=Object.keys(SURPRISE).find(k=>t<SURPRISE[k].until),spW=spT&&D.weekly.find(w=>w.title===spT),spD=spT&&parse(SURPRISE[spT].until);
-  const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
+  const spT=Object.keys(SURPRISE).find(k=>t<=SURPRISE[k].until),spW=spT&&D.weekly.find(w=>w.title===spT),spD=spT&&parse(SURPRISE[spT].until);
+  const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${cdBox(spD,spW&&spW.time)}${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
@@ -584,7 +619,13 @@ function renderHome(){
       r=>`اتحجز ✓${r&&r.pay?"<br><span class='muted'>الدفع: "+esc(r.pay)+"</span>":""}`)});
   const fg=$("home").querySelector(".ft-go");if(fg)fg.onclick=()=>{const box=fg.closest(".ev");fg.parentElement.remove();box.querySelector(".ft-txt").remove();
     openForm(box,fq.qs,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:feat.title+" ("+feat.date+")",answers:a},r=>{lsSet("rt_"+feat.row+feat.title+feat.date,"1");ok(r)},fail),()=>esc(fq.thanks||"شكرا على رأيك 💛"),fq.intro)};
-  renderReg();
+  renderReg();cdTick();
+  const bi=[];
+  if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
+  if(spT)bi.push({id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:locked?"سجّل عشان تعرف التفاصيل":WD[spD.getDay()]+" "+spD.getDate()+" "+GM[spD.getMonth()],go:".y-surp"});
+  (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
+  if(!locked)soon.slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
+  renderBell(bi);
   const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rate.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
     openForm(box,cq&&cq.qs.length?cq.qs:e.meet?Q_MEET:Q_YOUTH,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:e.title+" ("+e.date+")",answers:a},r=>{lsSet("rt_"+e.row+e.title+e.date,"1");ok(r)},fail),()=>esc(cq&&cq.thanks||"شكرا على رأيك ✓"),cq&&cq.intro)});
