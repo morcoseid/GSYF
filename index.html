@@ -120,6 +120,10 @@ details.syn p{white-space:pre-line;margin:6px 0 0;font-size:.86rem}
 .chips input{display:none}.chips input:checked+span{color:var(--accent);font-weight:600}
 .late{color:var(--busy);font-weight:600}
 .news{background:var(--accent-soft);border-radius:12px;padding:12px 16px;font-size:.95rem}
+.ai-f{display:flex;gap:8px}.ai-f input{flex:1;min-width:0;font:inherit;font-size:1rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.ai-ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.ai-ex button{border-radius:999px}
+.ai-log{display:flex;flex-direction:column;gap:6px;margin-top:10px}.ai-q{font-weight:600;color:var(--muted);font-size:.9rem;margin-top:6px}
+.ai-a{background:var(--accent-soft);border-radius:10px;padding:10px 12px;line-height:1.8;font-size:.95rem}
 .small{font-size:.8rem}
 #login{display:flex;gap:8px;max-width:360px}
 @media (max-width:700px){.next,.mrow .more{grid-template-columns:1fr}.mrow>summary{grid-template-columns:72px minmax(0,1fr) auto}.mrow>summary .prog{display:none}}
@@ -746,6 +750,7 @@ function renderFollow(){
   const mScore=n=>{const rs=ev.filter(r=>r.kind==="شهري"&&r.target===n);return rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""};
   $("follow").innerHTML=`
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
+    ${aiPanel()}
     <section class="panel"><h3>مفتوح ومحتاج يتقفل (${late.length+now.length})</h3>
       ${late.length+now.length?late.concat(now).map(taskRow).join(""):`<p class="empty">مفيش حاجة مفتوحة الشهر ده.</p>`}
       ${later.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">بعد كده (${later.length})</summary>${later.map(taskRow).join("")}</details>`:""}
@@ -768,7 +773,106 @@ function renderFollow(){
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:mName,answers:a},ok,f),()=>"اتسجل ✓"));
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
+  aiBind();
   $("logout").onclick=e=>{e.preventDefault();logout()};
+}
+
+/* ================= المساعد الذكي (للخدام بس) =================
+   بيستخدم Gemini المجاني من المتصفح بالمفتاح اللي في تاب الإعدادات (مفتاح AI).
+   الخصوصية: مفيش اسم ولا رقم ولا إيميل بيتبعت لجوجل. كل شخص بيتبعت كرمز [P1]،
+   والصفحة بترجّع الاسم (والرقم لو اتطلب) بعد ما الرد يرجع. */
+const AI_MODELS=["gemini-flash-lite-latest","gemini-flash-latest","gemini-3.5-flash-lite","gemini-2.5-flash-lite"];
+const AI_EX=["إيه الإجازات الجاية؟","مين مستني موافقة على التسجيل؟","مين حاجز ولسه مدفعش؟","إيه مواعيد الشهر الجاي؟"];
+let AI={log:[],busy:false,people:[],ctx:"",ctxFor:null};
+function aiNoNums(s){return String(s||"").replace(/[\w.+-]+@[\w-]+\.[\w.]+/g,"[إيميل]").replace(/[+\d٠-٩][\d٠-٩ -]{7,}\d/g,"[رقم]")}
+function aiContext(){
+  if(AI.ctxFor===D)return AI.ctx;
+  const P=[],idx={};
+  const who=(name,phone)=>{const n=String(name||"").trim().replace(/\s+/g," ");if(!n)return"";
+    if(idx[n]===undefined){idx[n]=P.length;P.push({name:n,phone:""})}
+    if(phone&&!P[idx[n]].phone)P[idx[n]].phone=String(phone).trim();return"[P"+(idx[n]+1)+"]"};
+  const t=D.today,from=iso(addDays(parse(t),-60)),L=[],day=d=>d?WD[parse(d).getDay()]+" "+d:"";
+  L.push("النهارده: "+day(t));
+  L.push("\n## الاجتماعات الأسبوعية");
+  D.weekly.forEach(w=>L.push(`- ${w.title}: كل ${WD[w.day]} ${w.time||""} ${w.place?"في "+w.place:""}`));
+  L.push("\n## برنامج الاجتماعات (التاريخ | الاجتماع | الحالة | الموضوع | الخادم | المكان)");
+  Object.keys(D.programs||{}).forEach(m=>Object.keys(D.programs[m]).sort().filter(k=>k>=from).forEach(k=>{const p=D.programs[m][k];
+    L.push(`- ${day(k)} | ${m} | ${p.status||""} | ${aiNoNums(p.topic)} | ${p.speaker?who(p.speaker):""} | ${p.place||""}`)}));
+  L.push("\n## الإيفنتات (من | لحد | الاسم | النوع | اللجنة | الوقت | المكان | الحالة | لمين | المسؤول | ملاحظات | الحجز)");
+  D.events.filter(e=>(e.end||e.date)>=from).sort((a,b)=>a.date.localeCompare(b.date)).forEach(e=>
+    L.push(`- ${day(e.date)} | ${e.end&&e.end!==e.date?day(e.end):""} | ${e.title} | ${e.type||""} | ${e.committee||""} | ${e.time||""} | ${e.place||""} | ${e.status||""} | ${e.audience||""} | ${e.owner?who(e.owner):""} | ${aiNoNums(e.notes)} | ${e.booking?"مفتوح"+(e.price?" ("+e.price+")":""):""}`));
+  L.push("\n## الإجازات والامتحانات (الاسم | من | لحد | النوع | ملاحظات)");
+  D.holidays.filter(h=>h.to>=from).forEach(h=>L.push(`- ${h.name} | ${day(h.from)} | ${day(h.to)} | ${h.type||""} | ${aiNoNums(h.notes)}`));
+  // تقويم الكنيسة: الأعياد يوم بيوم، والأصوام والمواسم كفترات
+  L.push("\n## تقويم الكنيسة (أعياد، أصوام، مواسم)");
+  const days=Object.keys(D.cal||{}).sort(),runs={fast:[],s:[]};
+  days.forEach(k=>{const c=D.cal[k];if(c.f)L.push(`- عيد/مناسبة ${day(k)} (${c.c||""}): ${String(c.f).replace(/\n/g,"، ")}`);
+    ["fast","s"].forEach(f=>{const v=String(c[f]||"").trim(),r=runs[f],last=r[r.length-1];if(!v)return;
+      if(last&&last.v===v&&iso(addDays(parse(last.to),1))===k)last.to=k;else r.push({v,from:k,to:k})})});
+  runs.fast.forEach(r=>L.push(`- صوم: ${r.v} من ${day(r.from)} لحد ${day(r.to)}`));
+  runs.s.forEach(r=>L.push(`- موسم: ${r.v} من ${day(r.from)} لحد ${day(r.to)}`));
+  if((D.news||[]).length){L.push("\n## الإعلانات");D.news.forEach(n=>L.push(`- ${n.date||""} ${aiNoNums(n.text)} (لـ ${n.show})`))}
+  if((D.history||[]).length){L.push("\n## اللي اتعمل في السنين اللي فاتت (الشهر | الحدث | النوع)");D.history.forEach(h=>L.push(`- ${GM[h.m-1]||"طول السنة"} | ${h.name} | ${h.type||""}`))}
+  L.push("\n## الحجوزات (الإيفنت | التاريخ | الشخص | دفع؟ | وقت الحجز)");
+  (D.bookings||[]).forEach(b=>L.push(`- ${b.event} | ${b.date||""} | ${who(b.name,b.phone)} | ${b.paid?"دفع":"لسه مدفعش"} | ${b.at}`));
+  L.push("\n## طلبات التسجيل في G.S.Y. Family (الشخص | تاريخ الميلاد | السن | الحالة | وقت الطلب)");
+  (D.regs||[]).forEach(r=>L.push(`- ${who(r.name,r.phone)} | ${r.birth} | ${age(r.birth)} | ${r.status} | ${r.at}`));
+  AI.people=P;AI.ctxFor=D;
+  AI.ctx=`إنت مساعد خدام خدمة الشباب G.S.Y. Family في الكنيسة القبطية. جاوب بالعامية المصرية، باختصار، ومن البيانات اللي تحت بس.
+لو المعلومة مش في البيانات قول "مش موجودة في الداشبورد" ومتخترعش حاجة.
+الأشخاص مكتوبين برموز زي [P3]: اكتب الرمز زي ما هو بالظبط بالأقواس (الصفحة بتحوّله للاسم). لو حد طلب رقم موبايل شخص اكتب [P3:رقم].
+اكتب التواريخ باليوم والتاريخ (مثلا: الخميس 5 نوفمبر). القوايم خليها نقط قصيرة تبدأ بـ "- ". لو طلبوا عدد، قول العدد الأول.
+
+${L.join("\n")}`;
+  return AI.ctx;
+}
+function aiShow(txt){
+  let h=esc(txt).replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>").replace(/^\s*[-*•]\s+/gm,"• ");
+  h=h.replace(/\[P(\d+)(:رقم)?\]/g,(m,n,ph)=>{const p=AI.people[+n-1];if(!p)return m;
+    return ph?(p.phone?`<span dir="ltr">${esc(p.phone)}</span>`:"(مفيش رقم)"):`<b>${esc(p.name)}</b>`});
+  return h.replace(/\n/g,"<br>");
+}
+function aiPanel(){
+  const on=!!D.aiKey;
+  return `<section class="panel ai"><h3>✨ اسأل المساعد</h3>${on?`<form id="aiForm" class="ai-f"><input id="aiQ" placeholder="اسأل عن أسامي، إجازات، مواعيد…" autocomplete="off"><button type="submit" class="primary"${AI.busy?" disabled":""}>${AI.busy?"…":"اسأل"}</button></form>
+    ${AI.log.length?"":`<div class="ai-ex">${AI_EX.map(q=>`<button type="button" class="small">${esc(q)}</button>`).join("")}</div>`}
+    <div class="ai-log">${AI.log.slice().reverse().map(x=>`<div class="ai-q">${esc(x.q)}</div><div class="ai-a${x.err?" err":""}">${x.a===null?"بيفكر…":x.err?esc(x.a):aiShow(x.a)}</div>`).join("")}</div>`
+    :`<p class="empty">المساعد لسه مش متفعّل. محتاج مفتاح Gemini مجاني يتحط في تاب الإعدادات (سطر "مفتاح AI").</p>`}</section>`;
+}
+function aiBind(){
+  const f=$("aiForm");if(!f)return;
+  f.onsubmit=e=>{e.preventDefault();const q=$("aiQ").value.trim();if(q&&!AI.busy)aiAsk(q)};
+  document.querySelectorAll(".ai-ex button").forEach(b=>b.onclick=()=>aiAsk(b.textContent));
+}
+function aiRefresh(){const s=document.querySelector("#follow .ai");if(s){s.outerHTML=aiPanel();aiBind()}}
+// لو الخادم كتب اسم في السؤال، بيتبدل برمزه قبل ما يتبعت (الاسم كامل، أو أول اسمين، أو الاسم الأول لو مفيش غيره)
+function aiTok(q){
+  q=aiNoNums(q);const P=AI.people,tok=i=>"[P"+(i+1)+"]";
+  [n=>n,n=>n.split(" ").slice(0,2).join(" "),n=>n.split(" ")[0]].forEach((cut,lvl)=>{
+    const seen={};P.forEach(p=>{const k=cut(p.name);seen[k]=(seen[k]||0)+1});
+    P.forEach((p,i)=>{const k=cut(p.name);if(k.length<3||(lvl&&seen[k]>1))return;
+      q=q.replace(new RegExp("(^[وفبل]?|[^\\u0600-\\u06FF][وفبل]?)"+k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"(?![\\u0600-\\u06FF])","g"),"$1"+tok(i))})});
+  return q;
+}
+async function aiAsk(q){
+  aiContext();
+  const item={q,qs:aiTok(q),a:null};AI.log.push(item);AI.busy=true;aiRefresh();
+  const hist=AI.log.slice(-5,-1).filter(x=>x.a&&!x.err).flatMap(x=>[{role:"user",parts:[{text:x.qs}]},{role:"model",parts:[{text:x.a}]}]);
+  const body=JSON.stringify({systemInstruction:{parts:[{text:aiContext()}]},contents:hist.concat([{role:"user",parts:[{text:item.qs}]}]),generationConfig:{temperature:0.2}});
+  let err="";
+  for(const m of AI_MODELS){
+    try{
+      const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":D.aiKey},body});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok){const txt=((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(p=>p.text||"").join("").trim();item.a=txt||"مفيش رد، جرّب تسأل بطريقة تانية.";err="";break}
+      const msg=String((j.error||{}).message||"");
+      if(r.status===400&&/api key/i.test(msg)||r.status===403){err="مفتاح الـ AI مش شغال. اتأكد منه في تاب الإعدادات.";break}
+      err=r.status===429?"المساعد وصل للحد المجاني النهارده، جرّب كمان شوية أو بكرة.":"حصلت مشكلة في المساعد، جرّب تاني.";
+    }catch(e){err="مفيش اتصال، جرّب تاني."}
+  }
+  if(err){item.a=err;item.err=true}
+  AI.busy=false;aiRefresh();
+  const i=$("aiQ");if(i&&!item.err)i.value="";
 }
 
 
