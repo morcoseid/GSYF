@@ -298,6 +298,14 @@ body.youth #staff{text-align:center}
 .ap-meta span[dir=ltr]{align-self:flex-end}
 .ap-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ap-btns button{font-size:1.05rem;padding:12px;border-radius:12px;font-weight:700}
+/* حسابات الخدام */
+#login{flex-wrap:wrap}#login input{flex:1 1 140px;min-width:0}
+.hello{margin:0;font-size:1.05rem}
+.kl input{font:inherit;font-size:1rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.pt{border-radius:999px;padding:4px 12px;font-size:.88rem}
+.pt[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tm-perms{display:flex;flex-wrap:wrap;gap:6px}
+.tm-more{display:flex;flex-wrap:wrap;gap:12px;font-size:.85rem}.tm-more a{color:var(--muted)}
 .ap-ok{background:#2E7D4F!important;border-color:#2E7D4F!important;color:#fff!important}
 .ap-no{background:transparent;color:#B23A2E!important;border-color:#B23A2E!important}
 
@@ -346,11 +354,13 @@ body.youth #staff{text-align:center}
   <div id="home" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="follow" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="approve" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="khadem" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+  <div id="team" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="year" class="months"></div>
   <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
 
-  <details id="staff" class="small muted" hidden><summary style="cursor:pointer">دخول الخدام</summary><form id="login" style="margin-top:8px"><input type="password" id="pw" placeholder="الباسورد" autocomplete="current-password"><button type="submit">دخول</button></form><p id="loginMsg" class="err"></p></details>
+  <details id="staff" class="small muted" hidden><summary style="cursor:pointer">دخول الخدام</summary><form id="login" style="margin-top:8px"><input type="tel" id="lgPhone" inputmode="tel" dir="ltr" placeholder="رقم الموبايل" autocomplete="tel"><input type="password" id="pw" inputmode="numeric" placeholder="الرقم السري" autocomplete="current-password"><button type="submit">دخول</button></form><p id="loginMsg" class="err"></p><p style="margin:4px 0 0">لسه متسجلتش كخادم؟ <a href="#khadem">سجّل هنا</a></p></details>
   <footer><span>الزحمة محسوبة من: الامتحانات، والصوم الكبير وأسبوع الآلام، وعدد الإيفنتات المتسجلة.</span><span id="updated"></span></footer>
 </div>
 
@@ -733,6 +743,19 @@ function regPanel(){
   const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(r.email)}${r.phone?" · "+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
   return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
+// اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
+function srvMeetPanel(){
+  const L=D.srvMeet;if(!L||!L.length)return "";
+  const m=L[0],left=-daysAgo(m.date),off=m.status==="ملغي"||m.status==="اتأجل";
+  const when=left===0?"النهارده":left===1?"بكرة":"فاضل "+left+" يوم";
+  return `<section class="panel"><h3>اجتماع الخدام الجاي</h3>
+    ${!off&&left<=7?`<p class="note" style="margin:0 0 8px">⏰ ${when} على اجتماع الخدام</p>`:""}
+    <div class="row"><div class="d num">${dm(m.date)}<small>${WD[parse(m.date).getDay()]}</small></div><div class="t"><b>${esc(m.topic||"الموضوع لسه متحددش")}</b>${off?` <span class="late small">${esc(m.status)}</span>`:""}
+      <div class="why">${esc([m.time&&"الساعة "+tm(m.time),m.place,m.speaker&&"المسؤول: "+m.speaker].filter(Boolean).join(" · "))}</div>
+      ${m.details?`<div class="why" style="white-space:pre-line">${esc(m.details)}</div>`:""}${m.notes?`<div class="why">${esc(m.notes)}</div>`:""}</div></div>
+    ${L[1]?`<p class="small muted" style="margin:6px 0 0">اللي بعده: ${dm(L[1].date)}${L[1].topic?" · "+esc(L[1].topic):""}</p>`:""}
+  </section>`;
+}
 function renderFollow(){
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
@@ -748,18 +771,22 @@ function renderFollow(){
   const notes=[];ev.forEach(r=>{if(r.closed)return;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])notes.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
   const mName=GM[parse(t).getMonth()]+" "+parse(t).getFullYear(),prevD=new Date(parse(t).getFullYear(),parse(t).getMonth()-1,1),prevName=GM[prevD.getMonth()]+" "+prevD.getFullYear();
   const mScore=n=>{const rs=ev.filter(r=>r.kind==="شهري"&&r.target===n);return rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""};
+  const mine=D.me?open.filter(e=>isMine(e.owner,D.me.name)):[];
   $("follow").innerHTML=`
+    ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋</p>`:""}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
-    ${aiPanel()}
-    <section class="panel"><h3>مفتوح ومحتاج يتقفل (${late.length+now.length})</h3>
+    ${srvMeetPanel()}
+    ${can("ai")?aiPanel():""}
+    ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش تاسكات باسمك دلوقتي.</p>`}</section>`:""}
+    ${can("tasks")?`<section class="panel"><h3>${D.me?"كل التاسكات المفتوحة":"مفتوح ومحتاج يتقفل"} (${late.length+now.length})</h3>
       ${late.length+now.length?late.concat(now).map(taskRow).join(""):`<p class="empty">مفيش حاجة مفتوحة الشهر ده.</p>`}
       ${later.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">بعد كده (${later.length})</summary>${later.map(taskRow).join("")}</details>`:""}
-    </section>
-    ${regPanel()}
-    <section class="panel"><h3>الحجوزات</h3>${bookEvents.length?bookEvents.map(e=>{const L=bk[e.title+"|"+e.date]||[],paid=L.filter(b=>b.paid).length;return `<details class="mrow"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length} حجز · ${paid} دفع</span><span></span></summary>${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t">${esc(b.name)} · <span class="num" dir="ltr">${esc(b.phone)}</span>${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}</details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات.</p>`}</section>
+    </section>`:""}
+    ${can("regs")?regPanel():""}
+    ${can("bookings")?`<section class="panel"><h3>الحجوزات</h3>${bookEvents.length?bookEvents.map(e=>{const L=bk[e.title+"|"+e.date]||[],paid=L.filter(b=>b.paid).length;return `<details class="mrow"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length} حجز · ${paid} دفع</span><span></span></summary>${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t">${esc(b.name)} · <span class="num" dir="ltr">${esc(b.phone)}</span>${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}</details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات.</p>`}</section>`:""}
     <section class="panel"><h3>التقييمات</h3>
-      ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b><span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span><div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
-      <div class="row"><div class="d">الشهر</div><div class="t ev"><b>تقييم ${esc(mName)}</b><span class="meta">${mScore(mName)?`★ ${mScore(mName)}`:"لسه متقيمش"}${mScore(prevName)?` (الشهر اللي فات ★ ${mScore(prevName)})`:""}</span><div class="btns"><button type="button" class="mo small">قيّم الشهر</button></div></div></div>
+      ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b>${can("evals")?`<span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span>`:""}<div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
+      <div class="row"><div class="d">الشهر</div><div class="t ev"><b>تقييم ${esc(mName)}</b>${can("evals")?`<span class="meta">${mScore(mName)?`★ ${mScore(mName)}`:"لسه متقيمش"}${mScore(prevName)?` (الشهر اللي فات ★ ${mScore(prevName)})`:""}</span>`:""}<div class="btns"><button type="button" class="mo small">قيّم الشهر</button></div></div></div>
     </section>
     ${notes.length?`<section class="panel"><h3>ملاحظات مفتوحة (${notes.length})</h3>${notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t">${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">اتقفلت</button></div></div></div>`).join("")}</section>`:""}
     <p class="small muted">${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
@@ -890,26 +917,97 @@ function renderApprove(){
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;c.classList.add(b.dataset.v==="مقبول"?"is-ok":"is-no");c.querySelector(".ap-btns").innerHTML=`<b>${b.dataset.v==="مقبول"?"اتقبل ✓":"اترفض"}</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
       m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent=m})});
 }
+/* ================= حسابات الخدام ================= */
+// الخادم الداخل باسمه بيشوف بس اللي مفتوح له. الباسورد المشترك والأمناء بيشوفوا كل حاجة
+const can=k=>!!D&&!!D.level&&(!D.me||!!(D.me.perms||{})[k]);
+const normAr=x=>String(x||"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/\s+/g," ").trim();
+// التاسك بتاعي لو أول اسمين من اسمي مكتوبين في "المسؤول"
+const isMine=(owner,name)=>{const n=normAr(name).split(" ").slice(0,2).join(" ");return n.includes(" ")&&normAr(owner).includes(n)};
+const KH_ST={"مستني":"⏳ طلبك وصل ومستني موافقة الأمناء. أول ما يتقبل هتدخل برقمك والرقم السري.","مرفوض":"✖️ طلبك متقبلش. كلّم أمين الخدمة.","موقوف":"⏸️ حسابك متوقف دلوقتي. كلّم أمين الخدمة."};
+// فورم الدخول: موبايل + رقم سري. لو الموبايل فاضي، الخانة التانية بتشتغل كالباسورد المشترك القديم
+function bindLogin(f,ph,pw,msg){
+  f.onsubmit=e=>{e.preventDefault();const phone=normPhone(ph.value),k=toEn(pw.value).trim();msg.className=msg.className.replace(/\bmuted\b/,"");msg.classList.add("err");msg.textContent="";if(!k)return;
+    if(!ph.value.trim()){load(k,true);return}
+    if(!/^01[0125]\d{8}$/.test(phone)){msg.textContent="اكتب رقم موبايلك صح";return}
+    const b=f.querySelector("button");b.disabled=true;msg.classList.remove("err");msg.classList.add("muted");msg.textContent="بيدخل…";
+    callApi("login",{phone,pin:k},r=>{b.disabled=false;lsSet("gsyf_kh_phone",phone);if(r.key){msg.textContent="";load(r.key,true)}else{msg.textContent=KH_ST[r.status]||"حصلت مشكلة"}},
+      m=>{b.disabled=false;msg.classList.remove("muted");msg.classList.add("err");msg.textContent=m})};
+}
+function renderKhadem(){
+  const box=$("khadem");
+  if(D.me){box.innerHTML=`<section class="panel"><h3>✅ انت داخل باسم ${esc(D.me.name)}</h3><p class="muted" style="margin:0">التاسكات بتاعتك في صفحة المتابعة.</p><div class="btns"><a class="btn" href="#follow">افتح المتابعة</a></div></section>`;return}
+  const last=lsGet("gsyf_kh_phone")||"";
+  box.innerHTML=`<section class="panel"><form class="rgf" novalidate>
+    <div class="rg-head"><b>سجّل كخادم</b><span>سجّل مرة واحدة بس. بعد ما الأمناء يوافقوا هتدخل كل مرة برقمك والرقم السري، وهتلاقي التاسكات بتاعتك.</span></div>
+    <label class="fld"><span>الاسم ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
+    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
+    <label class="fld"><span>اختار رقم سري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" dir="ltr"><em></em></label>
+    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" dir="ltr"><em></em></label>
+    <button type="submit" class="primary rg-send">سجلني كخادم</button><p class="msg small"></p>
+    <p class="small muted" style="margin:0">حتى لو سجلت في الموقع قبل كده، سجّل هنا علشان نعرف إنك خادم. بياناتك بتوصل لأمناء الخدمة بس.</p></form></section>
+    <section class="panel"><h3>متسجل قبل كده؟ ادخل</h3><form class="kl" style="display:flex;flex-wrap:wrap;gap:8px"><input type="tel" inputmode="tel" dir="ltr" placeholder="رقم الموبايل" autocomplete="tel" value="${esc(last)}" style="flex:1 1 140px;min-width:0"><input type="password" inputmode="numeric" placeholder="الرقم السري" autocomplete="current-password" style="flex:1 1 140px;min-width:0"><button type="submit">دخول</button></form><p class="lmsg small err" style="margin:0"></p></section>`;
+  const kl=box.querySelector(".kl"),ins=kl.querySelectorAll("input");bindLogin(kl,ins[0],ins[1],box.querySelector(".lmsg"));
+  const f=box.querySelector(".rgf");
+  const CK={name:REG_CHECK.name,phone:REG_CHECK.phone,pin:v=>/^\d{4}$/.test(toEn(v))?"":"الرقم السري لازم 4 أرقام",pin2:(v,f)=>toEn(v)===toEn(f.elements.pin.value)?"":"الرقمين مش زي بعض"};
+  const check=(n,show)=>{const el=f.elements[n],e=CK[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
+  Object.keys(CK).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
+  f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(CK).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
+    const msg=f.querySelector(".msg");if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
+    const btn=f.querySelector(".rg-send"),phone=normPhone(f.elements.phone.value);btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
+    callApi("servantJoin",{name:f.elements.name.value.trim().replace(/\s+/g," "),phone,pin:toEn(f.elements.pin.value)},
+      r=>{lsSet("gsyf_kh_phone",phone);ins[0].value=phone;
+        if(r.key){load(r.key,true);return}
+        btn.disabled=false;msg.className="msg small ok";
+        msg.textContent=r.existed?`الرقم ده متسجل قبل كده. ${r.status==="مقبول"?"ادخل برقمك والرقم السري تحت.":KH_ST[r.status]||""}`:KH_ST["مستني"].replace("⏳ ","✅ ")},
+      e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
+}
+// صفحة الأمناء: الموافقة على الخدام وفتح/قفل الصلاحيات لكل واحد
+function renderTeam(){
+  const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
+  const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
+  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}</div>
+    <div class="ap-btns"><button type="button" class="ap-ok us" data-f="status" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
+  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}${u.role==="أمين"?' <span class="small muted">(أمين)</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
+    <div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${!!u.perms[k]}">${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div>
+    <div class="tm-more">${wa(u)}${u.noPin?'<span class="err">الرقم السري اتمسح، مستني يسجل تاني</span>':`<a href="#" class="us" data-f="resetPin">امسح الرقم السري</a>`}<a href="#" class="us" data-f="status" data-v="موقوف">إيقاف</a></div></article>`;
+  $("team").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> خادم مستني موافقة</span><button type="button" id="tmRef">↻ تحديث</button></div>
+    ${wait.map(pend).join("")}
+    <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">كل خادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول". دوس على أي صلاحية علشان تفتحها (ملوّنة) أو تقفلها.</p></section>
+    ${on.map(card).join("")||`<p class="empty">لسه مفيش خدام متقبلين. ابعت لينك التسجيل: <span dir="ltr">${esc(location.origin+location.pathname)}#khadem</span></p>`}
+    ${off.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">مرفوض أو موقوف (${off.length})</summary>${off.map(u=>`<div class="row" data-row="${u.row}"><div class="d"><small>${esc(u.status)}</small></div><div class="t"><b>${esc(u.name)}</b> <button type="button" class="small us" data-f="status" data-v="مقبول">رجّعه</button></div></div>`).join("")}</details>`:""}`;
+  $("tmRef").onclick=()=>{$("tmRef").textContent="…";load()};
+  $("team").querySelectorAll(".us").forEach(b=>b.onclick=e=>{e.preventDefault();const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),f=b.dataset.f;
+    if(f==="resetPin"&&!confirm(`تمسح الرقم السري بتاع ${u.name}؟ هيسجل تاني بنفس رقمه ويختار رقم جديد.`))return;
+    if(f==="status"&&b.dataset.v==="موقوف"&&!confirm(`توقف حساب ${u.name}؟`))return;
+    const isPerm=P.some(([k])=>k===f),v=isPerm?!u.perms[f]:b.dataset.v;b.disabled=true;
+    callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin")u.noPin=true;renderTeam();renderNav("team")},
+      m=>{b.disabled=false;alert(m)})});
+}
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
-  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length;
-  const items=[["approve","الطلبات"+(nw?` (${nw})`:"")],["follow","المتابعة"],["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
+  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
+  const items=[...(can("regs")?[["approve","الطلبات"+(nw?` (${nw})`:"")]]:[]),["follow","المتابعة"],...(D.level===2?[["team","الخدام"+(nu?` (${nu})`:"")]]:[]),["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===cur?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
 
 function route(){
   let h=location.hash.slice(1);
-  if(!D.level)h="home";                                   // الشباب بيشوفوا صفحتهم بس
+  if(!D.level)h=h==="khadem"?"khadem":"home";             // الشباب بيشوفوا صفحتهم بس (وصفحة تسجيل الخدام)
   else if(!h)h="follow";
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp);$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  if(h==="approve"&&!can("regs"))h="follow";
+  if(h==="team"&&D.level!==2)h="follow";
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT);$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome);$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":isK?"khadem":isT?"team":"year");
   if(isAp)renderApprove();
+  if(isK)renderKhadem();
+  if(isT)renderTeam();
   if(isHome)renderHome();
   if(isFollow)renderFollow();
   if(m)renderMonth(m[1]);
@@ -929,7 +1027,7 @@ function start(data){
   if(D.sheetUrl){$("sheetLink").href=D.sheetUrl;$("sheetLink").hidden=false}
   $("pdfBtn").onclick=()=>window.print();
   $("back").onclick=()=>{location.hash="year"};
-  if(!startedOnce){startedOnce=true;$("login").onsubmit=e=>{e.preventDefault();const k=$("pw").value.trim();if(!k)return;$("loginMsg").textContent="";load(k,true)}}
+  if(!startedOnce){startedOnce=true;bindLogin($("login"),$("lgPhone"),$("pw"),$("loginMsg"))}
   if(window.START_VIEW&&!location.hash){try{history.replaceState(null,"","#"+window.START_VIEW)}catch(e){location.hash=window.START_VIEW}}
   renderYear();route();
   if(!hashBound){hashBound=true;window.addEventListener("hashchange",route)}
@@ -949,7 +1047,7 @@ function load(k,fromLogin){
   else if(!D){$("sub").textContent="بيحمّل…"}
   apiGet({api:"data",k:key}).then(d=>{
     if(d&&d.ok===false)throw new Error(d.error);
-    if(fromLogin&&!d.level){$("loginMsg").textContent="الباسورد غلط";return}
+    if(fromLogin&&!d.level){$("loginMsg").textContent="الباسورد غلط";const x=document.querySelector("#khadem .lmsg");if(x)x.textContent="الباسورد غلط";return}
     if(k!==undefined)KEY=k;
     try{d.level?localStorage.setItem("gsyf_key",KEY):localStorage.removeItem("gsyf_key")}catch(e){}
     if(!d.level){try{localStorage.setItem(CACHE_KEY,JSON.stringify(d))}catch(e){}}
