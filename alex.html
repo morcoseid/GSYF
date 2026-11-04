@@ -51,6 +51,8 @@ h1{margin:4px 0 0;font-family:"Reem Kufi","Readex Pro",sans-serif;font-size:2rem
 .ct+.ct{border-top:1px solid var(--line)}
 .ct .num{color:var(--navy)}
 .ct::after{content:"💬"}
+.need{margin:0 0 8px;text-align:center;font-size:.92rem;color:var(--muted)}
+.alt{display:block;text-align:center;margin-top:10px;color:var(--navy);font-weight:600;text-decoration:underline;font-size:.95rem}
 .closed{text-align:center;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px}
 </style>
 </head>
@@ -75,7 +77,7 @@ h1{margin:4px 0 0;font-family:"Reem Kufi","Readex Pro",sans-serif;font-size:2rem
     <ol>
       <li id="payStep">ادفع الـ ٣٠٠ جنيه بإنستاباي أو تحويل.</li>
       <li>خد سكرين شوت من التحويل.</li>
-      <li>املا فورم التسجيل وارفع السكرين فيه.</li>
+      <li>املا فورم الرحلة وارفع السكرين فيه. (التسجيل من الفورم بس)</li>
     </ol>
   </section>
 
@@ -112,10 +114,16 @@ if(TRIP.instapay){
 if(left<0){
   $("cta").innerHTML='<p class="closed">الرحلة خلصت، شكراً لكل اللي جه 💛</p>';
 }else{
-  const href=TRIP.form||"https://wa.me/201223937203?text="+encodeURIComponent("عايز أحجز في رحلة إسكندرية ٢١ نوفمبر");
-  const a=document.createElement("a");a.className="go";a.href=href;a.target="_blank";a.rel="noopener";
-  a.textContent=TRIP.form?"سجّل في الرحلة":"احجز على واتساب";
-  $("cta").appendChild(a);
+  // لازم يكون مسجل على الموقع الأول (نفس الموبايل)
+  let reg="";try{reg=localStorage.getItem("gsyf_reg")||""}catch(e){}
+  const formHref=TRIP.form||"https://wa.me/201223937203?text="+encodeURIComponent("عايز أحجز في رحلة إسكندرية ٢١ نوفمبر");
+  const btn=(cls,href,txt,blank)=>{const a=document.createElement("a");a.className=cls;a.href=href;if(blank){a.target="_blank";a.rel="noopener"}a.textContent=txt;return a};
+  if(reg){
+    $("cta").appendChild(btn("go",formHref,TRIP.form?"سجّل في الرحلة":"احجز على واتساب",true));
+  }else{
+    const n=document.createElement("p");n.className="need";n.textContent="الرحلة لأعضاء G.S.Y. Family، فلازم تكون مسجل على الموقع الأول.";
+    $("cta").append(n,btn("go","./","١. سجّل على الموقع الأول"),btn("alt",formHref,"مسجل قبل كده؟ كمّل على فورم الرحلة",true));
+  }
 }
 </script>
 </body>
