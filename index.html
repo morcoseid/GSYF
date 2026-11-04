@@ -743,6 +743,19 @@ function regPanel(){
   const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(r.email)}${r.phone?" · "+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
   return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
+// اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
+function srvMeetPanel(){
+  const L=D.srvMeet;if(!L||!L.length)return "";
+  const m=L[0],left=-daysAgo(m.date),off=m.status==="ملغي"||m.status==="اتأجل";
+  const when=left===0?"النهارده":left===1?"بكرة":"فاضل "+left+" يوم";
+  return `<section class="panel"><h3>اجتماع الخدام الجاي</h3>
+    ${!off&&left<=7?`<p class="note" style="margin:0 0 8px">⏰ ${when} على اجتماع الخدام</p>`:""}
+    <div class="row"><div class="d num">${dm(m.date)}<small>${WD[parse(m.date).getDay()]}</small></div><div class="t"><b>${esc(m.topic||"الموضوع لسه متحددش")}</b>${off?` <span class="late small">${esc(m.status)}</span>`:""}
+      <div class="why">${esc([m.time&&"الساعة "+tm(m.time),m.place,m.speaker&&"المسؤول: "+m.speaker].filter(Boolean).join(" · "))}</div>
+      ${m.details?`<div class="why" style="white-space:pre-line">${esc(m.details)}</div>`:""}${m.notes?`<div class="why">${esc(m.notes)}</div>`:""}</div></div>
+    ${L[1]?`<p class="small muted" style="margin:6px 0 0">اللي بعده: ${dm(L[1].date)}${L[1].topic?" · "+esc(L[1].topic):""}</p>`:""}
+  </section>`;
+}
 function renderFollow(){
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
@@ -762,6 +775,7 @@ function renderFollow(){
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋</p>`:""}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
+    ${srvMeetPanel()}
     ${can("ai")?aiPanel():""}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش تاسكات باسمك دلوقتي.</p>`}</section>`:""}
     ${can("tasks")?`<section class="panel"><h3>${D.me?"كل التاسكات المفتوحة":"مفتوح ومحتاج يتقفل"} (${late.length+now.length})</h3>
