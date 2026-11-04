@@ -634,6 +634,10 @@ function renderHome(){
       <li>👥 الفريق لحد ١٥ واحد، مواليد ١٩٩٦ وأصغر</li>
       <li>مسابقة بين فرق الشباب على مستوى الأسقفية، وبقالنا ٤ سنين بندخلها 💪</li></ul></details>
     <div class="kb"><a class="kgo" href="${KAS.form}" target="_blank" rel="noopener">سجّل في الفريق</a><a class="kwa" href="https://wa.me/${KAS.wa}" target="_blank" rel="noopener">للتواصل: ${KAS.who} · واتساب</a></div></section>`:"";
+  // رحلة إسكندرية: كارت صغير لحد يوم الرحلة، بيفتح صفحة الرحلة
+  const alexLeft=Math.round((parse("2026-11-21")-parse(t))/864e5);
+  const alex=t<="2026-11-21"?`<section class="y-kas y-alex"><div class="kh"><span class="tr">🌊</span><div><b>رحلة إسكندرية</b><small>مكتبة الإسكندرية · مارجرجس · اسبورتينج · فلوكة</small></div><span class="dl">${alexLeft<=0?"النهارده":alexLeft===1?"بكرة":"السبت ٢١ نوفمبر"}</span></div>
+    <div class="kb"><a class="kgo" href="alex.html">التفاصيل والحجز</a><span class="kwa">٣٠٠ جنيه · الحجز بيتأكد بالدفع بس</span></div></section>`:"";
   const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${cdBox(spD,spW&&spW.time)}${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
@@ -644,6 +648,7 @@ function renderHome(){
     ${locked?regSec:""}
     ${surprise}
     ${kas}
+    ${alex}
     ${lockOpen}
     <section class="y-sec"><h2 class="y-h">اجتماعات الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
     <section class="y-sec"><h2 class="y-h">الإيفنتات الجاية</h2>${soon.length?`<div class="y-cards">${soon.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${e.booking?(lsGet("bk_"+e.row+e.title)?`<span class="ok small">اتحجز ✓</span>`:`<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>`):""}</div></article>`).join("")}</div>`:`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
@@ -663,6 +668,7 @@ function renderHome(){
   const bi=[];
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
   if(spT)bi.push({id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:locked?"سجّل عشان تعرف التفاصيل":WD[spD.getDay()]+" "+spD.getDate()+" "+GM[spD.getMonth()],go:".y-surp"});
+  if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:"رحلة إسكندرية السبت ٢١ نوفمبر",s:"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
   (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
   if(!locked)soon.slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
