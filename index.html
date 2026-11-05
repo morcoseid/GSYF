@@ -271,6 +271,14 @@ body.youth #staff{text-align:center}
 .ax-must{background:rgba(178,58,46,.1);border:1.5px solid #B23A2E;border-radius:12px;padding:8px 12px;font-size:.92rem}
 .ax-must b{color:#B23A2E}
 .ax-steps{margin:0;padding-inline-start:20px;font-size:.92rem}
+/* الوضع الداكن: كل كلام الكروت ذهبي/فاتح عشان يبان على الخلفية الغامقة */
+.y-kas{--k-ink:var(--navy);--k-warn:#B23A2E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .y-kas{--k-ink:#E4C47E;--k-warn:#FF9C8C}}
+:root[data-theme="dark"] .y-kas{--k-ink:#E4C47E;--k-warn:#FF9C8C}
+.y-kas .kh b,.y-kas .dl,.ax-wa a b{color:var(--k-ink)!important}
+.ax-must{border-color:var(--k-warn)!important}.ax-must b{color:var(--k-warn)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .y-kas .kgo{background:#E4C47E;color:#1D0F0D}}
+:root[data-theme="dark"] .y-kas .kgo{background:#E4C47E;color:#1D0F0D}
 .ax-wa{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
 .ax-wa a{display:flex;justify-content:space-between;gap:8px;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px}.ax-wa a b{color:var(--navy);font-weight:600}
 .y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
