@@ -235,6 +235,10 @@ body.youth #staff{text-align:center}
 .y-feat .ok{color:var(--goldhi)}
 .me-btn{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));z-index:50;width:46px;height:46px;border-radius:50%;border:1px solid rgba(228,196,126,.6);background:rgba(26,7,6,.82);color:var(--goldhi);font-weight:700;font-size:1.2rem;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.3);backdrop-filter:blur(6px)}
 .me-btn[hidden]{display:none}
+.me-btn img,.me-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}.me-btn{overflow:hidden;padding:0}
+.me-av{position:relative;border:0;padding:0;cursor:default}.me-pick{cursor:pointer}
+.me-cam{position:absolute;bottom:-2px;left:-2px;width:24px;height:24px;border-radius:50%;background:var(--surface);border:1px solid var(--line);font-size:.75rem;font-style:normal;display:flex;align-items:center;justify-content:center}
+.me-ph{margin-top:6px}
 body.youth #me{padding-top:56px}
 .tm-mk{flex:none;width:auto!important;align-self:center}
 .me-head{display:flex;gap:14px;align-items:center}
@@ -804,8 +808,8 @@ const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مقبول";
 // حساب الشاب: الموبايل + رقم سري. التوكن بيتحفظ على الموبايل وبيتبعت مع الحجز والبروفايل
 const YT=()=>lsGet("gsyf_ytok")||"";
 function ySave(r){if(r.email)lsSet("gsyf_reg",r.email);if(r.status!==undefined)lsSet("gsyf_reg_st",r.status||"");if(r.tok)lsSet("gsyf_ytok",r.tok);if(r.name)lsSet("gsyf_yname",r.name);meBtn()}
-function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
-function meBtn(){const b=$("meBtn");if(!b)return;const n=(D&&D.me&&D.me.name)||lsGet("gsyf_yname")||"";b.hidden=(!n&&!YT())||!!(D&&D.level);b.textContent=n?n.trim()[0]:"👤"}
+function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname","gsyf_yphoto"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
+function meBtn(){const b=$("meBtn");if(!b)return;const n=(D&&D.me&&D.me.name)||lsGet("gsyf_yname")||"";b.hidden=(!n&&!YT())||!!(D&&D.level);const ph=YT()&&lsGet("gsyf_yphoto");if(ph)b.innerHTML=`<img src="${ph}" alt="">`;else b.textContent=n?n.trim()[0]:"👤"}
 const PIN_CK={pin:v=>/^\d{4}$/.test(toEn(v))?"":"الرقم السري لازم 4 أرقام",pin2:(v,f)=>toEn(v)===toEn(f.elements.pin.value)?"":"الرقمين مش زي بعض"};
 // دخول واحد للكل: الخادم اللي الأمين فتح له بيدخل على صفحة الخدام، والشاب على البروفايل بتاعه
 function yLoginForm(box){
@@ -890,22 +894,40 @@ function renderReg(){
 /* ================= بروفايلي: لكل واحد داخل بحسابه ================= */
 const PERM_L={tasks:"كل التاسكات",bookings:"الحجوزات والدفع",evals:"التقييمات",regs:"طلبات الشباب",ai:"المساعد"};
 let MEP=null;
+// صورة البروفايل: بتتصغر على الموبايل لـ 160×160 وبتتبعت حتت صغيرة
+function shrinkPhoto(file){return new Promise((ok,bad)=>{const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{const S=160,c=document.createElement("canvas");c.width=c.height=S;const m=Math.min(im.width,im.height);
+    c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);URL.revokeObjectURL(u);
+    let q=.8,d=c.toDataURL("image/jpeg",q);while(d.length>30000&&q>.3){q-=.15;d=c.toDataURL("image/jpeg",q)}ok(d)};
+  im.onerror=()=>{URL.revokeObjectURL(u);bad("الملف ده مش صورة")};im.src=u})}
+function sendPhoto(tok,d,ok,fail){const N=1500,parts=[];for(let i=0;i<d.length;i+=N)parts.push(d.slice(i,i+N));const id=Math.random().toString(36).slice(2,10);
+  const go=i=>callApi("photoPart",{tok,id,i,n:parts.length,d:parts[i]},r=>i<parts.length-1?go(i+1):ok(r),fail);go(0)}
+function bindPhoto(box,tok){
+  const f=box.querySelector(".me-file"),pick=()=>f.click(),ph=box.querySelector(".me-ph");
+  box.querySelectorAll(".me-pick,.me-chg").forEach(b=>b.onclick=e=>{e.preventDefault();pick()});
+  const del=box.querySelector(".me-del");if(del)del.onclick=e=>{e.preventDefault();if(!confirm("تشيل صورتك؟"))return;ph.textContent="…";
+    callApi("photoDel",{tok},()=>{if(MEP)MEP.me.photo="";lsSet("gsyf_yphoto","");meBtn();renderMe()},m=>{ph.textContent=m})};
+  f.onchange=()=>{const fl=f.files&&f.files[0];if(!fl)return;ph.textContent="بتترفع…";
+    shrinkPhoto(fl).then(d=>sendPhoto(tok,d,r=>{if(MEP)MEP.me.photo=r.photo||d;lsSet("gsyf_yphoto",r.photo||d);meBtn();renderMe()},m=>{ph.className="small err me-ph";ph.textContent=m}),m=>{ph.className="small err me-ph";ph.textContent=m})};
+}
 function renderMe(){
   const box=$("me"),sv=D.me,tok=YT(),p=MEP&&MEP.tok===tok?MEP.me:null;
   const name=(p&&p.name)||(sv&&sv.name)||lsGet("gsyf_yname")||"";
+  const photo=tok?(p?p.photo||"":lsGet("gsyf_yphoto")||""):"";
   if(!sv&&!tok){box.innerHTML=`<section class="panel"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">البروفايل لكل واحد بحسابه. اخرج وادخل برقم موبايلك والرقم السري.</p><div class="btns"><button type="button" class="me-out">خروج</button></div></section>`;box.querySelector(".me-out").onclick=logout;return}
   const role=sv?sv.role:p&&p.servant?p.servant:"شاب",st=p?p.status:lsGet("gsyf_reg_st")||"";
   const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
   const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.paid||b.status==="مؤكد"?"✅ مؤكد (دفع)":b.status==="مستني الدفع"?"⏳ مستني الدفع"+(b.proof?" · إثبات: "+esc(b.proof):""):"✓ محجوز"}</div></div></div>`;
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
-  box.innerHTML=`<section class="panel"><div class="me-head"><div class="me-av">${esc((name.trim()[0])||"👤")}</div><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}</div></div></section>
+  box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
     <details class="panel"><summary class="me-sum">بياناتي</summary><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd><dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></details>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">الاجتماعات والحجز هيتفتحوا لك أول ما طلبك يتقبل.</p>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
+  if(tok)bindPhoto(box,tok);
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
-  if(tok&&!p)callApi("profile",{tok},r=>{MEP={tok,me:r.me};ySave({name:r.me.name,status:r.me.status});setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
+  if(tok&&!p)callApi("profile",{tok},r=>{MEP={tok,me:r.me};ySave({name:r.me.name,status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
     m=>{if(/ادخل/.test(m)){yOut();location.hash="home";renderHome();return}box.insertAdjacentHTML("beforeend",`<p class="err small">${esc(m)}</p>`)});
 }
 
