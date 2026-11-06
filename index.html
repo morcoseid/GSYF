@@ -273,8 +273,42 @@ body.youth #staff{text-align:center}
 .ax-steps{margin:0;padding-inline-start:20px;font-size:.92rem}
 .bk-box{margin-top:6px;padding:8px 10px;border-radius:10px;background:var(--mid-soft);display:grid;gap:4px}
 .bk-box .btns{margin-top:2px}
+#ratings{--rp-y:#B8862B;--rp-s:#7A1A12}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #ratings{--rp-y:#E4C47E;--rp-s:#EE8678}}
+:root[data-theme="dark"] #ratings{--rp-y:#E4C47E;--rp-s:#EE8678}
+.rp-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.rp-seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:3px}
+.rp-seg button{border:0;background:none;font:inherit;padding:6px 12px;border-radius:9px;cursor:pointer;color:var(--muted);font-weight:600}
+.rp-seg button.on{background:var(--accent);color:var(--surface)}
+.rp-ev{font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:10px;padding:6px 10px}
+.rp-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.rp-kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px}
+.rp-kpi small{color:var(--muted)}.rp-kpi b{display:block;font-size:1.8rem;line-height:1.2}
+.rp-kpi span{display:flex;gap:6px;flex-wrap:wrap;font-size:.8rem}
+i.rp-y,i.rp-s{font-style:normal;font-weight:600;border-radius:99px;padding:0 8px;font-size:.78rem;border:1px solid}
+i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);border-color:var(--rp-s)}
+.rp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
+.rp-card h3{margin:0}.rp-big{font-size:1.6rem;font-weight:700}.rp-big small{font-size:.9rem;color:var(--muted)}
+.rp-row{display:grid;grid-template-columns:minmax(70px,36%) 1fr auto;gap:8px;align-items:center;font-size:.88rem;margin:5px 0}
+.rp-row>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rp-tr{height:12px;background:var(--line);border-radius:99px;overflow:hidden;display:flex}
+.rp-tr b.rp-y{background:var(--rp-y)}.rp-tr b.rp-s{background:var(--rp-s)}
+.rp-txt{list-style:none;margin:6px 0 0;padding:0;max-height:340px;overflow:auto}
+.rp-txt li{border-top:1px solid var(--line);padding:7px 2px;display:flex;gap:8px;align-items:flex-start}
+.rp-dot{display:inline-block;width:10px;height:10px;border-radius:3px;vertical-align:middle;margin:0 4px}.rp-dot.rp-y{background:var(--rp-y)}.rp-dot.rp-s{background:var(--rp-s)}
+/* الوضع الداكن: كل كلام الكروت ذهبي/فاتح عشان يبان على الخلفية الغامقة */
+.y-kas{--k-ink:var(--navy);--k-warn:#B23A2E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .y-kas{--k-ink:#E4C47E;--k-warn:#FF9C8C}}
+:root[data-theme="dark"] .y-kas{--k-ink:#E4C47E;--k-warn:#FF9C8C}
+.y-kas .kh b,.y-kas .dl,.ax-wa a b{color:var(--k-ink)!important}
+.ax-must{border-color:var(--k-warn)!important}.ax-must b{color:var(--k-warn)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .y-kas .kgo{background:#E4C47E;color:#1D0F0D}}
+:root[data-theme="dark"] .y-kas .kgo{background:#E4C47E;color:#1D0F0D}
 .ax-wa{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
 .ax-wa a{display:flex;justify-content:space-between;gap:8px;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px}.ax-wa a b{color:var(--navy);font-weight:600}
+.st-open,.st-closed{display:inline-block;font-size:.72rem;font-weight:700;border-radius:99px;padding:0 8px;margin-inline-end:4px;vertical-align:1px}
+.st-open{background:rgba(178,58,46,.12);color:#B23A2E}.st-closed{background:rgba(47,122,79,.14);color:#2F7A4F}
+.mo-up{color:#2F7A4F}.mo-dn{color:#B23A2E}
 .y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
 .y-surp p{margin:0;font-size:1rem}.sp-when{font-family:var(--kufi);font-size:1.25rem!important;color:var(--goldhi)}
 .rg-pitch{margin:0;font-size:1.02rem}
@@ -364,6 +398,7 @@ body.youth #staff{text-align:center}
   <div id="approve" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="khadem" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="team" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="ratings" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="year" class="months"></div>
   <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
@@ -818,6 +853,23 @@ function bookPanel(){
     ${X.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتلغى (${X.length})</summary>${X.map(b=>`<div class="row"><div class="t small muted"><s>${esc(b.name)}</s></div></div>`).join("")}</details>`:""}
     </details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات، وعدد الأماكن في العمود اللي بعد السعر.</p>`}</section>`;
 }
+// ===== التقييم الشهري للخدمة: سطر لكل شهر + مقارنة بالشهر اللي قبله =====
+// أول 10 أيام في الشهر بنقيّم الشهر اللي فات (عشان يتعمل في/بعد اجتماع الخدام الشهري)
+function monthPanel(ev){
+  const td=parse(D.today),back=td.getDate()<=10,md=new Date(td.getFullYear(),td.getMonth()-(back?1:0),1);
+  const mk=d=>GM[d.getMonth()]+" "+d.getFullYear(),target=mk(md),done=lsGet("mo_"+target);
+  const rows=ev.filter(r=>r.kind==="شهري"),months=[];
+  for(let i=0;i<6;i++){const d=new Date(md.getFullYear(),md.getMonth()-i,1),n=mk(d),rs=rows.filter(r=>r.target===n);months.push({n,rs,sc:rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""})}
+  const top=(rs,i)=>{const c={};rs.forEach(r=>{const v=String(r.a[i]||"").trim();if(v)c[v]=(c[v]||0)+1});const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];return k||"–"};
+  const line=(m,i)=>{const prev=months[i+1],up=m.sc&&prev&&prev.sc?(m.sc>prev.sc?` <span class="mo-up">▲</span>`:m.sc<prev.sc?` <span class="mo-dn">▼</span>`:" ="):"";
+    return `<div class="row"><div class="d"><b>${esc(m.n.split(" ")[0])}</b><small>${m.n.split(" ")[1]}</small></div><div class="t">${m.rs.length?`<b>★ ${m.sc}</b>${up}${prev&&prev.sc?` <span class="small muted">(اللي قبله ${prev.sc})</span>`:""}<div class="why">الحضور: ${esc(top(m.rs,0))} · الافتقاد: ${esc(top(m.rs,3))} · ${m.rs.length} خادم قيّموا</div>`:`<span class="muted">لسه متقيمش</span>`}</div></div>`};
+  const shown=months.filter((m,i)=>i===0||m.rs.length);
+  return `<section class="panel"><h3>تقييم الخدمة الشهري</h3>
+    <div class="row"><div class="d">📝</div><div class="t ev"><b>قيّم ${esc(target)}</b><span class="meta">5 أسئلة ثابتة كل شهر عشان نقارن. أحسن وقت: في اجتماع الخدام أو بعده.</span>
+      ${done?`<p class="ok" style="margin:4px 0 0">قيّمت ${esc(target)} ✓</p>`:`<div class="btns"><button type="button" class="mo small" data-m="${esc(target)}">قيّم الشهر</button></div>`}</div></div>
+    ${can("evals")?shown.map(line).join(""):""}
+  </section>`;
+}
 function renderFollow(){
   const openEv=[...document.querySelectorAll("#follow details[data-ev][open]")].map(d=>d.dataset.ev);
   const t=D.today,in30=iso(addDays(parse(t),30));
@@ -828,14 +880,13 @@ function renderFollow(){
   const ev=D.evals||[];
   const recent=D.events.filter(e=>e.type!=="ديدلاين"&&e.status!=="اتلغى"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=30).sort((a,b)=>b.date.localeCompare(a.date));
   const tgt=e=>e.title+" ("+e.date+")";
-  const notes=[];ev.forEach(r=>{if(r.closed)return;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])notes.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
-  const mName=GM[parse(t).getMonth()]+" "+parse(t).getFullYear(),prevD=new Date(parse(t).getFullYear(),parse(t).getMonth()-1,1),prevName=GM[prevD.getMonth()]+" "+prevD.getFullYear();
-  const mScore=n=>{const rs=ev.filter(r=>r.kind==="شهري"&&r.target===n);return rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""};
+  const notes=[],closedN=[];ev.forEach(r=>{const L=r.closed?closedN:notes;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])L.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
   const mine=D.me?open.filter(e=>isMine(e.owner,D.me.name)):[];
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋</p>`:""}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${srvMeetPanel()}
+    ${monthPanel(ev)}
     ${can("ai")?aiPanel():""}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش تاسكات باسمك دلوقتي.</p>`}</section>`:""}
     ${can("tasks")?`<section class="panel"><h3>${D.me?"كل التاسكات المفتوحة":"مفتوح ومحتاج يتقفل"} (${late.length+now.length})</h3>
@@ -846,9 +897,8 @@ function renderFollow(){
     ${can("bookings")?bookPanel():""}
     <section class="panel"><h3>التقييمات</h3>
       ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b>${can("evals")?`<span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span>`:""}<div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
-      <div class="row"><div class="d">الشهر</div><div class="t ev"><b>تقييم ${esc(mName)}</b>${can("evals")?`<span class="meta">${mScore(mName)?`★ ${mScore(mName)}`:"لسه متقيمش"}${mScore(prevName)?` (الشهر اللي فات ★ ${mScore(prevName)})`:""}</span>`:""}<div class="btns"><button type="button" class="mo small">قيّم الشهر</button></div></div></div>
     </section>
-    ${notes.length?`<section class="panel"><h3>ملاحظات مفتوحة (${notes.length})</h3>${notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t">${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">اتقفلت</button></div></div></div>`).join("")}</section>`:""}
+    ${notes.length+closedN.length?`<section class="panel"><h3>الملاحظات (${notes.length} مفتوحة · ${closedN.length} اتقفلت)</h3>${notes.length?notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-open">مفتوحة</span> ${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">✓ اتقفلت</button></div></div></div>`).join(""):`<p class="empty">كل الملاحظات اتقفلت 👌</p>`}${closedN.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتقفل (${closedN.length})</summary>${closedN.slice().reverse().map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-closed">اتقفلت</span> <span class="muted">${esc(n.txt)}</span><div class="why">${esc(n.r.target)}</div></div></div>`).join("")}</details>`:""}</section>`:""}
     <p class="small muted">${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
   const F=$("follow"),fail=b=>m=>{b.disabled=false;b.textContent=m};
   openEv.forEach(r=>{const d=F.querySelector(`details[data-ev="${r}"]`);if(d)d.open=true});
@@ -863,7 +913,7 @@ function renderFollow(){
   F.querySelectorAll(".cl").forEach(b=>b.onclick=()=>{const r=ev.find(x=>x.row===+b.dataset.row);b.disabled=true;callApi("closeEval",{row:r.row},()=>{r.closed=true;renderFollow()},fail(b))});
   F.querySelectorAll(".sv").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=D.events.find(x=>x.row===+box.dataset.row);
     openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
-  F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:mName,answers:a},ok,f),()=>"اتسجل ✓"));
+  F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
   aiBind();
@@ -1052,9 +1102,53 @@ function renderTeam(){
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
   const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
-  const items=[...(can("regs")?[["approve","الطلبات"+(nw?` (${nw})`:"")]]:[]),["follow","المتابعة"],...(D.level===2?[["team","الخدام"+(nu?` (${nu})`:"")]]:[]),["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
+  const items=[...(can("regs")?[["approve","الطلبات"+(nw?` (${nw})`:"")]]:[]),["follow","المتابعة"],["ratings","التقييمات"],...(D.level===2?[["team","الخدام"+(nu?` (${nu})`:"")]]:[]),["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===cur?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
+
+/* التقييمات: نتايج تقييم الإيفنتات (زي حفلة ع الضيق) لايف، شباب وخدام */
+const RP={ev:"",f:"all",d:null,t:null};
+const rpNum=n=>Number(n).toLocaleString("ar-EG"),rpFmt=n=>(Math.round(n*10)/10).toLocaleString("ar-EG");
+function stopRatings(){if(RP.t){clearInterval(RP.t);RP.t=null}}
+function renderRatings(){
+  const box=$("ratings");if(!RP.d)box.innerHTML='<p class="muted" style="text-align:center;padding:30px">بيحمّل التقييمات…</p>';
+  rpLoad();stopRatings();RP.t=setInterval(()=>{if(!document.hidden&&!$("ratings").hidden)rpLoad()},60000);
+}
+function rpLoad(){
+  apiGet({api:"report",ev:RP.ev,r:KEY,t:Date.now()}).then(d=>{
+    if(!d||d.ok===false)throw new Error(d&&d.error||"مشكلة");
+    if(!d.ev&&d.events&&d.events.length){RP.ev=d.events[d.events.length-1];return rpLoad()}
+    RP.d=d;RP.ev=d.ev;rpRender();
+  }).catch(e=>{if(!RP.d)$("ratings").innerHTML=`<p class="muted" style="text-align:center;padding:30px">مقدرناش نجيب التقييمات دلوقتي (${esc(e.message||e)})</p>`});
+}
+function rpScale(q){return q.t==="stars"?5:(q.t==="chips"&&q.o&&q.o.length===10&&q.o[9]==="10")?10:0}
+function rpAvg(rows,i){const v=rows.map(r=>parseFloat(r.a[i])).filter(n=>!isNaN(n)&&n>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+function rpRender(){
+  const d=RP.d,all=d.rows,ys=all.filter(r=>r.view==="شباب"),ss=all.filter(r=>r.view==="خدام"),R=RP.f==="y"?ys:RP.f==="s"?ss:all;
+  let h=`<div class="rp-bar"><div class="rp-seg">${[["all","الكل",all.length],["y","الشباب",ys.length],["s","الخدام",ss.length]].map(([k,l,n])=>`<button type="button" data-f="${k}" class="${RP.f===k?"on":""}">${l} (${rpNum(n)})</button>`).join("")}</div>
+    ${d.events.length>1?`<select class="rp-ev">${d.events.map(e=>`<option ${e===d.ev?"selected":""}>${esc(e)}</option>`).join("")}</select>`:`<b>${esc(d.ev)}</b>`}
+    <span class="muted small">لايف · آخر تحديث ${esc((d.updated||"").slice(11))}</span></div>`;
+  if(!all.length){$("ratings").innerHTML=h+'<p class="muted" style="text-align:center;padding:30px">لسه مفيش تقييمات.</p>';rpBind();return}
+  h+=`<div class="rp-kpis"><div class="rp-kpi"><small>عدد اللي قيّموا</small><b>${rpNum(R.length)}</b><span><i class="rp-y">شباب ${rpNum(ys.length)}</i><i class="rp-s">خدام ${rpNum(ss.length)}</i></span></div>`;
+  d.qs.forEach((q,i)=>{const sc=rpScale(q),m=sc&&rpAvg(R,i);if(!m)return;const my=rpAvg(ys,i),ms=rpAvg(ss,i);
+    h+=`<div class="rp-kpi"><small>${esc(String(q.l).replace(/[؟?]/g,""))}</small><b>${rpFmt(m)}<small> / ${sc}</small></b>${RP.f==="all"&&ys.length&&ss.length?`<span><i class="rp-y">شباب ${my==null?"–":rpFmt(my)}</i><i class="rp-s">خدام ${ms==null?"–":rpFmt(ms)}</i></span>`:""}</div>`});
+  h+=`</div><div class="rp-grid">`;
+  d.qs.forEach((q,i)=>{
+    const ans=R.filter(r=>String(r.a[i]||"").trim());
+    h+=`<section class="panel rp-card"><h3>${esc(q.l)}</h3><div class="muted small">${rpNum(ans.length)} جاوبوا</div>`;
+    if(q.t==="text"){h+=ans.length?`<ul class="rp-txt">${ans.slice().reverse().map(r=>`<li><i class="${r.view==="خدام"?"rp-s":"rp-y"}">${r.view}</i><span>${esc(r.a[i])}</span></li>`).join("")}</ul>`:'<p class="muted small">مفيش ردود</p>';h+=`</section>`;return}
+    const sc=rpScale(q);let opts=q.t==="stars"?["5","4","3","2","1"]:sc===10?["10","9","8","7","6","5","4","3","2","1"]:(q.o||[]).slice();
+    const c={};opts.forEach(o=>c[o]={y:0,s:0});
+    ans.forEach(r=>(q.t==="multi"?String(r.a[i]).split(/[،,]/).map(x=>x.trim()).filter(Boolean):[String(r.a[i]).trim()]).forEach(v=>{if(!c[v]){c[v]={y:0,s:0};opts.push(v)}c[v][r.view==="خدام"?"s":"y"]++}));
+    if(q.t==="multi")opts.sort((a,b)=>(c[b].y+c[b].s)-(c[a].y+c[a].s));
+    const m=sc&&rpAvg(R,i);if(m)h+=`<div class="rp-big">${rpFmt(m)} <small>/ ${sc}</small></div>`;
+    const mx=Math.max(1,...opts.map(o=>c[o].y+c[o].s)),base=ans.length||1;
+    opts.forEach(o=>{const t=c[o].y+c[o].s;if(q.t==="multi"&&!t)return;
+      h+=`<div class="rp-row"><span title="${esc(o)}">${esc(q.t==="stars"?"★".repeat(+o):o)}</span><div class="rp-tr"><b class="rp-y" style="width:${c[o].y*100/mx}%"></b><b class="rp-s" style="width:${c[o].s*100/mx}%"></b></div><span class="muted" dir="ltr">${rpNum(t)} · ${rpNum(Math.round(t*100/base))}٪</span></div>`});
+    h+=`</section>`});
+  $("ratings").innerHTML=h+`</div><p class="muted small" style="text-align:center"><span class="rp-dot rp-y"></span>شباب <span class="rp-dot rp-s"></span>خدام · من غير أسامي</p>`;rpBind();
+}
+function rpBind(){const b=$("ratings");b.querySelectorAll(".rp-seg button").forEach(x=>x.onclick=()=>{RP.f=x.dataset.f;rpRender()});const e=b.querySelector(".rp-ev");if(e)e.onchange=()=>{RP.ev=e.value;RP.d=null;renderRatings()}}
 
 function route(){
   let h=location.hash.slice(1);
@@ -1062,18 +1156,19 @@ function route(){
   else if(!h)h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
   if(h==="team"&&D.level!==2)h="follow";
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT);$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team", isR=h==="ratings";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR);$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome);$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":isK?"khadem":isT?"team":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":isK?"khadem":isT?"team":isR?"ratings":"year");
   if(isAp)renderApprove();
   if(isK)renderKhadem();
   if(isT)renderTeam();
+  if(isR)renderRatings();else stopRatings();
   if(isHome)renderHome();
   if(isFollow)renderFollow();
   if(m)renderMonth(m[1]);
