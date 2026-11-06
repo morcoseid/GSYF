@@ -271,6 +271,8 @@ body.youth #staff{text-align:center}
 .ax-must{background:rgba(178,58,46,.1);border:1.5px solid #B23A2E;border-radius:12px;padding:8px 12px;font-size:.92rem}
 .ax-must b{color:#B23A2E}
 .ax-steps{margin:0;padding-inline-start:20px;font-size:.92rem}
+.bk-box{margin-top:6px;padding:8px 10px;border-radius:10px;background:var(--mid-soft);display:grid;gap:4px}
+.bk-box .btns{margin-top:2px}
 .ax-wa{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
 .ax-wa a{display:flex;justify-content:space-between;gap:8px;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px}.ax-wa a b{color:var(--navy);font-weight:600}
 .y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
@@ -608,6 +610,29 @@ function renderBell(items){const b=$("bell"),pn=$("bellPanel");if(!b)return;
   pn.querySelectorAll("a").forEach(a=>a.onclick=ev=>{ev.preventDefault();pn.hidden=true;const g=a.dataset.go&&document.querySelector(a.dataset.go);if(g)g.scrollIntoView({behavior:"smooth",block:"center"})});
 }
 document.addEventListener("click",e=>{const pn=$("bellPanel");if(pn&&!pn.hidden&&!e.target.closest("#bell,#bellPanel"))pn.hidden=true});
+/* ================= الحجز (الشاب بيحجز بحسابه المسجل) ================= */
+let MYBK=[];try{MYBK=JSON.parse(lsGet("gsyf_bk")||"[]")||[]}catch(e){MYBK=[]}
+const setMyBk=L=>{const s=JSON.stringify(L||[]),ch=s!==JSON.stringify(MYBK);MYBK=L||[];lsSet("gsyf_bk",s);return ch};
+const BK_ST={"مستني الدفع":["⏳","اتحجز، مستني الدفع"],"مؤكد":["✅","حجزك متأكد"],"محجوز":["✅","إنت محجوز"]};
+function bkSlot(e){
+  const m=MYBK.find(b=>b.event===e.title&&b.date===e.date);
+  if(m){const s=BK_ST[m.status]||["✅",m.status],wait=m.status==="مستني الدفع";
+    return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${wait?`<span class="small">${e.price?"💰 "+esc(e.price)+" · ":""}الحجز بيتأكد لما الخادم يستلم الفلوس</span>${m.proof?`<span class="small muted">إثبات الدفع: ${esc(m.proof)}</span>`:""}`:""}${m.status!=="مؤكد"?`<div class="btns">${wait?`<button type="button" class="small bk-pf">${m.proof?"عدّل إثبات الدفع":"دفعت؟ اكتب رقم العملية"}</button>`:""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
+  if(!e.booking)return "";
+  const left=e.cap?e.cap-(e.booked||0):null;
+  if(left!==null&&left<=0)return `<p class="small err" style="margin:6px 0 0">الأماكن خلصت 😔</p>`;
+  return `<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>${left!==null&&left<=15?`<span class="small muted">فاضل ${left} ${left<=10?"أماكن":"مكان"} بس</span>`:""}`;
+}
+function bkBind(root){
+  const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
+  root.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest("[data-row]"),e=evOf(b);
+    openForm(box,[{t:"text",l:"ملاحظات للخدام (اختياري)"}],(a,ok,fail)=>callApi("book",{row:e.row,title:e.title,email:em,notes:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),
+      ()=>"اتحجز ✓",`الحجز هيتسجل باسمك.${e.price?" الاشتراك: "+e.price+". الحجز بيتأكد بالدفع.":""}`)});
+  root.querySelectorAll(".bk-x").forEach(b=>b.onclick=()=>{const e=evOf(b);if(!confirm("متأكد إنك عايز تلغي حجزك في "+e.title+"؟"))return;b.disabled=true;
+    callApi("bookCancel",{email:em,row:+b.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;alert(m)})});
+  root.querySelectorAll(".bk-pf").forEach(b=>b.onclick=()=>{const box=b.closest("[data-bk]");
+    openForm(box,[{t:"input",l:"رقم العملية في إنستاباي أو اسم اللي حوّل",req:1}],(a,ok,fail)=>callApi("bookProof",{email:em,row:+box.dataset.bk,proof:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),()=>"وصل ✓ الخادم هيأكد حجزك")});
+}
 function renderHome(){
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
@@ -647,11 +672,14 @@ function renderHome(){
   const alexForm=ALEX.form||"https://wa.me/"+ALEX.wa[0][1]+"?text="+encodeURIComponent("عايز أحجز في رحلة إسكندرية ٢١ نوفمبر");
   // الرحلة للمسجلين بس: اللي مش مسجل بيشوف كارت صغير يطلب منه يسجل
   const alexOn=t<=ALEX.until;
+  // الحجز من جوه الموقع: سطر الرحلة في شيت الإيفنتات (فيه "سكندري" وتاريخها 21 نوفمبر والحجز مفتوح)
+  const axE=D.events.find(e=>/سكندري/.test(e.title)&&e.date===ALEX.until);
   const alex=!alexOn?"":locked?`<section class="y-kas y-alex" id="alex"><div class="kh"><span class="tr">🌊</span><div><b>فيه رحلة جاية!</b><small>${pend?"التفاصيل والحجز هيظهروا لك أول ما طلبك يتقبل":"سجّل على الموقع عشان تشوف التفاصيل وتحجز"}</small></div></div>${pend?"":`<div class="kb"><button type="button" class="kgo ax-reg">سجّل دلوقتي</button></div>`}</section>`:`<section class="y-kas y-alex" id="alex"><div class="kh"><span class="tr">🌊</span><div><b>رحلة إسكندرية</b><small>يلا نعمل ذكريات جديدة سوا 💛</small></div><span class="dl">${alexLeft<=0?"النهارده":alexLeft===1?"بكرة":"باقي "+alexLeft+" يوم"}</span></div>
     <ul><li>📅 <b>السبت ٢١ نوفمبر</b></li><li>📍 مكتبة الإسكندرية · كنيسة مارجرجس · اسبورتينج · فلوكة</li><li>💰 الاشتراك <b>٣٠٠ جنيه</b></li>${ALEX.meet?`<li>🚌 التجمع: ${esc(ALEX.meet)}</li>`:""}</ul>
     <div class="ax-must">⚠️ <b>تأكيد الحجز بيتم بالدفع فقط.</b> التسجيل لوحده مش بيحجزلك مكان.</div>
-    <ol class="ax-steps"><li>ادفع الـ ٣٠٠ جنيه بإنستاباي أو تحويل${ALEX.instapay?` على <b dir="ltr">${esc(ALEX.instapay)}</b>`:" (كلّم كيرلس أو مارينا ياخدوك الرقم)"}</li><li>خد سكرين شوت من التحويل</li><li>املا فورم الرحلة وارفع السكرين فيه (التسجيل من الفورم بس)</li></ol>
-    <div class="kb"><a class="kgo" href="${alexForm}" target="_blank" rel="noopener">${ALEX.form?"سجّل في الرحلة":"احجز على واتساب"}</a></div>
+    ${axE?`<ol class="ax-steps"><li>احجز من الزرار اللي تحت (باسمك المسجل)</li><li>ادفع الـ ٣٠٠ جنيه بإنستاباي أو تحويل${ALEX.instapay?` على <b dir="ltr">${esc(ALEX.instapay)}</b>`:" (كلّم كيرلس أو مارينا ياخدوك الرقم)"}</li><li>اكتب رقم العملية في حجزك، أو ابعت سكرين التحويل لكيرلس أو مارينا</li><li>الحجز بيتأكد ✅ أول ما الخادم يستلم الفلوس</li></ol>
+    <div class="ev" data-row="${axE.row}">${bkSlot(axE)}</div>`:`<ol class="ax-steps"><li>ادفع الـ ٣٠٠ جنيه بإنستاباي أو تحويل${ALEX.instapay?` على <b dir="ltr">${esc(ALEX.instapay)}</b>`:" (كلّم كيرلس أو مارينا ياخدوك الرقم)"}</li><li>خد سكرين شوت من التحويل</li><li>ابعته لكيرلس أو مارينا على واتساب</li></ol>
+    <div class="kb"><a class="kgo" href="${alexForm}" target="_blank" rel="noopener">${ALEX.form?"سجّل في الرحلة":"احجز على واتساب"}</a></div>`}
     <div class="ax-wa"><span>📞 للتواصل واتساب</span>${ALEX.wa.map(w=>`<a href="https://wa.me/${w[1]}" target="_blank" rel="noopener"><b>${w[0]}</b><span dir="ltr">${w[2]}</span></a>`).join("")}</div>
     <details><summary>البوستر ▾</summary><img src="alex.jpg" alt="بوستر رحلة إسكندرية" loading="lazy" style="width:100%;border-radius:12px;display:block"></details></section>`;
   const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${cdBox(spD,spW&&spW.time)}${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
@@ -667,17 +695,14 @@ function renderHome(){
     ${alex}
     ${lockOpen}
     <section class="y-sec"><h2 class="y-h">اجتماعات الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
-    <section class="y-sec"><h2 class="y-h">الإيفنتات الجاية</h2>${soon.length?`<div class="y-cards">${soon.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${e.booking?(lsGet("bk_"+e.row+e.title)?`<span class="ok small">اتحجز ✓</span>`:`<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>`):""}</div></article>`).join("")}</div>`:`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
+    <section class="y-sec"><h2 class="y-h">الإيفنتات الجاية</h2>${soon.length?`<div class="y-cards">${soon.filter(e=>!(alex&&axE&&e.row===axE.row)).map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${bkSlot(e)}</div></article>`).join("")}</div>`:`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
     ${rate.length?`<section class="y-sec"><h2 class="y-h">رأيك يفرق</h2><div class="y-cards">${rate.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
     ${lockClose}
     ${locked?"":regSec}
     <section class="y-follow"><div class="wings sm" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div><div class="w" dir="ltr">G.S.Y. FAMILY</div><div>تابع أخبار الخدمة أول بأول</div>${installBtn()}<div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div><div class="small" dir="ltr" style="opacity:.75">WhatsApp: +20 120 069 0490</div></section>
 `;
   const ev=r=>D.events.find(e=>e.row===+r);
-  $("home").querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=ev(box.dataset.row);
-    openForm(box,[{t:"input",l:"الاسم",req:1},{t:"input",l:"رقم الموبايل",type:"tel",req:1},{t:"text",l:"ملاحظات (اختياري)"}],
-      (a,ok,fail)=>callApi("book",{row:e.row,title:e.title,name:a[0],phone:a[1],notes:a[2]},r=>{lsSet("bk_"+e.row+e.title,"1");ok(r)},fail),
-      r=>`اتحجز ✓${r&&r.pay?"<br><span class='muted'>الدفع: "+esc(r.pay)+"</span>":""}`)});
+  bkBind($("home"));
   const fg=$("home").querySelector(".ft-go");if(fg)fg.onclick=()=>{const box=fg.closest(".ev");fg.parentElement.remove();box.querySelector(".ft-txt").remove();
     openForm(box,fq.qs,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:feat.title+" ("+feat.date+")",answers:a},r=>{lsSet("rt_"+feat.row+feat.title+feat.date,"1");ok(r)},fail),()=>esc(fq.thanks||"شكرا على رأيك 💛"),fq.intro)};
   renderReg();cdTick();
@@ -746,10 +771,10 @@ function renderReg(){
   const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
     box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns"><button type="button" class="rg-out small">مش أنا / إيميل تاني</button></div>`;
-    box.querySelector(".rg-out").onclick=()=>{lsSet("gsyf_reg","");lsSet("gsyf_reg_st","");renderHome()};
+    box.querySelector(".rg-out").onclick=()=>{lsSet("gsyf_reg","");lsSet("gsyf_reg_st","");setMyBk([]);renderHome()};
     callApi("regStatus",{email:em},r=>{const was=regOk();lsSet("gsyf_reg_st",r.status||"");
       if(!r.status){lsSet("gsyf_reg","");renderHome();return}
-      if(was!==regOk()){renderHome();return}
+      if(setMyBk(r.mine)||was!==regOk()){renderHome();return}
       const st=REG_ST[r.status];if(st){box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1]}},()=>{});
     return}
   box.innerHTML=`<p class="rg-pitch">إنت مننا! سجّل بياناتك وكل حاجة تتفتح لك: مواعيد الاجتماعات، الرحلات والإيفنتات، الحجز، ورأيك في كل حاجة.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">سجلت قبل كده؟</button></div>`;
@@ -780,14 +805,25 @@ function srvMeetPanel(){
     ${L[1]?`<p class="small muted" style="margin:6px 0 0">اللي بعده: ${dm(L[1].date)}${L[1].topic?" · "+esc(L[1].topic):""}</p>`:""}
   </section>`;
 }
+// الحجوزات لكل إيفنت: العدد من الأماكن، مين دفع، الفلوس اللي اتجمعت، وزرار نسخ الأسامي
+const money=p=>{const m=toEn(p||"").match(/\d+/);return m?+m[0]:0};
+function bookPanel(){
+  const t=D.today,bk={};(D.bookings||[]).forEach(b=>{(bk[b.event+"|"+b.date]=bk[b.event+"|"+b.date]||[]).push(b)});
+  const evs=D.events.filter(e=>e.booking||bk[e.title+"|"+e.date]).filter(e=>(e.end||e.date)>=iso(addDays(parse(t),-14))).sort((a,b)=>a.date.localeCompare(b.date));
+  return `<section class="panel"><h3>الحجوزات</h3>${evs.length?evs.map(e=>{const A=bk[e.title+"|"+e.date]||[],L=A.filter(b=>b.status!=="ملغي"),X=A.filter(b=>b.status==="ملغي"),paid=L.filter(b=>b.paid),wait=L.filter(b=>!b.paid&&b.status==="مستني الدفع"),pr=money(e.price);
+    return `<details class="mrow" data-ev="${e.row}"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length}${e.cap?" من "+e.cap:""} حجز${pr?` · ${paid.length} دفع (${(paid.length*pr).toLocaleString("ar-EG")} ج)`:""}</span><span></span></summary>
+    ${wait.length?`<p class="note" style="margin:6px 0">⏳ ${wait.length} لسه مدفعوش${wait.filter(b=>b.proof).length?` · ${wait.filter(b=>b.proof).length} كتبوا إثبات دفع، راجعه وعلّم "دفع"`:""}</p>`:""}
+    ${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t"><b>${esc(b.name)}</b> · <a class="num" dir="ltr" href="https://wa.me/2${esc(b.phone)}" target="_blank" rel="noopener">${esc(b.phone)}</a>${b.proof?`<div class="why">💳 ${esc(b.proof)}</div>`:""}${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<div class="btns" style="margin-top:4px">${pr||b.paid?`<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label>`:""}<button type="button" class="small bk-del" data-row="${b.row}">إلغاء الحجز</button></div></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}
+    ${L.length?`<div class="btns" style="margin-top:6px"><button type="button" class="small bk-copy" data-ev="${e.row}">📋 انسخ الأسامي</button></div>`:""}
+    ${X.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتلغى (${X.length})</summary>${X.map(b=>`<div class="row"><div class="t small muted"><s>${esc(b.name)}</s></div></div>`).join("")}</details>`:""}
+    </details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات، وعدد الأماكن في العمود اللي بعد السعر.</p>`}</section>`;
+}
 function renderFollow(){
+  const openEv=[...document.querySelectorAll("#follow details[data-ev][open]")].map(d=>d.dataset.ev);
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
   const late=open.filter(e=>(e.end||e.date)<t),now=open.filter(e=>(e.end||e.date)>=t&&e.date<=in30),later=open.filter(e=>e.date>in30);
   const taskRow=e=>`<div class="row" data-row="${e.row}"><div class="d num">${dm(e.date)}<small>${esc(e.committee||e.type)}</small></div><div class="t"><b>${esc(e.title)}</b>${(e.end||e.date)<t?` <span class="late small">متأخر</span>`:""}<div class="why">${esc([e.owner&&"المسؤول: "+e.owner,e.status,e.notes].filter(Boolean).join(" · "))}</div><div class="btns" style="margin-top:4px"><button type="button" class="dn small">✓ خلصت</button></div></div></div>`;
-  // bookings grouped by event
-  const bk={};(D.bookings||[]).forEach(b=>{(bk[b.event+"|"+b.date]=bk[b.event+"|"+b.date]||[]).push(b)});
-  const bookEvents=D.events.filter(e=>e.booking||bk[e.title+"|"+e.date]).filter(e=>(e.end||e.date)>=iso(addDays(parse(t),-14)));
   // evaluations
   const ev=D.evals||[];
   const recent=D.events.filter(e=>e.type!=="ديدلاين"&&e.status!=="اتلغى"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=30).sort((a,b)=>b.date.localeCompare(a.date));
@@ -807,7 +843,7 @@ function renderFollow(){
       ${later.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">بعد كده (${later.length})</summary>${later.map(taskRow).join("")}</details>`:""}
     </section>`:""}
     ${can("regs")?regPanel():""}
-    ${can("bookings")?`<section class="panel"><h3>الحجوزات</h3>${bookEvents.length?bookEvents.map(e=>{const L=bk[e.title+"|"+e.date]||[],paid=L.filter(b=>b.paid).length;return `<details class="mrow"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length} حجز · ${paid} دفع</span><span></span></summary>${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t">${esc(b.name)} · <span class="num" dir="ltr">${esc(b.phone)}</span>${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}</details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات.</p>`}</section>`:""}
+    ${can("bookings")?bookPanel():""}
     <section class="panel"><h3>التقييمات</h3>
       ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b>${can("evals")?`<span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span>`:""}<div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
       <div class="row"><div class="d">الشهر</div><div class="t ev"><b>تقييم ${esc(mName)}</b>${can("evals")?`<span class="meta">${mScore(mName)?`★ ${mScore(mName)}`:"لسه متقيمش"}${mScore(prevName)?` (الشهر اللي فات ★ ${mScore(prevName)})`:""}</span>`:""}<div class="btns"><button type="button" class="mo small">قيّم الشهر</button></div></div></div>
@@ -815,9 +851,15 @@ function renderFollow(){
     ${notes.length?`<section class="panel"><h3>ملاحظات مفتوحة (${notes.length})</h3>${notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t">${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">اتقفلت</button></div></div></div>`).join("")}</section>`:""}
     <p class="small muted">${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
   const F=$("follow"),fail=b=>m=>{b.disabled=false;b.textContent=m};
+  openEv.forEach(r=>{const d=F.querySelector(`details[data-ev="${r}"]`);if(d)d.open=true});
   F.querySelectorAll(".dn").forEach(b=>b.onclick=()=>{const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row);b.disabled=true;b.textContent="…";
     callApi("done",{row,title:e.title},()=>{e.status="تم";renderFollow()},fail(b))});
-  F.querySelectorAll(".pd").forEach(c=>c.onchange=()=>{const b=(D.bookings||[]).find(x=>x.row===+c.dataset.row);c.disabled=true;callApi("paid",{row:b.row,value:c.checked},()=>{b.paid=c.checked;c.disabled=false},m=>{c.checked=!c.checked;c.disabled=false;alert(m)})});
+  F.querySelectorAll(".pd").forEach(c=>c.onchange=()=>{const b=(D.bookings||[]).find(x=>x.row===+c.dataset.row);c.disabled=true;callApi("paid",{row:b.row,value:c.checked},()=>{b.paid=c.checked;if(b.status!=="ملغي"&&b.status!=="محجوز")b.status=c.checked?"مؤكد":"مستني الدفع";renderFollow()},m=>{c.checked=!c.checked;c.disabled=false;alert(m)})});
+  F.querySelectorAll(".bk-del").forEach(x=>x.onclick=()=>{const b=(D.bookings||[]).find(y=>y.row===+x.dataset.row);if(!confirm("إلغاء حجز "+b.name+"؟"))return;x.disabled=true;
+    callApi("bookCancel",{row:b.row},()=>{b.status="ملغي";renderFollow()},fail(x))});
+  F.querySelectorAll(".bk-copy").forEach(x=>x.onclick=()=>{const e=D.events.find(y=>y.row===+x.dataset.ev),L=(D.bookings||[]).filter(b=>b.event===e.title&&b.date===e.date&&b.status!=="ملغي");
+    const txt=e.title+" ("+e.date+")\n"+L.map((b,i)=>(i+1)+". "+b.name+(money(e.price)?(b.paid?" ✓":" (لسه مدفعش)"):"")).join("\n");
+    const done=()=>{x.textContent="اتنسخ ✓"};if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>prompt("انسخ:",txt));else prompt("انسخ:",txt)});
   F.querySelectorAll(".cl").forEach(b=>b.onclick=()=>{const r=ev.find(x=>x.row===+b.dataset.row);b.disabled=true;callApi("closeEval",{row:r.row},()=>{r.closed=true;renderFollow()},fail(b))});
   F.querySelectorAll(".sv").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=D.events.find(x=>x.row===+box.dataset.row);
     openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
@@ -865,7 +907,7 @@ function aiContext(){
   if((D.news||[]).length){L.push("\n## الإعلانات");D.news.forEach(n=>L.push(`- ${n.date||""} ${aiNoNums(n.text)} (لـ ${n.show})`))}
   if((D.history||[]).length){L.push("\n## اللي اتعمل في السنين اللي فاتت (الشهر | الحدث | النوع)");D.history.forEach(h=>L.push(`- ${GM[h.m-1]||"طول السنة"} | ${h.name} | ${h.type||""}`))}
   L.push("\n## الحجوزات (الإيفنت | التاريخ | الشخص | دفع؟ | وقت الحجز)");
-  (D.bookings||[]).forEach(b=>L.push(`- ${b.event} | ${b.date||""} | ${who(b.name,b.phone)} | ${b.paid?"دفع":"لسه مدفعش"} | ${b.at}`));
+  (D.bookings||[]).filter(b=>b.status!=="ملغي").forEach(b=>L.push(`- ${b.event} | ${b.date||""} | ${who(b.name,b.phone)} | ${b.paid?"دفع":"لسه مدفعش"} | ${b.at}`));
   L.push("\n## طلبات التسجيل في G.S.Y. Family (الشخص | تاريخ الميلاد | السن | الحالة | وقت الطلب)");
   (D.regs||[]).forEach(r=>L.push(`- ${who(r.name,r.phone)} | ${r.birth} | ${age(r.birth)} | ${r.status} | ${r.at}`));
   AI.people=P;AI.ctxFor=D;
