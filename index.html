@@ -223,6 +223,17 @@ body.youth #staff{text-align:center}
 .y-feat .btns .primary{font-size:1.05rem;padding:10px 28px}
 .y-feat form{background:rgba(255,251,246,.97)!important;color:var(--y-fg,#1A0D0B);--surface:#FFFBF6;--fg:#1A0D0B;--muted:#6E5D55;--line:#E9DCCF}
 .y-feat .ok{color:var(--goldhi)}
+.me-btn{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));z-index:50;width:46px;height:46px;border-radius:50%;border:1px solid rgba(228,196,126,.6);background:rgba(26,7,6,.82);color:var(--goldhi);font-weight:700;font-size:1.2rem;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.3);backdrop-filter:blur(6px)}
+.me-btn[hidden]{display:none}
+body.youth #me{padding-top:56px}
+.tm-mk{flex:none;width:auto!important;align-self:center}
+.me-head{display:flex;gap:14px;align-items:center}
+.me-av{width:64px;height:64px;flex:none;border-radius:50%;background:linear-gradient(180deg,#F6E3B0,#B8862B);color:#3a0a06;font-size:1.8rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.me-head b{font-size:1.15rem;display:block}
+.me-tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;background:var(--y-soft,#f6ecd6);color:var(--ink);margin:4px 4px 0 0;border:1px solid var(--line)}
+.me-info{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0}
+.me-info dt{color:var(--muted,#777)}.me-info dd{margin:0;overflow-wrap:anywhere}
+.me-open{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
 .y-reg{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
 .y-reg .btns{display:flex;flex-wrap:wrap;gap:8px}
 .rg-st{display:flex;gap:12px;align-items:center}.rg-ic{font-size:1.8rem;flex:none}
@@ -379,6 +390,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   </div>
 </section>
 
+<a id="meBtn" class="me-btn" href="#me" hidden aria-label="بروفايلي"></a>
 <button type="button" id="bell" class="bell" hidden aria-label="الإشعارات">🔔<i id="bellN" hidden></i></button>
 <div id="bellPanel" class="bell-p" hidden></div>
 <div class="wrap">
@@ -397,13 +409,14 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   <div id="follow" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="approve" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="khadem" hidden style="display:flex;flex-direction:column;gap:16px"></div>
+  <div id="me" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="team" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="ratings" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="year" class="months"></div>
   <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
 
-  <details id="staff" class="small muted" hidden><summary style="cursor:pointer">دخول الخدام</summary><form id="login" style="margin-top:8px"><input type="tel" id="lgPhone" inputmode="tel" dir="ltr" placeholder="رقم الموبايل" autocomplete="tel"><input type="password" id="pw" inputmode="numeric" placeholder="الرقم السري" autocomplete="current-password"><button type="submit">دخول</button></form><p id="loginMsg" class="err"></p><p style="margin:4px 0 0">لسه متسجلتش كخادم؟ <a href="#khadem">سجّل هنا</a></p></details>
+  <details id="staff" class="small muted" hidden><summary style="cursor:pointer">دخول الخدام</summary><form id="login" style="margin-top:8px"><input type="tel" id="lgPhone" inputmode="tel" dir="ltr" placeholder="رقم الموبايل" autocomplete="tel"><input type="password" id="pw" inputmode="numeric" placeholder="الرقم السري" autocomplete="current-password"><button type="submit">دخول</button></form><p id="loginMsg" class="err"></p><p style="margin:4px 0 0">الخدام بيدخلوا بنفس حسابهم على الموقع (الموبايل والرقم السري).</p></details>
   <footer><span>الزحمة محسوبة من: الامتحانات، والصوم الكبير وأسبوع الآلام، وعدد الإيفنتات المتسجلة.</span><span id="updated"></span></footer>
 </div>
 
@@ -661,12 +674,12 @@ function bkSlot(e){
 function bkBind(root){
   const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
   root.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest("[data-row]"),e=evOf(b);
-    openForm(box,[{t:"text",l:"ملاحظات للخدام (اختياري)"}],(a,ok,fail)=>callApi("book",{row:e.row,title:e.title,email:em,notes:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),
+    openForm(box,[{t:"text",l:"ملاحظات للخدام (اختياري)"}],(a,ok,fail)=>callApi("book",{row:e.row,title:e.title,email:em,tok:YT(),notes:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),
       ()=>"اتحجز ✓",`الحجز هيتسجل باسمك.${e.price?" الاشتراك: "+e.price+". الحجز بيتأكد بالدفع.":""}`)});
   root.querySelectorAll(".bk-x").forEach(b=>b.onclick=()=>{const e=evOf(b);if(!confirm("متأكد إنك عايز تلغي حجزك في "+e.title+"؟"))return;b.disabled=true;
-    callApi("bookCancel",{email:em,row:+b.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;alert(m)})});
+    callApi("bookCancel",{email:em,tok:YT(),row:+b.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;alert(m)})});
   root.querySelectorAll(".bk-pf").forEach(b=>b.onclick=()=>{const box=b.closest("[data-bk]");
-    openForm(box,[{t:"input",l:"رقم العملية في إنستاباي أو اسم اللي حوّل",req:1}],(a,ok,fail)=>callApi("bookProof",{email:em,row:+box.dataset.bk,proof:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),()=>"وصل ✓ الخادم هيأكد حجزك")});
+    openForm(box,[{t:"input",l:"رقم العملية في إنستاباي أو اسم اللي حوّل",req:1}],(a,ok,fail)=>callApi("bookProof",{email:em,tok:YT(),row:+box.dataset.bk,proof:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),()=>"وصل ✓ الخادم هيأكد حجزك")});
 }
 function renderHome(){
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
@@ -773,6 +786,44 @@ const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع. أول ما
 const WA_BTN=()=>{const em=lsGet("gsyf_reg")||"",t="أهلا، أنا سجلت في G.S.Y. Family وعايز أتابع طلبي"+(em?" ("+em+")":"");return `<a class="wa-btn" href="https://wa.me/201200690490?text=${encodeURIComponent(t)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.6-.3Z"/></svg><span>تابع طلبك على واتساب</span><small dir="ltr">+20 120 069 0490</small></a>`};
 // الصفحة بتتفتح بس لما الخدام يقبلوا الطلب
 const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مقبول";
+// حساب الشاب: الموبايل + رقم سري. التوكن بيتحفظ على الموبايل وبيتبعت مع الحجز والبروفايل
+const YT=()=>lsGet("gsyf_ytok")||"";
+function ySave(r){if(r.email)lsSet("gsyf_reg",r.email);if(r.status!==undefined)lsSet("gsyf_reg_st",r.status||"");if(r.tok)lsSet("gsyf_ytok",r.tok);if(r.name)lsSet("gsyf_yname",r.name);meBtn()}
+function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
+function meBtn(){const b=$("meBtn");if(!b)return;const n=(D&&D.me&&D.me.name)||lsGet("gsyf_yname")||"";b.hidden=(!n&&!YT())||!!(D&&D.level);b.textContent=n?n.trim()[0]:"👤"}
+const PIN_CK={pin:v=>/^\d{4}$/.test(toEn(v))?"":"الرقم السري لازم 4 أرقام",pin2:(v,f)=>toEn(v)===toEn(f.elements.pin.value)?"":"الرقمين مش زي بعض"};
+// دخول واحد للكل: الخادم اللي الأمين فتح له بيدخل على صفحة الخدام، والشاب على البروفايل بتاعه
+function yLoginForm(box){
+  box.innerHTML=`<form class="rgf yl" novalidate><div class="rg-head"><b>ادخل بحسابك</b><span>رقم الموبايل اللي سجلت بيه والرقم السري</span></div>
+    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
+    <label class="fld"><span>الرقم السري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password"><em></em></label>
+    <button type="submit" class="primary rg-send">دخول</button><p class="msg small"></p>
+    <p class="small" style="margin:0"><a href="#" class="y-first">أول مرة أدخل؟ (سجلت قبل كده من غير رقم سري)</a></p>
+    <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
+  const f=box.querySelector("form"),msg=f.querySelector(".msg");
+  f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderReg()};
+  f.querySelector(".y-first").onclick=e=>{e.preventDefault();ySetPinForm(box)};
+  f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
+    if(!/^01[0125]\d{8}$/.test(phone)||!/^\d{4}$/.test(pin)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك والرقم السري (4 أرقام)";return}
+    const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيدخل…";
+    callApi("yLogin",{phone,pin},r=>{if(r.tok)ySave(r);if(r.key){load(r.key,true);return}location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
+}
+function ySetPinForm(box){
+  box.innerHTML=`<form class="rgf" novalidate><div class="rg-head"><b>اعمل رقم سري لحسابك</b><span>اكتب الموبايل والإيميل اللي سجلت بيهم، واختار رقم سري تدخل بيه بعد كده</span></div>
+    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
+    <label class="fld"><span>الإيميل اللي سجلت بيه</span><input name="email" type="email" dir="ltr" autocomplete="email"><em></em></label>
+    <label class="fld"><span>اختار رقم سري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
+    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
+    <button type="submit" class="primary rg-send">احفظ وادخل</button><p class="msg small"></p><p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
+  const f=box.querySelector("form"),msg=f.querySelector(".msg");
+  f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderReg()};
+  const em0=lsGet("gsyf_reg");if(em0)f.elements.email.value=em0;
+  f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),em=f.elements.email.value.trim().toLowerCase();
+    const bad=REG_CHECK.phone(phone)||REG_CHECK.email(em)||PIN_CK.pin(f.elements.pin.value)||PIN_CK.pin2(f.elements.pin2.value,f);
+    if(bad){msg.className="msg small err";msg.textContent=bad;return}
+    const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيتحفظ…";
+    callApi("ySetPin",{phone,email:em,pin:toEn(f.elements.pin.value)},r=>{ySave(r);location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
+}
 const toEn=x=>String(x||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 const normPhone=x=>{let v=toEn(x).replace(/[\s\-().]/g,"");v=v.replace(/^(\+|00)?20(?=1)/,"0");return v};
 const REG_CHECK={
@@ -790,32 +841,57 @@ function regForm(box){
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
     <label class="fld"><span>الإيميل</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
     <label class="fld"><span>أكّد الإيميل</span><input name="email2" type="email" dir="ltr" autocomplete="off" placeholder="اكتبه تاني"><em></em></label>
+    <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه حسابك</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
+    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
     <button type="submit" class="primary rg-send">ابعت طلب التسجيل</button><p class="msg small"></p>
     <p class="small muted" style="margin:0">بياناتك بتوصل لخدام الخدمة بس.</p></form>`;
   const f=box.querySelector("form");
-  const check=(n,show)=>{const el=f.elements[n],e=REG_CHECK[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
-  Object.keys(REG_CHECK).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
-  f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(REG_CHECK).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
+  const RC=Object.assign({},REG_CHECK,PIN_CK);
+  const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
+  Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
+  f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
     const msg=f.querySelector(".msg");if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
     const btn=f.querySelector(".rg-send"),em=f.elements.email.value.trim().toLowerCase();btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
-    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone:normPhone(f.elements.phone.value),email:em},
-      r=>{lsSet("gsyf_reg",em);lsSet("gsyf_reg_st",r&&r.status||"مستني");renderHome();setTimeout(()=>{const x=$("regSec");if(x)x.scrollIntoView({block:"center"})},50)},
+    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone:normPhone(f.elements.phone.value),email:em,pin:toEn(f.elements.pin.value)},
+      r=>{lsSet("gsyf_reg",em);lsSet("gsyf_reg_st",r&&r.status||"مستني");if(r&&r.tok)ySave(r);renderHome();setTimeout(()=>{const x=$("regSec");if(x)x.scrollIntoView({block:"center"})},50)},
       e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
 function renderReg(){
   const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
-    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns"><button type="button" class="rg-out small">مش أنا / إيميل تاني</button></div>`;
-    box.querySelector(".rg-out").onclick=()=>{lsSet("gsyf_reg","");lsSet("gsyf_reg_st","");setMyBk([]);renderHome()};
-    callApi("regStatus",{email:em},r=>{const was=regOk();lsSet("gsyf_reg_st",r.status||"");
+    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">اعمل رقم سري لحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">بالرقم السري يبقى ليك بروفايل وحسابك محدش يدخله غيرك.</p>`}`;
+    box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
+    const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>ySetPinForm(box);
+    callApi("regStatus",{email:em,tok:YT()},r=>{const was=regOk();lsSet("gsyf_reg_st",r.status||"");
       if(!r.status){lsSet("gsyf_reg","");renderHome();return}
       if(setMyBk(r.mine)||was!==regOk()){renderHome();return}
       const st=REG_ST[r.status];if(st){box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1]}},()=>{});
     return}
-  box.innerHTML=`<p class="rg-pitch">إنت مننا! سجّل بياناتك وكل حاجة تتفتح لك: مواعيد الاجتماعات، الرحلات والإيفنتات، الحجز، ورأيك في كل حاجة.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">سجلت قبل كده؟</button></div>`;
+  box.innerHTML=`<p class="rg-pitch">إنت مننا! سجّل بياناتك وكل حاجة تتفتح لك: مواعيد الاجتماعات، الرحلات والإيفنتات، الحجز، ورأيك في كل حاجة.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">عندي حساب؟ ادخل</button></div>`;
   box.querySelector(".rg-new").onclick=()=>regForm(box);
-  box.querySelector(".rg-chk").onclick=()=>{box.querySelector(".btns").remove();
-    openForm(box,[{t:"input",l:"الإيميل اللي سجلت بيه",type:"email",req:1}],(a)=>{lsSet("gsyf_reg",a[0].trim().toLowerCase());lsSet("gsyf_reg_st","");renderHome()},()=>"")};
+  box.querySelector(".rg-chk").onclick=()=>yLoginForm(box);
+}
+
+/* ================= بروفايلي: لكل واحد داخل بحسابه ================= */
+const PERM_L={tasks:"كل التاسكات",bookings:"الحجوزات والدفع",evals:"التقييمات",regs:"طلبات الشباب",ai:"المساعد"};
+let MEP=null;
+function renderMe(){
+  const box=$("me"),sv=D.me,tok=YT(),p=MEP&&MEP.tok===tok?MEP.me:null;
+  const name=(p&&p.name)||(sv&&sv.name)||lsGet("gsyf_yname")||"";
+  if(!sv&&!tok){box.innerHTML=`<section class="panel"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">البروفايل لكل واحد بحسابه. اخرج وادخل برقم موبايلك والرقم السري.</p><div class="btns"><button type="button" class="me-out">خروج</button></div></section>`;box.querySelector(".me-out").onclick=logout;return}
+  const role=sv?sv.role:p&&p.servant?p.servant:"شاب",st=p?p.status:lsGet("gsyf_reg_st")||"";
+  const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
+  const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.paid||b.status==="مؤكد"?"✅ مؤكد (دفع)":b.status==="مستني الدفع"?"⏳ مستني الدفع"+(b.proof?" · إثبات: "+esc(b.proof):""):"✓ محجوز"}</div></div></div>`;
+  const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
+  box.innerHTML=`<section class="panel"><div class="me-head"><div class="me-av">${esc((name.trim()[0])||"👤")}</div><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}</div></div></section>
+    ${tok?(p?`<section class="panel"><h3>بياناتي</h3><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd><dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></section>
+    <section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>`
+      :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
+    <section class="panel"><h3>اللي مفتوح لك</h3><ul class="me-open">${open.map(([y,l])=>`<li>${y?"✅":"🔒"} ${esc(l)}</li>`).join("")}</ul>${!ok?`<p class="small muted" style="margin:6px 0 0">الباقي هيتفتح أول ما طلبك يتقبل.</p>`:""}</section>
+    <div class="btns">${sv?`<a class="btn" href="#follow">صفحة الخدام</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
+  box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
+  if(tok&&!p)callApi("profile",{tok},r=>{MEP={tok,me:r.me};ySave({name:r.me.name,status:r.me.status});setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
+    m=>{if(/ادخل/.test(m)){yOut();location.hash="home";renderHome();return}box.insertAdjacentHTML("beforeend",`<p class="err small">${esc(m)}</p>`)});
 }
 
 /* ================= المتابعة (للخدام) ================= */
@@ -1089,11 +1165,21 @@ function renderTeam(){
   $("team").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> خادم مستني موافقة</span><button type="button" id="tmRef">↻ تحديث</button></div>
     ${wait.map(pend).join("")}
     <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">كل خادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول". دوس على أي صلاحية علشان تفتحها (ملوّنة) أو تقفلها.</p></section>
-    ${on.map(card).join("")||`<p class="empty">لسه مفيش خدام متقبلين. ابعت لينك التسجيل: <span dir="ltr">${esc(location.origin+location.pathname)}#khadem</span></p>`}
+    ${on.map(card).join("")||`<p class="empty">لسه مفيش خدام. افتح صلاحية الخادم لحد متسجل من تحت.</p>`}
+    <section class="panel" id="tmAdd"><h3>➕ افتح صلاحية خادم</h3><p class="small muted" style="margin:0">الخادم بيسجل على الموقع زي أي حد، وبعدين تدوّر عليه هنا وتفتح له. هيدخل بنفس الموبايل والرقم السري بتوعه.</p>
+      <input type="search" class="tm-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="tm-res"></div></section>
     ${off.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">مرفوض أو موقوف (${off.length})</summary>${off.map(u=>`<div class="row" data-row="${u.row}"><div class="d"><small>${esc(u.status)}</small></div><div class="t"><b>${esc(u.name)}</b> <button type="button" class="small us" data-f="status" data-v="مقبول">رجّعه</button></div></div>`).join("")}</details>`:""}`;
   $("tmRef").onclick=()=>{$("tmRef").textContent="…";load()};
+  const q=$("team").querySelector(".tm-q"),res=$("team").querySelector(".tm-res");
+  const R=(D.regs||[]).filter(r=>r.status!=="مرفوض");
+  const showQ=()=>{const v=normAr(toEn(q.value)).trim();if(v.length<2){res.innerHTML="";return}
+    const L=R.filter(r=>normAr(r.name).includes(v)||String(r.phone).includes(v)).slice(0,8);
+    res.innerHTML=L.map(r=>`<div class="row"><div class="t"><b>${esc(r.name)}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div></div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:!r.pin?`<span class="small muted">لسه معملش رقم سري</span>`:`<button type="button" class="small primary tm-mk" data-row="${r.row}">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. خليه يسجل من الصفحة الرئيسية الأول.</p>`;
+    res.querySelectorAll(".tm-mk").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row);if(!confirm(`تفتح صلاحية خادم لـ ${r.name}؟`))return;b.disabled=true;b.textContent="…";
+      callApi("makeServant",{row:r.row,email:r.email},()=>{b.textContent="اتفتح ✓";load()},m=>{b.disabled=false;b.textContent="خليه خادم";alert(m)})})};
+  q.oninput=showQ;
   $("team").querySelectorAll(".us").forEach(b=>b.onclick=e=>{e.preventDefault();const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),f=b.dataset.f;
-    if(f==="resetPin"&&!confirm(`تمسح الرقم السري بتاع ${u.name}؟ هيسجل تاني بنفس رقمه ويختار رقم جديد.`))return;
+    if(f==="resetPin"&&!confirm(`تمسح الرقم السري بتاع ${u.name}؟ هيعمل رقم جديد من "عندي حساب؟ ادخل" ثم "أول مرة أدخل؟".`))return;
     if(f==="status"&&b.dataset.v==="موقوف"&&!confirm(`توقف حساب ${u.name}؟`))return;
     const isPerm=P.some(([k])=>k===f),v=isPerm?!u.perms[f]:b.dataset.v;b.disabled=true;
     callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin")u.noPin=true;renderTeam();renderNav("team")},
@@ -1102,7 +1188,7 @@ function renderTeam(){
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
   const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
-  const items=[...(can("regs")?[["approve","الطلبات"+(nw?` (${nw})`:"")]]:[]),["follow","المتابعة"],["ratings","التقييمات"],...(D.level===2?[["team","الخدام"+(nu?` (${nu})`:"")]]:[]),["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"]];
+  const items=[...(can("regs")?[["approve","الطلبات"+(nw?` (${nw})`:"")]]:[]),["follow","المتابعة"],["ratings","التقييمات"],...(D.level===2?[["team","الخدام"+(nu?` (${nu})`:"")]]:[]),["year","خطة السنة"],...D.weekly.map((w,i)=>["meet-"+(i+1),"اجتماع "+(w.short||w.title.replace("اجتماع ",""))]),["home","صفحة الشباب"],["me","بروفايلي"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===cur?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
 
@@ -1152,19 +1238,22 @@ function rpBind(){const b=$("ratings");b.querySelectorAll(".rp-seg button").forE
 
 function route(){
   let h=location.hash.slice(1);
-  if(!D.level)h=h==="khadem"?"khadem":"home";             // الشباب بيشوفوا صفحتهم بس (وصفحة تسجيل الخدام)
+  if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
+  if(!D.level)h=h==="me"&&YT()?"me":"home";               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
   else if(!h)h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
   if(h==="team"&&D.level!==2)h="follow";
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team", isR=h==="ratings";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR);$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team", isR=h==="ratings", isMe=h==="me";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe);$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
-  document.body.classList.toggle("youth",isHome);$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR;
+  document.body.classList.toggle("youth",isHome||(isMe&&!D.level));$("hero").hidden=!isHome;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":isK?"khadem":isT?"team":isR?"ratings":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"المتابعة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":isK?"khadem":isT?"team":isR?"ratings":isMe?"me":"year");
+  if(isMe)renderMe();
+  meBtn();if(isMe)$("meBtn").hidden=true;
   if(isAp)renderApprove();
   if(isK)renderKhadem();
   if(isT)renderTeam();
@@ -1190,7 +1279,7 @@ function start(data){
   $("back").onclick=()=>{location.hash="year"};
   if(!startedOnce){startedOnce=true;bindLogin($("login"),$("lgPhone"),$("pw"),$("loginMsg"))}
   if(window.START_VIEW&&!location.hash){try{history.replaceState(null,"","#"+window.START_VIEW)}catch(e){location.hash=window.START_VIEW}}
-  renderYear();route();
+  meBtn();renderYear();route();
   if(!hashBound){hashBound=true;window.addEventListener("hashchange",route)}
 }
 
@@ -1222,7 +1311,7 @@ function callApi(action,payload,ok,fail){
   apiGet({api:"write",a:action,p:JSON.stringify(payload),k:KEY}).then(r=>{if(r&&r.ok===false)fail(r.error||"حصلت مشكلة");else ok(r)}).catch(e=>fail("مفيش اتصال، جرّب تاني"));
 }
 if(!KEY){document.body.classList.add("youth");$("hero").hidden=false}
-function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}KEY="";location.hash="";load("")}
+function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}yOut();KEY="";location.hash="";load("")}
 load();
 </script>
 </body>
