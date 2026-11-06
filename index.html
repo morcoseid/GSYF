@@ -304,6 +304,9 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 :root[data-theme="dark"] .y-kas .kgo{background:#E4C47E;color:#1D0F0D}
 .ax-wa{display:flex;flex-direction:column;gap:4px;font-size:.88rem;color:var(--muted)}
 .ax-wa a{display:flex;justify-content:space-between;gap:8px;color:inherit;text-decoration:none;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:6px 10px}.ax-wa a b{color:var(--navy);font-weight:600}
+.st-open,.st-closed{display:inline-block;font-size:.72rem;font-weight:700;border-radius:99px;padding:0 8px;margin-inline-end:4px;vertical-align:1px}
+.st-open{background:rgba(178,58,46,.12);color:#B23A2E}.st-closed{background:rgba(47,122,79,.14);color:#2F7A4F}
+.mo-up{color:#2F7A4F}.mo-dn{color:#B23A2E}
 .y-surp h2{font-family:var(--kufi);font-size:clamp(2.2rem,10vw,3.2rem);color:var(--goldhi);letter-spacing:.02em}
 .y-surp p{margin:0;font-size:1rem}.sp-when{font-family:var(--kufi);font-size:1.25rem!important;color:var(--goldhi)}
 .rg-pitch{margin:0;font-size:1.02rem}
@@ -812,6 +815,23 @@ function srvMeetPanel(){
     ${L[1]?`<p class="small muted" style="margin:6px 0 0">اللي بعده: ${dm(L[1].date)}${L[1].topic?" · "+esc(L[1].topic):""}</p>`:""}
   </section>`;
 }
+// ===== التقييم الشهري للخدمة: سطر لكل شهر + مقارنة بالشهر اللي قبله =====
+// أول 10 أيام في الشهر بنقيّم الشهر اللي فات (عشان يتعمل في/بعد اجتماع الخدام الشهري)
+function monthPanel(ev){
+  const td=parse(D.today),back=td.getDate()<=10,md=new Date(td.getFullYear(),td.getMonth()-(back?1:0),1);
+  const mk=d=>GM[d.getMonth()]+" "+d.getFullYear(),target=mk(md),done=lsGet("mo_"+target);
+  const rows=ev.filter(r=>r.kind==="شهري"),months=[];
+  for(let i=0;i<6;i++){const d=new Date(md.getFullYear(),md.getMonth()-i,1),n=mk(d),rs=rows.filter(r=>r.target===n);months.push({n,rs,sc:rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""})}
+  const top=(rs,i)=>{const c={};rs.forEach(r=>{const v=String(r.a[i]||"").trim();if(v)c[v]=(c[v]||0)+1});const k=Object.keys(c).sort((a,b)=>c[b]-c[a])[0];return k||"–"};
+  const line=(m,i)=>{const prev=months[i+1],up=m.sc&&prev&&prev.sc?(m.sc>prev.sc?` <span class="mo-up">▲</span>`:m.sc<prev.sc?` <span class="mo-dn">▼</span>`:" ="):"";
+    return `<div class="row"><div class="d"><b>${esc(m.n.split(" ")[0])}</b><small>${m.n.split(" ")[1]}</small></div><div class="t">${m.rs.length?`<b>★ ${m.sc}</b>${up}${prev&&prev.sc?` <span class="small muted">(اللي قبله ${prev.sc})</span>`:""}<div class="why">الحضور: ${esc(top(m.rs,0))} · الافتقاد: ${esc(top(m.rs,3))} · ${m.rs.length} خادم قيّموا</div>`:`<span class="muted">لسه متقيمش</span>`}</div></div>`};
+  const shown=months.filter((m,i)=>i===0||m.rs.length);
+  return `<section class="panel"><h3>تقييم الخدمة الشهري</h3>
+    <div class="row"><div class="d">📝</div><div class="t ev"><b>قيّم ${esc(target)}</b><span class="meta">5 أسئلة ثابتة كل شهر عشان نقارن. أحسن وقت: في اجتماع الخدام أو بعده.</span>
+      ${done?`<p class="ok" style="margin:4px 0 0">قيّمت ${esc(target)} ✓</p>`:`<div class="btns"><button type="button" class="mo small" data-m="${esc(target)}">قيّم الشهر</button></div>`}</div></div>
+    ${can("evals")?shown.map(line).join(""):""}
+  </section>`;
+}
 function renderFollow(){
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
@@ -824,14 +844,13 @@ function renderFollow(){
   const ev=D.evals||[];
   const recent=D.events.filter(e=>e.type!=="ديدلاين"&&e.status!=="اتلغى"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=30).sort((a,b)=>b.date.localeCompare(a.date));
   const tgt=e=>e.title+" ("+e.date+")";
-  const notes=[];ev.forEach(r=>{if(r.closed)return;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])notes.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
-  const mName=GM[parse(t).getMonth()]+" "+parse(t).getFullYear(),prevD=new Date(parse(t).getFullYear(),parse(t).getMonth()-1,1),prevName=GM[prevD.getMonth()]+" "+prevD.getFullYear();
-  const mScore=n=>{const rs=ev.filter(r=>r.kind==="شهري"&&r.target===n);return rs.length?avg(rs.flatMap(r=>[r.a[1],r.a[2]])):""};
+  const notes=[],closedN=[];ev.forEach(r=>{const L=r.closed?closedN:notes;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])L.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
   const mine=D.me?open.filter(e=>isMine(e.owner,D.me.name)):[];
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋</p>`:""}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${srvMeetPanel()}
+    ${monthPanel(ev)}
     ${can("ai")?aiPanel():""}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش تاسكات باسمك دلوقتي.</p>`}</section>`:""}
     ${can("tasks")?`<section class="panel"><h3>${D.me?"كل التاسكات المفتوحة":"مفتوح ومحتاج يتقفل"} (${late.length+now.length})</h3>
@@ -842,9 +861,8 @@ function renderFollow(){
     ${can("bookings")?`<section class="panel"><h3>الحجوزات</h3>${bookEvents.length?bookEvents.map(e=>{const L=bk[e.title+"|"+e.date]||[],paid=L.filter(b=>b.paid).length;return `<details class="mrow"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length} حجز · ${paid} دفع</span><span></span></summary>${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t">${esc(b.name)} · <span class="num" dir="ltr">${esc(b.phone)}</span>${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}</details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات.</p>`}</section>`:""}
     <section class="panel"><h3>التقييمات</h3>
       ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b>${can("evals")?`<span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span>`:""}<div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
-      <div class="row"><div class="d">الشهر</div><div class="t ev"><b>تقييم ${esc(mName)}</b>${can("evals")?`<span class="meta">${mScore(mName)?`★ ${mScore(mName)}`:"لسه متقيمش"}${mScore(prevName)?` (الشهر اللي فات ★ ${mScore(prevName)})`:""}</span>`:""}<div class="btns"><button type="button" class="mo small">قيّم الشهر</button></div></div></div>
     </section>
-    ${notes.length?`<section class="panel"><h3>ملاحظات مفتوحة (${notes.length})</h3>${notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t">${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">اتقفلت</button></div></div></div>`).join("")}</section>`:""}
+    ${notes.length+closedN.length?`<section class="panel"><h3>الملاحظات (${notes.length} مفتوحة · ${closedN.length} اتقفلت)</h3>${notes.length?notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-open">مفتوحة</span> ${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">✓ اتقفلت</button></div></div></div>`).join(""):`<p class="empty">كل الملاحظات اتقفلت 👌</p>`}${closedN.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتقفل (${closedN.length})</summary>${closedN.slice().reverse().map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-closed">اتقفلت</span> <span class="muted">${esc(n.txt)}</span><div class="why">${esc(n.r.target)}</div></div></div>`).join("")}</details>`:""}</section>`:""}
     <p class="small muted">${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
   const F=$("follow"),fail=b=>m=>{b.disabled=false;b.textContent=m};
   F.querySelectorAll(".dn").forEach(b=>b.onclick=()=>{const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row);b.disabled=true;b.textContent="…";
@@ -853,7 +871,7 @@ function renderFollow(){
   F.querySelectorAll(".cl").forEach(b=>b.onclick=()=>{const r=ev.find(x=>x.row===+b.dataset.row);b.disabled=true;callApi("closeEval",{row:r.row},()=>{r.closed=true;renderFollow()},fail(b))});
   F.querySelectorAll(".sv").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=D.events.find(x=>x.row===+box.dataset.row);
     openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
-  F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:mName,answers:a},ok,f),()=>"اتسجل ✓"));
+  F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
   aiBind();
