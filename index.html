@@ -368,6 +368,19 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 /* حسابات الخدام */
 #login{flex-wrap:wrap}#login input{flex:1 1 140px;min-width:0}
 .hello{margin:0;font-size:1.05rem}
+/* الغياب برقم التليفون */
+.att-go{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:1.1rem;text-decoration:none}
+.att-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.att-seg button{padding:10px;border-radius:12px;font-weight:700}
+.att-seg button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.att-f{display:flex;gap:8px}.att-f input{flex:1;min-width:0;font:inherit;font-size:1.4rem;letter-spacing:1px;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--fg);text-align:center}
+.att-f button{padding:10px 18px;border-radius:12px;font-weight:700}
+.att-p{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.att-p b{font-size:1.1rem}.att-p small{display:block;color:var(--muted)}
+.att-p button{font-size:1.05rem;padding:10px 18px;border-radius:12px;font-weight:700;flex:none}
+.att-p.done{border-color:#3C8D5A}.att-p.done .ok{color:#2E7D4F;font-weight:700;flex:none}
+.att-new{display:flex;flex-direction:column;gap:8px}.att-new input{font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
+.att-cnt{font-size:1.1rem}.att-cnt b{font-size:1.6rem;color:var(--accent)}
 .kl input{font:inherit;font-size:1rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .pt{border-radius:999px;padding:4px 12px;font-size:.88rem}
 .pt[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -427,6 +440,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   <div id="team" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="admin" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="ratings" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="att" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="year" class="months"></div>
   <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
@@ -1005,6 +1019,7 @@ function renderFollow(){
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋</p>`:""}
+    <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
     ${srvMeetPanel()}
@@ -1291,6 +1306,51 @@ function rpRender(){
 }
 function rpBind(){const b=$("ratings");b.querySelectorAll(".rp-seg button").forEach(x=>x.onclick=()=>{RP.f=x.dataset.f;rpRender()});const e=b.querySelector(".rp-ev");if(e)e.onchange=()=>{RP.ev=e.value;RP.d=null;renderRatings()}}
 
+/* ================= الغياب برقم التليفون ================= */
+// الخادم يكتب رقم المخدوم، يظهر الاسم بس، يدوس "حاضر". البيانات من GSYF DATA والحضور بيتكتب في تاب "الحضور"
+const ATT={meet:"",busy:false};
+function attDefMeet(){const d=parse(D.today).getDay();return d===4?"جامعيين":d===5?"+25":(lsGet("gsyf_att_meet")||"جامعيين")}
+function renderAtt(){
+  if(!ATT.meet)ATT.meet=attDefMeet();
+  $("att").innerHTML=`<div class="att-seg">${["جامعيين","+25"].map(m=>`<button type="button" data-m="${m}" aria-pressed="${ATT.meet===m}">اجتماع ${m}</button>`).join("")}</div>
+    <form class="att-f" id="attF" autocomplete="off"><input id="attPh" type="tel" inputmode="numeric" maxlength="14" placeholder="01xxxxxxxxx" dir="ltr" aria-label="رقم التليفون"><button type="submit">دوّر</button></form>
+    <div id="attRes" style="display:flex;flex-direction:column;gap:8px"></div>
+    <section class="panel"><div class="att-cnt" id="attCnt">…</div><div id="attList"></div></section>`;
+  $("att").querySelectorAll(".att-seg button").forEach(b=>b.onclick=()=>{ATT.meet=b.dataset.m;lsSet("gsyf_att_meet",ATT.meet);renderAtt()});
+  const ph=$("attPh");
+  ph.oninput=()=>{const v=normPhone(ph.value);if(/^01[0125]\d{8}$/.test(v)&&!ATT.busy)attFind(v)};
+  $("attF").onsubmit=e=>{e.preventDefault();const v=normPhone(ph.value);if(!/^01[0125]\d{8}$/.test(v)){attMsg("اكتب الرقم صح (11 رقم يبدأ بـ 01)",1);return}attFind(v)};
+  setTimeout(()=>ph.focus(),50);
+  callApi("attToday",{meet:ATT.meet},attShowList,m=>attMsg(m,1));
+}
+function attMsg(t,err){$("attRes").innerHTML=`<p class="${err?"err":"muted"} small" style="margin:0">${esc(t)}</p>`}
+function attShowList(r){
+  if(!$("attCnt"))return;
+  $("attCnt").innerHTML=`حضروا النهارده: <b class="num">${r.count||0}</b>`;
+  $("attList").innerHTML=(r.list||[]).length?(r.list||[]).map(x=>`<div class="row"><div class="d num"><small>${esc(x.at||"")}</small></div><div class="t">${esc(x.name)}${x.isNew?` <span class="small muted">· جديد</span>`:""}</div></div>`).join(""):`<p class="empty">لسه محدش اتسجل.</p>`;
+}
+function attReset(){const ph=$("attPh");ph.value="";ph.focus()}
+function attFind(phone){
+  ATT.busy=true;attMsg("بيدوّر…");
+  callApi("attFind",{phone,meet:ATT.meet},r=>{ATT.busy=false;attShowList(r);
+    const P=r.people||[];
+    if(!P.length){
+      $("attRes").innerHTML=r.newDone?`<div class="att-p done"><b>الرقم ده اتسجل حضوره النهارده</b><span class="ok">✓</span></div>`:
+        `<div class="panel att-new"><b>الرقم ده مش موجود في البيانات</b><span class="small muted">لو ده حد جديد، اكتب اسمه ويتسجل حضوره، والأمناء يضيفوه للبيانات بعدين.</span>
+        <input id="attNm" placeholder="الاسم ثنائي على الأقل"><button type="button" id="attNewB" class="ap-ok">✓ حاضر (جديد)</button></div>`;
+      const nb=$("attNewB");if(nb){$("attNm").focus();nb.onclick=()=>{const name=$("attNm").value.trim();if(name.split(/\s+/).length<2){attMsg("اكتب الاسم ثنائي على الأقل",1);return}
+        nb.disabled=true;nb.textContent="…";callApi("attNew",{phone,name,meet:ATT.meet},r2=>{attShowList(r2);attMsg("✓ اتسجل "+name);attReset()},m=>{nb.disabled=false;nb.textContent="✓ حاضر (جديد)";attMsg(m,1)})}}
+      return}
+    $("attRes").innerHTML=P.map((x,i)=>x.done?`<div class="att-p done"><div><b>${esc(x.name)}</b><small>${esc(x.meet?"اجتماع "+x.meet:"")}</small></div><span class="ok">حاضر ✓</span></div>`:
+      `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(x.meet?"اجتماع "+x.meet:"")}</small></div><button type="button" class="ap-ok" data-i="${i}">✓ حاضر</button></div>`).join("");
+    $("attRes").querySelectorAll("button[data-i]").forEach(b=>b.onclick=()=>{const x=P[+b.dataset.i];b.disabled=true;b.textContent="…";
+      callApi("attMark",{phone,code:x.code,meet:ATT.meet},r2=>{attShowList(r2);x.done=true;b.outerHTML=`<span class="ok">حاضر ✓</span>`;
+        const card=[...$("attRes").querySelectorAll(".att-p")][+b.dataset.i];if(card)card.classList.add("done");
+        if(P.every(y=>y.done))setTimeout(()=>{attMsg("✓ اتسجل "+x.name);attReset()},700)},m=>{b.disabled=false;b.textContent="✓ حاضر";attMsg(m,1)})});
+    if(P.length===1&&!P[0].done){const b=$("attRes").querySelector("button");if(b)b.focus()}
+  },m=>{ATT.busy=false;attMsg(m,1)});
+}
+
 function route(){
   let h=location.hash.slice(1);
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
@@ -1298,17 +1358,18 @@ function route(){
   else if(!h)h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
   if((h==="team"||h==="admin")&&D.level!==2)h="follow";
-  if(D.level===1&&!["follow","home","me","approve"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA);$("admin").hidden=!isA;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  if(D.level===1&&!["follow","home","me","approve","att"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt);$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome||(isMe&&!D.level));$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow?"follow":isAp?"approve":isK?"khadem":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow||isAt?"follow":isAp?"approve":isK?"khadem":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
   if(isA)renderAdmin();
+  if(isAt)renderAtt();
   if(isMe)renderMe();
   meBtn();if(isMe)$("meBtn").hidden=true;
   if(isAp)renderApprove();
@@ -1319,7 +1380,7 @@ function route(){
   if(isFollow)renderFollow();
   if(m)renderMonth(m[1]);
   if(mt){meetMonth=null;renderMeet(+mt[1]-1)}
-  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA);   // ملاحظة الزحمة لخطة السنة بس
+  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt);   // ملاحظة الزحمة لخطة السنة بس
   window.scrollTo(0,0);
 }
 
