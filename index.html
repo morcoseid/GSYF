@@ -393,6 +393,21 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .inst-btn{background:transparent!important;color:var(--goldhi)!important;border:1.5px solid var(--goldhi)!important;border-radius:999px;padding:8px 20px;font-weight:700}
 .inst-ios{max-width:320px;opacity:.9;margin:0;text-align:center;line-height:1.7}
 .inst-hi .inst-btn{background:var(--goldhi)!important;color:#120606!important}
+/* شاشة التحميل */
+#splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;text-align:center;color:#F6EDE4;
+  background:radial-gradient(120% 80% at 50% 35%,#5A0E09 0%,#2a0805 55%,#120606 100%);transition:opacity .45s ease,visibility .45s}
+#splash.out{opacity:0;visibility:hidden}
+#splash .wings{width:min(300px,78%);margin-bottom:-22px}
+#splash .sp-w{font-family:var(--latin);font-weight:700;font-size:clamp(2.1rem,10vw,3.2rem);letter-spacing:.06em;line-height:1.1;
+  background:linear-gradient(180deg,#F6E3B0 0%,#E4C47E 45%,#B8862B 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+#splash .sp-n{font-family:var(--kufi);font-weight:700;font-size:clamp(1rem,4.4vw,1.3rem);opacity:.92}
+#splash .sp-v{font-family:var(--ruqaa);font-size:1.15rem;color:#E4C47E;margin-top:6px}
+#splash .sp-bar{width:120px;height:3px;border-radius:3px;margin-top:22px;overflow:hidden;background:rgba(228,196,126,.18);position:relative}
+#splash .sp-bar::after{content:"";position:absolute;inset:0;width:40%;border-radius:3px;background:#E4C47E;animation:spbar 1.2s ease-in-out infinite}
+@keyframes spbar{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}
+#splash .sp-err{margin-top:18px;font-size:.95rem;color:#E4C47E;display:flex;flex-direction:column;gap:12px;align-items:center}
+#splash .sp-err button{background:#E4C47E;color:#120606;border:0;border-radius:999px;padding:8px 24px;font-weight:700;font-family:var(--brand);font-size:1rem}
+@media (prefers-reduced-motion:reduce){#splash .sp-bar::after{animation:none;width:100%}}
 </style>
 </head>
 <body>
@@ -402,6 +417,14 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
     <linearGradient id="wg" x1="1" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#A97A22" stop-opacity="0"/><stop offset=".35" stop-color="#E0BC6A"/><stop offset="1" stop-color="#F7E6B5"/></linearGradient><symbol id="wing" viewBox="0 0 320 250"><g fill="none" stroke="url(#wg)" stroke-linecap="round"><path d="M300 230Q170 20 20 40" stroke-width="3.2" opacity="0.95"/><path d="M300 230Q165 35 28 61" stroke-width="3.0" opacity="0.88"/><path d="M300 230Q160 50 35 82" stroke-width="2.8" opacity="0.81"/><path d="M300 230Q155 65 42 104" stroke-width="2.6" opacity="0.74"/><path d="M300 230Q150 80 50 125" stroke-width="2.4" opacity="0.67"/><path d="M300 230Q145 95 58 146" stroke-width="2.2" opacity="0.61"/><path d="M300 230Q140 110 65 168" stroke-width="2.0" opacity="0.54"/><path d="M300 230Q135 125 72 189" stroke-width="1.8" opacity="0.47"/><path d="M300 230Q130 140 80 210" stroke-width="1.6" opacity="0.40"/></g></symbol>
   </defs>
 </svg>
+<div id="splash" role="status" aria-label="بيحمّل">
+  <div class="wings" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div>
+  <div class="sp-w" dir="ltr">G.S.Y. Family</div>
+  <div class="sp-n">خدمة شباب مارجرجس والأنبا شنودة</div>
+  <div class="sp-v">«يتجدد مثل النسر شبابك»</div>
+  <div class="sp-bar" id="spBar"></div>
+  <div class="sp-err" id="spErr" hidden><span>النت ضعيف شوية، مقدرناش نفتح دلوقتي</span><button type="button" onclick="location.reload()">جرّب تاني</button></div>
+</div>
 <section id="hero" class="hero" hidden>
     <div class="hero-in">
     <div class="wings" aria-hidden="true"><svg viewBox="0 0 320 250"><use href="#wing"/></svg><svg viewBox="0 0 320 250" class="flip"><use href="#wing"/></svg></div>
@@ -447,7 +470,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
 
   <details id="staff" class="small muted" hidden><summary style="cursor:pointer">دخول الخدام</summary><form id="login" style="margin-top:8px"><input type="tel" id="lgPhone" inputmode="tel" dir="ltr" placeholder="رقم الموبايل" autocomplete="tel"><input type="password" id="pw" inputmode="numeric" placeholder="الرقم السري" autocomplete="current-password"><button type="submit">دخول</button></form><p id="loginMsg" class="err"></p><p style="margin:4px 0 0">الخدام بيدخلوا بنفس حسابهم على الموقع (الموبايل والرقم السري).</p></details>
-  <footer><span>الزحمة محسوبة من: الامتحانات، والصوم الكبير وأسبوع الآلام، وعدد الإيفنتات المتسجلة.</span><span id="updated"></span></footer>
+  <footer><span hidden>الزحمة محسوبة من: الامتحانات، والصوم الكبير وأسبوع الآلام، وعدد الإيفنتات المتسجلة.</span><span id="updated"></span></footer>
 </div>
 
 <script>
@@ -1412,6 +1435,7 @@ function start(data){
   if(!startedOnce){startedOnce=true;bindLogin($("login"),$("lgPhone"),$("pw"),$("loginMsg"))}
   if(window.START_VIEW&&!location.hash){try{history.replaceState(null,"","#"+window.START_VIEW)}catch(e){location.hash=window.START_VIEW}}
   meBtn();renderYear();route();
+  const sp=$("splash");if(sp&&!sp.classList.contains("out")){sp.classList.add("out");setTimeout(()=>sp.remove(),600)}
   if(!D.level&&YT()&&!PREVIEW_DATA&&!window._yc){window._yc=1;setTimeout(yCheck,800)}   // لو الأمين فتح له صلاحية خادم يدخل عليها على طول
   if(!hashBound){hashBound=true;window.addEventListener("hashchange",route)}
 }
@@ -1436,7 +1460,7 @@ function load(k,fromLogin){
     if(!d.level){try{localStorage.setItem(CACHE_KEY,JSON.stringify(d))}catch(e){}}
     if(fromLogin)location.hash="follow";
     const h=location.hash;start(d);if(h&&location.hash!==h)location.hash=h;
-  }).catch(err=>{if(!D)$("sub").textContent="مقدرناش نقرا البيانات، جرّب تاني: "+String(err&&err.message||err);else $("updated").textContent="مقدرناش نحدّث دلوقتي"});
+  }).catch(err=>{if(!D){$("sub").textContent="مقدرناش نقرا البيانات، جرّب تاني: "+String(err&&err.message||err);if($("splash")){$("spBar").hidden=true;$("spErr").hidden=false}}else $("updated").textContent="مقدرناش نحدّث دلوقتي"});
 }
 /* أي كتابة في الشيت */
 function callApi(action,payload,ok,fail){
