@@ -895,7 +895,7 @@ function renderReg(){
     box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">اعمل رقم سري لحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">بالرقم السري يبقى ليك بروفايل وحسابك محدش يدخله غيرك.</p>`}`;
     box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
     const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>ySetPinForm(box);
-    callApi("regStatus",{email:em,tok:YT()},r=>{const was=regOk();lsSet("gsyf_reg_st",r.status||"");
+    callApi("regStatus",{email:em,tok:YT()},r=>{if(r.key&&!D.level){load(r.key,true);return}const was=regOk();lsSet("gsyf_reg_st",r.status||"");
       if(!r.status){lsSet("gsyf_reg","");renderHome();return}
       if(setMyBk(r.mine)||was!==regOk()){renderHome();return}
       const st=REG_ST[r.status];if(st){box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1]}},()=>{});
@@ -941,7 +941,7 @@ function renderMe(){
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
   if(tok)bindPhoto(box,tok);
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
-  if(tok&&!p)callApi("profile",{tok},r=>{MEP={tok,me:r.me};ySave({name:r.me.name,status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
+  if(tok&&!p)callApi("profile",{tok},r=>{if(r.key&&!D.level){load(r.key,true);return}MEP={tok,me:r.me};ySave({name:r.me.name,status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
     m=>{if(/ادخل/.test(m)){yOut();location.hash="home";renderHome();return}box.insertAdjacentHTML("beforeend",`<p class="err small">${esc(m)}</p>`)});
 }
 
@@ -1233,7 +1233,7 @@ function renderTeam(){
   const R=(D.regs||[]).filter(r=>r.status!=="مرفوض");
   const showQ=()=>{const v=normAr(toEn(q.value)).trim();if(v.length<2){res.innerHTML="";return}
     const L=R.filter(r=>normAr(r.name).includes(v)||String(r.phone).includes(v)).slice(0,8);
-    res.innerHTML=L.map(r=>`<div class="row"><div class="t"><b>${esc(r.name)}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div></div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:!r.pin?`<span class="small muted">لسه معملش رقم سري</span>`:`<button type="button" class="small primary tm-mk" data-row="${r.row}">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. خليه يسجل من الصفحة الرئيسية الأول.</p>`;
+    res.innerHTML=L.map(r=>`<div class="row"><div class="t"><b>${esc(r.name)}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div></div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:`<button type="button" class="small primary tm-mk" data-row="${r.row}">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. خليه يسجل من الصفحة الرئيسية الأول.</p>`;
     res.querySelectorAll(".tm-mk").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row);if(!confirm(`تفتح صلاحية خادم لـ ${r.name}؟`))return;b.disabled=true;b.textContent="…";
       callApi("makeServant",{row:r.row,email:r.email},()=>{b.textContent="اتفتح ✓";load()},m=>{b.disabled=false;b.textContent="خليه خادم";alert(m)})})};
   q.oninput=showQ;
@@ -1399,6 +1399,7 @@ function start(data){
   if(!startedOnce){startedOnce=true;bindLogin($("login"),$("lgPhone"),$("pw"),$("loginMsg"))}
   if(window.START_VIEW&&!location.hash){try{history.replaceState(null,"","#"+window.START_VIEW)}catch(e){location.hash=window.START_VIEW}}
   meBtn();renderYear();route();
+  if(!D.level&&YT()&&!PREVIEW_DATA&&!window._yc){window._yc=1;setTimeout(yCheck,800)}   // لو الأمين فتح له صلاحية خادم يدخل عليها على طول
   if(!hashBound){hashBound=true;window.addEventListener("hashchange",route)}
 }
 
@@ -1430,6 +1431,13 @@ function callApi(action,payload,ok,fail){
   apiGet({api:"write",a:action,p:JSON.stringify(payload),k:KEY}).then(r=>{if(r&&r.ok===false)fail(r.error||"حصلت مشكلة");else ok(r)}).catch(e=>fail("مفيش اتصال، جرّب تاني"));
 }
 if(!KEY){document.body.classList.add("youth");$("hero").hidden=false}
+// التحديث الفوري: أول ما الصفحة ترجع قدامك بتجيب آخر بيانات، واللي طلبه مستني بيتشيّك عليه كل 30 ثانية
+let lastLoad=Date.now();
+function yCheck(){const em=lsGet("gsyf_reg");if(!D||D.level||(!em&&!YT()))return;
+  callApi("regStatus",{email:em||"",tok:YT()},r=>{if(r.key){load(r.key,true);return}const was=lsGet("gsyf_reg_st")||"";if(r.status&&r.status!==was){lsSet("gsyf_reg_st",r.status);if(location.hash!=="#me")renderHome();else renderMe()}},()=>{})}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||!D||PREVIEW_DATA)return;
+  if(Date.now()-lastLoad>20000){lastLoad=Date.now();if(D.level)load();else yCheck()}});
+setInterval(()=>{if(document.visibilityState==="visible"&&D&&!D.level&&!PREVIEW_DATA&&lsGet("gsyf_reg_st")!=="مقبول")yCheck()},30000);
 function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}yOut();KEY="";location.hash="";load("")}
 load();
 </script>
