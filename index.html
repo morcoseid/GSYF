@@ -378,7 +378,8 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 
 .inst-wrap{display:flex;flex-direction:column;align-items:center;gap:6px}
 .inst-btn{background:transparent!important;color:var(--goldhi)!important;border:1.5px solid var(--goldhi)!important;border-radius:999px;padding:8px 20px;font-weight:700}
-.inst-ios{max-width:300px;opacity:.85;margin:0}
+.inst-ios{max-width:320px;opacity:.9;margin:0;text-align:center;line-height:1.7}
+.inst-hi .inst-btn{background:var(--goldhi)!important;color:#120606!important}
 </style>
 </head>
 <body>
@@ -793,11 +794,22 @@ function renderHome(){
 /* ================= تنزيل الصفحة كأبلكيشن (PWA) ================= */
 let deferredInstall=null;
 const isStandalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
-const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent);
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;document.querySelectorAll(".inst-wrap").forEach(x=>x.hidden=false)});
-function installBtn(){if(isStandalone())return "";return `<div class="inst-wrap"${deferredInstall||isIOS()?"":" hidden"}><button type="button" class="inst-btn" onclick="doInstall(this)">📲 نزّل أبلكيشن G.S.Y. Family</button><p class="inst-ios small" hidden>على الآيفون: دوس على زرار المشاركة <b>⬆︎</b> تحت في Safari، وبعدين <b>Add to Home Screen</b>.</p></div>`}
-function doInstall(b){if(deferredInstall){deferredInstall.prompt();deferredInstall.userChoice.finally(()=>{deferredInstall=null;b.closest(".inst-wrap").hidden=true});return}
-  const t=b.parentElement.querySelector(".inst-ios");t.hidden=!t.hidden}
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+// جوه واتساب/فيسبوك/إنستجرام مينفعش يتثبت: لازم يتفتح في Safari أو Chrome
+const inApp=()=>/FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Messenger|Snapchat|TikTok|Line\/|; wv\)/i.test(navigator.userAgent);
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
+window.addEventListener("appinstalled",()=>{deferredInstall=null;document.querySelectorAll(".inst-wrap").forEach(x=>x.hidden=true)});
+function instHelp(){
+  if(isIOS()&&inApp())
+    return `الأول افتح الرابط في <b>Safari</b> (دوس على النقط أو زرار المشاركة واختار <b>Open in Safari</b>)، وبعدين دوس على زرار المشاركة <b>⬆︎</b> واختار <b>Add to Home Screen</b> (إضافة إلى الشاشة الرئيسية).`;
+  if(isIOS())return `دوس على زرار المشاركة <b>⬆︎</b> تحت في Safari، وانزل واختار <b>Add to Home Screen</b> (إضافة إلى الشاشة الرئيسية)، وبعدين <b>Add</b>.`;
+  if(inApp())return `الأول افتح الرابط في <b>Chrome</b>: دوس على النقط <b>⋮</b> فوق واختار <b>Open in Chrome</b> (أو افتح في المتصفح)، وبعدين دوس على الزرار ده تاني.`;
+  return `من قايمة المتصفح <b>⋮</b> فوق، اختار <b>Install app</b> أو <b>Add to Home screen</b> (تثبيت التطبيق / إضافة للشاشة الرئيسية).`}
+function installBtn(){if(isStandalone())return "";return `<div class="inst-wrap"><button type="button" class="inst-btn" onclick="doInstall(this)">📲 نزّل أبلكيشن G.S.Y. Family</button><p class="inst-ios small" hidden></p></div>`}
+function doInstall(b){if(deferredInstall){deferredInstall.prompt();deferredInstall.userChoice.then(r=>{deferredInstall=null;if(r&&r.outcome==="accepted")b.closest(".inst-wrap").hidden=true}).catch(()=>{});return}
+  const t=b.parentElement.querySelector(".inst-ios");t.innerHTML=instHelp();t.hidden=!t.hidden}
+// رابط #app: بيفتح الصفحة على زرار التنزيل والشرح مفتوح
+function appGo(){if(location.hash!=="#app"||window._appGo)return;window._appGo=1;setTimeout(()=>{const w=document.querySelector("#home .inst-wrap");if(!w)return;w.scrollIntoView({block:"center"});w.classList.add("inst-hi");const t=w.querySelector(".inst-ios");if(!deferredInstall){t.innerHTML=instHelp();t.hidden=false}},120)}
 if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 /* ================= التسجيل (الشباب) ================= */
 const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع. أول ما نوافق عليه الصفحة كلها هتتفتح لك."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
@@ -1293,6 +1305,7 @@ function rpBind(){const b=$("ratings");b.querySelectorAll(".rp-seg button").forE
 
 function route(){
   let h=location.hash.slice(1);
+  if(h==="app")h="home";                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
   if(!D.level)h=h==="me"&&YT()?"me":"home";               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
   else if(!h)h="follow";
@@ -1315,7 +1328,7 @@ function route(){
   if(isK)renderKhadem();
   if(isT)renderTeam();
   if(isR)renderRatings();else stopRatings();
-  if(isHome)renderHome();
+  if(isHome){renderHome();appGo()}
   if(isFollow)renderFollow();
   if(m)renderMonth(m[1]);
   if(mt){meetMonth=null;renderMeet(+mt[1]-1)}
