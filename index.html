@@ -727,15 +727,9 @@ function bkSlot(e){
 function bkBind(root){
   const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
   root.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest("[data-row]"),e=evOf(b);
-    // الاسم والموبايل بيتاخدوا من حساب الشاب (التسجيل) ويتسجلوا مع الحجز لوحدهم. بنسأل بس عن اللي مش عندنا: رقم الطوارئ والملاحظات
-    const nm=lsGet("gsyf_yname")||"",ph=(/^y:(01\d{9}):/.exec(YT())||[])[1]||"";
-    openForm(box,[{t:"input",l:"رقم حد من أهلك للطوارئ",type:"tel",req:1},{t:"text",l:"ملاحظات (اختياري): مكان ركوبك، أكل معين، أي حاجة"}],
-      (a,ok,fail)=>{const p2=normPhone(a[0]);
-        if(!/^01[0125]\d{8}$/.test(p2))return fail("رقم الطوارئ مش مظبوط: 11 رقم ويبدأ بـ 01");
-        if(ph&&p2===ph)return fail("رقم الطوارئ لازم يكون رقم حد تاني غيرك");
-        const notes=["طوارئ: "+p2].concat(a[1]?["ملاحظات: "+a[1]]:[]).join(" · ");
-        callApi("book",{row:e.row,title:e.title,email:em,tok:YT(),notes},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail)},
-      ()=>"اتحجز ✓ بياناتك وصلت للخدام",`الحجز هيتسجل باسمك${nm?" ("+nm+")":""} ورقمك${ph?" "+ph:""} من تسجيلك.${e.price?" الاشتراك: "+e.price+"، والحجز بيتأكد بالدفع.":""}`)});
+    // دوسة واحدة: الاسم والموبايل بيتاخدوا من حساب الشاب (التسجيل) ويتسجلوا مع الحجز. مفيش فورم
+    b.disabled=true;b.textContent="بيتحجز…";
+    callApi("book",{row:e.row,title:e.title,email:em,tok:YT()},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;b.textContent="احجز مكانك";alert(m)})});
   root.querySelectorAll(".bk-x").forEach(b=>b.onclick=()=>{const e=evOf(b);if(!confirm("متأكد إنك عايز تلغي حجزك في "+e.title+"؟"))return;b.disabled=true;
     callApi("bookCancel",{email:em,tok:YT(),row:+b.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;alert(m)})});
   root.querySelectorAll(".bk-pf").forEach(b=>b.onclick=()=>{const box=b.closest("[data-bk]");
