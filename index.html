@@ -268,6 +268,22 @@ body.youth #me{padding-top:56px}
 .cd-u{min-width:62px;background:rgba(228,196,126,.1);border:1px solid rgba(228,196,126,.45);border-radius:12px;padding:6px 4px;display:flex;flex-direction:column;align-items:center}
 .cd-u b{font-family:var(--kufi);font-size:1.7rem;line-height:1.1;color:var(--goldhi);font-variant-numeric:tabular-nums}
 .cd-u span{font-size:.72rem;opacity:.8}
+/* كشف مفاجأة +25: هدية تتفتح باللمس */
+.sp-open{font-family:var(--kufi);font-size:1.1rem;background:var(--goldhi);color:var(--ink);border:0;border-radius:999px;padding:10px 30px;margin-top:8px;cursor:pointer;box-shadow:0 0 0 0 rgba(228,196,126,.6);animation:pulse 1.8s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 14px rgba(228,196,126,0)}100%{box-shadow:0 0 0 0 rgba(228,196,126,0)}}
+.y-surp.opening .sp-gift{animation:shake .6s ease-in-out}
+@keyframes shake{20%,60%{transform:rotate(-14deg) scale(1.1)}40%,80%{transform:rotate(14deg) scale(1.15)}100%{transform:scale(1.6);opacity:0}}
+.sp-tag{font-family:var(--kufi);font-size:.85rem;background:var(--goldhi);color:var(--ink);border-radius:999px;padding:2px 14px}
+.sp-big{font-family:var(--latin);font-size:clamp(3.4rem,18vw,5rem);line-height:1;color:var(--goldhi);direction:ltr;text-shadow:0 4px 24px rgba(228,196,126,.35)}
+.sp-rv{animation:rv .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes rv{from{opacity:0;transform:scale(.85) translateY(10px)}}
+.sp-prog{list-style:none;padding:0;margin:6px 0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.sp-prog li{background:rgba(228,196,126,.1);border:1px solid rgba(228,196,126,.4);border-radius:12px;padding:6px 12px;font-size:.95rem}
+.sp-share{display:inline-block;margin-top:6px;color:var(--goldhi);border:1px solid var(--goldhi);border-radius:999px;padding:7px 22px;text-decoration:none;font-weight:600}
+.sp-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sp-burst i{position:absolute;top:30%;left:50%;font-style:normal;font-size:1.3rem;animation:fly 1.1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(var(--r));opacity:0}}
+@media (prefers-reduced-motion:reduce){.sp-open,.y-surp.opening .sp-gift,.sp-rv,.sp-burst i{animation:none}}
 .bell{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:calc(12px + env(safe-area-inset-left,0px));z-index:50;width:46px;height:46px;border-radius:50%;border:1px solid rgba(228,196,126,.6);background:rgba(26,7,6,.82);color:#fff;font-size:1.3rem;cursor:pointer;box-shadow:0 6px 18px rgba(0,0,0,.3);backdrop-filter:blur(6px)}
 .bell i{position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#E4C47E;color:#1A0706;font:700 .75rem/20px var(--body,sans-serif);font-style:normal;padding:0 5px}
 .bell.ring{animation:ring 1.2s ease 2}@keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
@@ -695,7 +711,9 @@ function openForm(box,qs,send,doneMsg,intro){
 function cdBox(d,time){const m=String(time||"18:00").match(/(\d{1,2})[:.](\d{2})/)||[0,18,0];let h=+m[1];if(h<9&&!/ص|am/i.test(time||""))h+=12;
   const at=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,+m[2]).getTime();
   return `<div class="cd" data-at="${at}">${["ثانية","دقيقة","ساعة","يوم"].map(u=>`<div class="cd-u"><b>--</b><span>${u}</span></div>`).join("")}</div>`}
+const cdAt=(at,re)=>`<div class="cd" data-at="${at}"${re?' data-re="1"':""}>${["ثانية","دقيقة","ساعة","يوم"].map(u=>`<div class="cd-u"><b>--</b><span>${u}</span></div>`).join("")}</div>`;
 function cdTick(){document.querySelectorAll(".cd").forEach(el=>{let s=Math.max(0,Math.floor((+el.dataset.at-Date.now())/1000));
+  if(!s&&el.dataset.re){el.removeAttribute("data-re");setTimeout(renderHome,300);return}
   if(!s){el.outerHTML=`<p class="sp-when">النهارده! 🎉</p>`;return}
   const v=[s%60,Math.floor(s/60)%60,Math.floor(s/3600)%24,Math.floor(s/86400)];el.querySelectorAll("b").forEach((b,i)=>b.textContent=String(v[i]).padStart(2,"0"))})}
 setInterval(cdTick,1000);
@@ -740,7 +758,10 @@ function renderHome(){
   // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
   // مفاجأة +25: لحد 20 نوفمبر مش بتظهر في الاجتماعات خالص (كارت "مفاجأة" لوحده فوق الإيفنتات)، والأحد القديم باهت ومكتوب ملغي
-  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",old:"اجتماع الأحد",oldDay:0}};
+  // reveal = ساعة كشف المفاجأة (بتوقيت الموبايل). قبلها عداد للكشف، بعدها هدية تتفتح وتظهر كل التفاصيل للكل. لينك الإعلان: الموقع/#plus25
+  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",reveal:"2026-11-08T20:00:00",old:"اجتماع الأحد",oldDay:0,
+    prog:[["🙏","صلاة"],["✝️","كلمة أبونا"],["🥤","سناكس وقعدة حلوة"]]}};
+  const spOut=sp=>Date.now()>=new Date(sp.reveal).getTime();
   const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
   // إيفنت ليه فورم تقييم خاص = بيظهر كبير فوق خالص لحد ما يخلص وقت التقييم
   const feat=recent.filter(e=>(D.evalQs||{})[e.title]).sort((a,b)=>b.date.localeCompare(a.date))[0];
@@ -748,6 +769,7 @@ function renderHome(){
   const meets=[];
   D.weekly.forEach(w=>{const sp=SURPRISE[w.title];
     if(sp&&t<sp.until){
+      if(spOut(sp)){let n=parse(t);for(let i=0;i<7&&n.getDay()!==w.day;i++)n=addDays(n,1);if(iso(n)>=sp.until)meets.push({w,d:n,p:prog(w,iso(n))});return}
       let o=parse(t);for(let i=0;i<7&&o.getDay()!==sp.oldDay;i++)o=addDays(o,1);meets.push({w:{title:sp.old,short:sp.old},d:o,p:{status:"ملغي"},cls:"pale"});return}
     let d=parse(t);for(let i=0;i<7;i++){const x=addDays(d,i);if(x.getDay()===w.day){d=x;break}}meets.push({w,d,p:prog(w,iso(d))})});
   const E='<svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg>';
@@ -783,7 +805,13 @@ function renderHome(){
     <div class="kb"><a class="kgo" href="${alexForm}" target="_blank" rel="noopener">${ALEX.form?"سجّل في الرحلة":"احجز على واتساب"}</a></div>`}
     <div class="ax-wa"><span>📞 للتواصل واتساب</span>${ALEX.wa.map(w=>`<a href="https://wa.me/${w[1]}" target="_blank" rel="noopener"><b>${w[0]}</b><span dir="ltr">${w[2]}</span></a>`).join("")}</div>
     <details><summary>البوستر ▾</summary><img src="alex.jpg" alt="بوستر رحلة إسكندرية" loading="lazy" style="width:100%;border-radius:12px;display:block"></details></section>`;
-  const surprise=spT?`<section class="y-surp"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2>${cdBox(spD,spW&&spW.time)}${locked?`<p>حاجة جديدة جاية… ${pend?"التفاصيل هتظهر لك أول ما طلبك يتقبل":"سجّل عشان تعرف التفاصيل"}</p>`:`<p class="sp-when">${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}</p><p>في الكنيسة. خليك فاكر الميعاد ومتتأخرش 😉</p>`}</div></section>`:"";
+  const spC=spT&&SURPRISE[spT],spRev=spT&&spOut(spC),spOpen=spRev&&lsGet("gsyf_sp_open")===spT;
+  const spWhen=spT?`${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}`:"";
+  const spLink="https://morcoseid.github.io/GSYF/#plus25";
+  const spShare=spT?"https://wa.me/?text="+encodeURIComponent("🎁 المفاجأة اتكشفت!\n"+spT+"\n📅 "+spWhen+"\n📍 "+((spW&&spW.place)||"الكنيسة")+"\nكل التفاصيل هنا 👇\n"+spLink):"";
+  const surprise=!spT?"":!spRev?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2><p>حاجة جديدة جاية… المفاجأة هتتكشف هنا بعد</p>${cdAt(new Date(spC.reveal).getTime(),1)}<p class="small" style="opacity:.8">خليك فاكر تفتح الموقع 😉</p></div></section>`
+    :!spOpen?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>المفاجأة وصلت!</h2><p>افتح الهدية وشوف إيه اللي مستنيك</p><button type="button" class="sp-open">افتح الهدية</button></div></section>`
+    :`<section class="y-surp" id="plus25"><div class="sp-in sp-rv"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
@@ -813,13 +841,17 @@ function renderHome(){
   renderReg();cdTick();
   const bi=[];
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
-  if(spT)bi.push({id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:locked?"سجّل عشان تعرف التفاصيل":WD[spD.getDay()]+" "+spD.getDate()+" "+GM[spD.getMonth()],go:".y-surp"});
+  if(spT)bi.push(spRev?{id:"spr:"+spT,e:"🎁",t:"المفاجأة اتكشفت! افتح الهدية",s:spWhen,go:".y-surp"}:{id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:"هتتكشف قريب على الموقع",go:".y-surp"});
   if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:locked?"فيه رحلة جاية!":"رحلة إسكندرية السبت ٢١ نوفمبر",s:locked?"سجّل عشان تشوف التفاصيل":"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
   (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
   if(!locked)soon.slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
   renderBell(bi);
   const axr=$("home").querySelector(".ax-reg");if(axr)axr.onclick=()=>{const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
+  const spB=$("home").querySelector(".sp-open");if(spB)spB.onclick=()=>{const sec=spB.closest(".y-surp");sec.classList.add("opening");spB.disabled=true;
+    const b=document.createElement("div");b.className="sp-burst";b.innerHTML=Array.from({length:18},(_,k)=>{const a=k/18*6.283,r=90+Math.random()*80;return `<i style="--x:${Math.cos(a)*r}px;--y:${Math.sin(a)*r}px;--r:${Math.random()*360}deg">${["✨","🎉","💛","⭐"][k%4]}</i>`}).join("");sec.appendChild(b);
+    setTimeout(()=>{lsSet("gsyf_sp_open",spT);renderHome();const x=$("plus25");if(x)x.scrollIntoView({behavior:"smooth",block:"center"})},650)};
+  if(location.hash==="#plus25"&&!window._spGo){window._spGo=1;setTimeout(()=>{const x=$("plus25");if(x)x.scrollIntoView({block:"center"})},80)}
   if(location.hash==="#alex"&&!window._axGo){window._axGo=1;setTimeout(()=>{const x=$("alex");if(x)x.scrollIntoView({block:"start"})},80)}
   const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rateLeft.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
@@ -1388,7 +1420,8 @@ function attFind(phone){
 
 function route(){
   let h=location.hash.slice(1);
-  if(h==="app")h="home";                                    // رابط تنزيل الأبلكيشن
+  if(h==="app")h="home";
+  if(h==="plus25"||h==="alex")h="home";                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
   if(!D.level)h=h==="me"&&YT()?"me":"home";               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
   else if(!h)h="follow";
