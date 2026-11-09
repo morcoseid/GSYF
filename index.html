@@ -727,8 +727,9 @@ function bkSlot(e){
 function bkBind(root){
   const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
   root.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest("[data-row]"),e=evOf(b);
-    openForm(box,[{t:"text",l:"ملاحظات للخدام (اختياري)"}],(a,ok,fail)=>callApi("book",{row:e.row,title:e.title,email:em,tok:YT(),notes:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),
-      ()=>"اتحجز ✓",`الحجز هيتسجل باسمك.${e.price?" الاشتراك: "+e.price+". الحجز بيتأكد بالدفع.":""}`)});
+    // دوسة واحدة: الاسم والموبايل بيتاخدوا من حساب الشاب (التسجيل) ويتسجلوا مع الحجز. مفيش فورم
+    b.disabled=true;b.textContent="بيتحجز…";
+    callApi("book",{row:e.row,title:e.title,email:em,tok:YT()},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;b.textContent="احجز مكانك";alert(m)})});
   root.querySelectorAll(".bk-x").forEach(b=>b.onclick=()=>{const e=evOf(b);if(!confirm("متأكد إنك عايز تلغي حجزك في "+e.title+"؟"))return;b.disabled=true;
     callApi("bookCancel",{email:em,tok:YT(),row:+b.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;alert(m)})});
   root.querySelectorAll(".bk-pf").forEach(b=>b.onclick=()=>{const box=b.closest("[data-bk]");
