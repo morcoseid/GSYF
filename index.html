@@ -197,6 +197,25 @@ body.youth .chips label:has(input:checked){border-color:var(--gold);background:v
 .y-meet .tp{font-size:.95rem;border-top:1px solid rgba(228,196,126,.25);padding-top:8px;margin-top:2px}
 .y-meet .st{font-size:.78rem}
 .y-meet.off{background:linear-gradient(150deg,#3b302e,#1e1817)}
+.y-meet .tp.mt{display:flex;align-items:center;gap:10px;font-family:var(--brand);font-size:1.15rem;line-height:1.35;color:#fff}
+.y-meet .tp.mt b{font-weight:700}
+.y-meet .mi{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(228,196,126,.16);border:1px solid rgba(228,196,126,.35);font-size:1.35rem}
+.y-meet .tz{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:rgba(244,239,227,.88);position:relative}
+.y-meet .tz li::before{content:"✦ ";color:var(--goldhi)}
+.mc .mc-l{display:block;font-weight:700;margin:12px 0 4px}
+.mc .mc-in{width:100%;box-sizing:border-box;font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:inherit}
+.mc .mc-ch{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.mc .mc-ch button{border-radius:999px;padding:6px 14px}
+.mc .mc-ch button.on{background:var(--navy);color:var(--goldhi);border-color:var(--navy)}
+.mc .mc-when{margin:8px 0 0}
+.mc .mc-ai{display:block;width:100%;margin-top:8px;padding:12px;border-radius:12px;font-weight:700;background:linear-gradient(135deg,#6b4bd8,#b04bd8);color:#fff;border:0}
+.mc .mc-ai:disabled{opacity:.7}
+.mc .mc-ic{display:flex;flex-wrap:wrap;gap:6px}
+.mc .mc-ic button{width:44px;height:44px;padding:0;font-size:1.3rem;border-radius:12px}
+.mc .mc-ic button.on{outline:3px solid var(--gold);background:rgba(228,196,126,.2)}
+.mc .mc-pv{max-width:360px}
+.mc .mc-pv .y-meet{margin:0}
+.me-mc{display:block;text-align:center;margin:0 0 4px}
 .y-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
 .y-card{display:grid;grid-template-columns:64px minmax(0,1fr);gap:14px;align-items:start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;min-width:0}
 .y-date{display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;background:var(--navy);color:var(--onnavy);padding:8px 0;line-height:1.1}
@@ -927,7 +946,7 @@ function renderHome(){
     ${locked?regSec:""}
     ${locked?surprise+pollCard(locked,pend)+kas+alex:""}
     ${lockOpen}
-    <section class="y-sec"><h2 class="y-h">الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>{const off=p.status==="ملغي";return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}">${E}<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${p.topic?`<div class="tp">${esc(p.topic)}</div>`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}).join("")}</div></section>
+    <section class="y-sec"><h2 class="y-h">الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>meetCard(w,d,p,cls)).join("")}</div></section>
     <section class="y-sec"><h2 class="y-h">الجاي</h2>${locked?"":surprise+pollCard(locked,pend)+kas+alex}${evList.length?`<div class="y-cards">${evList.slice(0,3).map(evCard).join("")}</div>${evList.length>3?`<details class="y-more"><summary>شوف الكل (${evList.length})</summary><div class="y-cards">${evList.slice(3).map(evCard).join("")}</div></details>`:""}`:!locked&&(surprise||kas||alex)?"":`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
     ${rateLeft.length?`<section class="y-sec"><h2 class="y-h">قيّم</h2><div class="y-cards">${rateLeft.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
     ${lockClose}
@@ -1107,6 +1126,7 @@ function renderMe(){
     <details class="panel"><summary class="me-sum">بياناتي</summary><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd>${realEm(p.email)?`<dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>`:""}${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></details>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">الاجتماعات والحجز هيتفتحوا لك أول ما طلبك يتقبل.</p>`:""}
+    ${sv&&mcMeets().length?`<a class="btn primary me-mc" href="#follow" onclick="setTimeout(()=>{const x=$('mc');x&&x.scrollIntoView({behavior:'smooth'})},150)">📣 اكتب إعلان الاجتماع الجاي</a>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
   if(tok)bindPhoto(box,tok);
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
@@ -1189,6 +1209,7 @@ function renderFollow(){
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
+    ${mcPanel()}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
     ${srvMeetPanel()}
@@ -1222,9 +1243,123 @@ function renderFollow(){
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
-  aiBind();
+  aiBind();mcBind();
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
+
+/* ================= إعلان الاجتماع الأسبوعي (خدام الاجتماع بيكتبوه من "شغلي") =================
+   الخادم بيكتب نقط عن موضوع الاجتماع الجاي، والمساعد (Gemini المجاني) بيقترح عنوان وأيقونة ونقط تشويقية،
+   والخادم بيعدّل ويوافق، فيظهر للشباب في كارت الاجتماع في الرئيسية بدل التاريخ بس.
+   بيتحفظ في تاب "برنامج <الاجتماع>": الموضوع = العنوان، والأيقونة والتشويقة والنقط في الأعمدة اللي بعد الملاحظات.
+   الخصوصية: مفيش أسامي ناس ولا أرقام بتروح للـ AI (بتتبدل برموز وترجع بعد الرد). */
+// كارت الاجتماع زي ما الشباب بيشوفوه (الرئيسية + المعاينة عند الخادم)
+function meetCard(w,d,p,cls){
+  const off=p.status==="ملغي",tz=(p.teaser||[]).filter(Boolean),has=!off&&cls!=="pale"&&p.topic;
+  return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}${has?" has":""}"><svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg><div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}${cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:`${has?`<div class="tp mt">${p.icon?`<span class="mi">${esc(p.icon)}</span>`:""}<b>${esc(p.topic)}</b></div>${tz.length?`<ul class="tz">${tz.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}`:""}${p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:""}`}</article>`}
+// مين يكتب لأنهي اجتماع: الأمين لكل الاجتماعات، والخادم للاجتماع اللي في مجموعته بس
+function mcCan(w){if(!D||!D.level)return false;if(D.level===2)return true;const g=D.me&&D.me.group;if(!g)return false;
+  return g==="الاتنين"||(g==="جامعيين"?/جامعيين/:/الربع قرن|\+25/).test(w.title)}
+const mcMeets=()=>(D.weekly||[]).filter(mcCan);
+function mcDates(w,n){const out=[];let d=parse(D.today);for(let i=0;i<7&&d.getDay()!==w.day;i++)d=addDays(d,1);for(let i=0;i<n;i++)out.push(addDays(d,7*i));return out}
+const MC_ICONS=["📖","✝️","🙏","🔥","💡","❤️","🎯","🕊️","⛪","🎶","🤝","🌱","⚓","🗝️","🧭","🎁"];
+let MC={m:0,date:"",edit:null,sugg:null,busy:false,err:"",msg:""};
+function mcState(){const L=mcMeets();if(!L.length)return null;if(MC.m>=L.length)MC.m=0;const w=L[MC.m],ds=mcDates(w,4).map(iso);
+  if(!ds.includes(MC.date)){MC.date=ds[0];MC.edit=null;MC.sugg=null}return {L,w,ds,p:prog(w,MC.date)}}
+function mcPanel(){
+  const S=mcState();if(!S)return "";const {L,w,ds,p}=S,d=parse(MC.date),nm=w.short&&w.short!==w.title?w.short:w.title.replace("اجتماع ","");
+  const off=p.status==="ملغي",has=!!p.topic,left=-daysAgo(ds[0]),first=prog(w,ds[0]);
+  if(!MC.edit&&!has&&!off)MC.edit={title:"",icon:"",teaser:"",brief:p.brief||""};
+  const E=MC.edit,chip=k=>{const x=parse(k),q=prog(w,k);return `<button type="button" class="mc-d${k===MC.date?" on":""}" data-d="${k}">${x.getDate()} ${GM[x.getMonth()]}${q.status==="ملغي"?" ✕":q.topic?" ✓":""}</button>`};
+  const prev={...p,topic:E?E.title.trim():p.topic,icon:E?E.icon:p.icon,teaser:E?E.teaser.split("\n").map(x=>x.replace(/^[-•*\s]+/,"").trim()).filter(Boolean).slice(0,4):p.teaser};
+  let body;
+  if(off)body=`<p class="empty">الاجتماع ده ملغي في البرنامج، فمفيش إعلان.</p>`;
+  else if(!E)body=`<p class="mc-l">كده الشباب شايفينه في الرئيسية:</p><div class="mc-pv">${meetCard(w,d,p)}</div>${p.by?`<p class="small muted" style="margin:6px 0 0">كتبه ${esc(p.by)}${p.at?" · "+esc(p.at):""}</p>`:""}
+    <div class="btns"><button type="button" class="primary mc-ed">✏️ عدّل</button><button type="button" class="mc-del">🗑 شيل الإعلان</button></div>`;
+  else{const sg=MC.sugg;
+    body=`<label class="mc-l" for="mcBrief">١. اكتب نقط عن موضوع الاجتماع</label>
+    <textarea id="mcBrief" class="mc-in" rows="4" maxlength="1500" placeholder="مثلا:&#10;- هنتكلم عن القلق من المستقبل&#10;- إزاي ربنا شايل بكرة&#10;- آية: لا تهتموا للغد">${esc(E.brief)}</textarea>
+    <p class="small muted" style="margin:0">💡 متكتبش أسامي ناس هنا.</p>
+    ${D.aiKey?`<button type="button" class="mc-ai"${MC.busy?" disabled":""}>${MC.busy?"✨ بيفكر…":sg?"✨ اقترح تاني":"✨ اقترح عنوان وتشويقة"}</button>`:""}
+    ${MC.err?`<p class="err small" style="margin:0">${esc(MC.err)}</p>`:""}
+    <label class="mc-l" for="mcTitle">٢. العنوان اللي هيظهر للشباب</label>
+    ${sg&&sg.titles.length?`<div class="mc-ch">${sg.titles.map(x=>`<button type="button" class="mc-t${x===E.title?" on":""}">${esc(x)}</button>`).join("")}</div>`:""}
+    <input id="mcTitle" class="mc-in" maxlength="60" placeholder="مثلا: بكرة في إيده" value="${esc(E.title)}">
+    <span class="mc-l">٣. أيقونة</span>
+    <div class="mc-ic">${[...new Set([...(sg?sg.icons:[]),...MC_ICONS])].slice(0,18).map(x=>`<button type="button" class="${x===E.icon?"on":""}" aria-label="أيقونة ${esc(x)}">${esc(x)}</button>`).join("")}${E.icon?`<button type="button" class="mc-x" aria-label="من غير أيقونة">✕</button>`:""}</div>
+    <label class="mc-l" for="mcTz">٤. نقط تشويقية قصيرة <small class="muted">(سطر لكل نقطة، لحد ٤)</small></label>
+    <textarea id="mcTz" class="mc-in" rows="3" maxlength="400" placeholder="مثلا:&#10;قلقان من بكرة؟&#10;تعالى نشوف مين شايله">${esc(E.teaser)}</textarea>
+    ${sg&&sg.teaser.length&&sg.teaser.join("\n")!==E.teaser?`<button type="button" class="small mc-tz">⤴ حط نقط المساعد</button>`:""}
+    <p class="mc-l">كده هيظهر للشباب:</p><div class="mc-pv">${meetCard(w,d,prev)}</div>
+    ${MC.msg?`<p class="err small" style="margin:0">${esc(MC.msg)}</p>`:""}
+    <div class="btns"><button type="button" class="primary mc-go">✓ انشر للشباب</button>${has?`<button type="button" class="mc-no">إلغاء</button>`:""}</div>`}
+  return `<section class="panel mc" id="mc"><h3>📣 إعلان الاجتماع الجاي</h3>
+    ${!first.topic&&first.status!=="ملغي"&&left<=3?`<p class="note" style="margin:0 0 8px">⏰ اجتماع ${esc(nm)} ${left===0?"النهارده":left===1?"بكرة":"بعد "+left+" أيام"} ولسه من غير إعلان. الشباب شايفين التاريخ بس.</p>`:""}
+    ${L.length>1?`<div class="mc-ch">${L.map((x,i)=>`<button type="button" class="mc-m${i===MC.m?" on":""}" data-i="${i}">${esc(x.short&&x.short!==x.title?x.short:x.title.replace("اجتماع ",""))}</button>`).join("")}</div>`:""}
+    <div class="mc-ch">${ds.map(chip).join("")}</div>
+    <p class="mc-when"><b>${esc(w.title)}</b> · ${WD[d.getDay()]} ${d.getDate()} ${GM[d.getMonth()]}</p>${body}</section>`;
+}
+function mcRefresh(){const s=$("mc");if(!s)return;const a=document.activeElement,id=a&&a.id,pos=id&&a.selectionStart;s.outerHTML=mcPanel();mcBind();
+  if(id){const x=$(id);if(x){x.focus();try{x.setSelectionRange(pos,pos)}catch(e){}}}}
+function mcBind(){
+  const s=$("mc");if(!s)return;const S=mcState(),E=MC.edit;
+  s.querySelectorAll(".mc-m").forEach(b=>b.onclick=()=>{MC.m=+b.dataset.i;MC.date="";MC.err=MC.msg="";mcRefresh()});
+  s.querySelectorAll(".mc-d").forEach(b=>b.onclick=()=>{if(b.dataset.d===MC.date)return;MC.date=b.dataset.d;MC.edit=null;MC.sugg=null;MC.err=MC.msg="";mcRefresh()});
+  const ed=s.querySelector(".mc-ed");if(ed)ed.onclick=()=>{const p=S.p;MC.edit={title:p.topic||"",icon:p.icon||"",teaser:(p.teaser||[]).join("\n"),brief:p.brief||""};mcRefresh()};
+  const no=s.querySelector(".mc-no");if(no)no.onclick=()=>{MC.edit=null;MC.sugg=null;MC.err=MC.msg="";mcRefresh()};
+  const del=s.querySelector(".mc-del");if(del)del.onclick=()=>{if(!confirm("تشيل الإعلان؟ الشباب هيشوفوا التاريخ بس."))return;del.disabled=true;del.textContent="…";mcSave({clear:true},del)};
+  if(!E)return;
+  const pv=()=>{const box=s.querySelector(".mc-pv");if(box){const d=parse(MC.date);box.innerHTML=meetCard(S.w,d,{...S.p,topic:E.title.trim(),icon:E.icon,teaser:E.teaser.split("\n").map(x=>x.replace(/^[-•*\s]+/,"").trim()).filter(Boolean).slice(0,4)})}};
+  const bi=(id,k)=>{const x=$(id);if(x)x.oninput=()=>{E[k]=x.value;if(k==="title")s.querySelectorAll(".mc-t").forEach(b=>b.classList.toggle("on",b.textContent===x.value));pv()}};
+  bi("mcBrief","brief");bi("mcTitle","title");bi("mcTz","teaser");
+  s.querySelectorAll(".mc-t").forEach(b=>b.onclick=()=>{E.title=b.textContent;mcRefresh()});
+  s.querySelectorAll(".mc-ic button").forEach(b=>b.onclick=()=>{E.icon=b.classList.contains("mc-x")||b.classList.contains("on")?"":b.textContent;mcRefresh()});
+  const tz=s.querySelector(".mc-tz");if(tz)tz.onclick=()=>{E.teaser=MC.sugg.teaser.join("\n");mcRefresh()};
+  const ai=s.querySelector(".mc-ai");if(ai)ai.onclick=()=>{if(!E.brief.trim()){MC.err="اكتب كام نقطة عن الموضوع الأول";mcRefresh();return}mcSuggest(S.w)};
+  const go=s.querySelector(".mc-go");if(go)go.onclick=()=>{if(!E.title.trim()){MC.msg="اكتب عنوان (أو دوس ✨ اقترح)";mcRefresh();$("mcTitle")&&$("mcTitle").focus();return}
+    go.disabled=true;go.textContent="بينشر…";mcSave({title:E.title.trim(),icon:E.icon,teaser:E.teaser,brief:E.brief},go)};
+}
+function mcSave(x,btn){const S=mcState();MC.msg="";
+  callApi("meetContent",{meet:S.w.title,date:MC.date,...x},r=>{const m=(D.programs=D.programs||{})[S.w.title]=D.programs[S.w.title]||{};
+    m[MC.date]=r.prog||(x.clear?{...S.p,topic:"",icon:"",teaser:[]}:{...S.p,topic:x.title,icon:x.icon,teaser:x.teaser.split("\n").filter(Boolean),brief:x.brief,by:D.me?D.me.name:""});
+    MC.edit=x.clear?{title:"",icon:"",teaser:"",brief:""}:null;MC.sugg=null;MC.err="";AI.ctxFor=null;mcRefresh()},
+    m=>{MC.msg=m;btn.disabled=false;btn.textContent=x.clear?"🗑 شيل الإعلان":"✓ انشر للشباب";mcRefresh()})}
+// أسامي الناس بتتبدل برموز [س1] قبل ما تروح للـ AI وبترجع بعد الرد (الأسامي اللي الصفحة عارفاها + أي اسم بعد لقب زي أبونا/أستاذ)
+function mcMask(txt){
+  const map=[],put=n=>{n=n.trim();let i=map.indexOf(n);if(i<0){map.push(n);i=map.length-1}return "[س"+(i+1)+"]"};
+  let t=aiNoNums(txt);
+  const known=[...new Set([...(D.users||[]).map(u=>u.name),D.me&&D.me.name,...Object.values(D.programs||{}).flatMap(m=>Object.values(m).map(p=>p.speaker))].filter(Boolean).map(n=>String(n).trim().replace(/\s+/g," ")))];
+  known.flatMap(n=>[n,n.split(" ").slice(0,2).join(" ")]).filter(n=>n.length>=5&&n.includes(" ")).sort((a,b)=>b.length-a.length)
+    .forEach(n=>{t=t.split(n).join(put(n))});
+  t=t.replace(/(^|[^؀-ۿ])((?:أبونا|ابونا|القس|القمص|الأنبا|انبا|أنبا|تاسوني|دكتور|دكتورة|د\.|م\.|أستاذ|استاذ|الأستاذ|أستاذة|ميس|مستر|طنط|عمو|أخونا|الخادم|الخادمة)\s+)([؀-ۿ]{2,})/g,(m,a,b,c)=>a+b+put(c));
+  return {t,back:s=>String(s||"").replace(/\[س(\d+)\]/g,(m,n)=>map[+n-1]||"")}}
+async function mcSuggest(w){
+  const E=MC.edit,mk=mcMask(E.brief),d=parse(MC.date),th=weekTheme(d);
+  const sys=`إنت بتساعد خادم في خدمة شباب في الكنيسة القبطية الأرثوذكسية يعمل إعلان تشويقي لاجتماع الشباب الأسبوعي (${w.title}). الشباب سنهم ${/جامعيين/.test(w.title)?"١٨ لـ ٢٤ سنة (جامعة)":"٢٥ سنة وأكبر (شغل وجواز ومسؤوليات)"}.
+من النقط اللي الخادم هيكتبها اقترح:
+- titles: ٣ عناوين قصيرة جذابة (من ٢ لـ ٥ كلمات) بالعامية المصرية، تشد الشباب ومتكشفش الموضوع كله.
+- icons: ٣ إيموجي مناسبين للموضوع (إيموجي واحد في كل عنصر).
+- teaser: ٣ نقط تشويقية قصيرة (كل نقطة أقل من ١٠ كلمات) بالعامية، زي سؤال يلمس الشاب أو وعد بحاجة هياخدها. من غير ترقيم ومن غير إيموجي في الأول.
+خليك روحي ومحترم ومناسب للكنيسة. متخترعش معلومات مش في النقط. الرموز زي [س1] أسامي ناس: لو احتجتها اكتبها زي ما هي.
+رد بـ JSON بس بالشكل ده: {"titles":["..."],"icons":["..."],"teaser":["..."]}`;
+  const user=`التاريخ: ${WD[d.getDay()]} ${d.getDate()} ${GM[d.getMonth()]}${th?"\nالمناسبة الكنسية: "+th:""}\nنقط الخادم:\n${mk.t}`;
+  const body=JSON.stringify({systemInstruction:{parts:[{text:sys}]},contents:[{role:"user",parts:[{text:user}]}],generationConfig:{temperature:0.9,responseMimeType:"application/json"}});
+  MC.busy=true;MC.err="";mcRefresh();let err="",got=null;
+  for(const m of AI_MODELS){
+    try{const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`,{method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":D.aiKey},body});
+      const j=await r.json().catch(()=>({}));
+      if(r.ok){const txt=((((j.candidates||[])[0]||{}).content||{}).parts||[]).map(p=>p.text||"").join("");
+        try{const o=JSON.parse(txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1)),A=a=>(Array.isArray(a)?a:[]).map(x=>mk.back(String(x)).trim()).filter(Boolean);
+          got={titles:A(o.titles).map(x=>x.slice(0,60)).slice(0,3),icons:A(o.icons).map(x=>[...x].slice(0,2).join("")).slice(0,3),teaser:A(o.teaser).map(x=>x.replace(/^[-•*\d.\s]+/,"").slice(0,100)).slice(0,4)};
+          if(got.titles.length){err="";break}}catch(e){}
+        err="المساعد رد بشكل غريب، دوس اقترح تاني.";continue}
+      const msg=String((j.error||{}).message||"");
+      if(r.status===400&&/api key/i.test(msg)||r.status===403){err="مفتاح الـ AI مش شغال. اكتب العنوان بنفسك، وبلّغ الأمين.";break}
+      err=r.status===429?"المساعد وصل للحد المجاني النهارده. اكتب العنوان بنفسك أو جرّب بعد شوية.":"حصلت مشكلة في المساعد، جرّب تاني.";
+    }catch(e){err="مفيش اتصال، جرّب تاني."}}
+  MC.busy=false;
+  if(got&&MC.edit===E){MC.sugg=got;if(!E.title.trim())E.title=got.titles[0];if(!E.icon&&got.icons[0])E.icon=got.icons[0];if(!E.teaser.trim())E.teaser=got.teaser.join("\n")}
+  else if(!got)MC.err=err;
+  mcRefresh()}
 
 /* ================= المساعد الذكي (للخدام بس) =================
    بيستخدم Gemini المجاني من المتصفح بالمفتاح اللي في تاب الإعدادات (مفتاح AI).
