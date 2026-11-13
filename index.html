@@ -302,8 +302,8 @@ body.youth #me{padding-top:56px}
 .pl-tag{align-self:flex-start;font-family:var(--kufi);font-size:.85rem;color:var(--ink);background:var(--goldhi);border-radius:999px;padding:2px 14px}
 .y-poll h2{font-family:var(--kufi);font-size:clamp(1.7rem,7.5vw,2.3rem);line-height:1.2;color:var(--goldhi)}
 .pl-sub{margin:-4px 0 2px;font-size:.92rem;opacity:.8}
-.pl-opts{display:grid;gap:8px}
-.pl-o{display:flex;align-items:center;gap:10px;text-align:start;width:100%;background:rgba(255,255,255,.05);color:var(--onnavy);border:1px solid rgba(228,196,126,.25);border-radius:14px;padding:12px 12px;font:inherit;font-size:1rem;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
+.pl-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pl-o{display:flex;align-items:center;gap:7px;text-align:start;width:100%;background:rgba(255,255,255,.05);color:var(--onnavy);border:1px solid rgba(228,196,126,.25);border-radius:14px;padding:11px 9px;font:inherit;font-size:.95rem;cursor:pointer;transition:background .15s,border-color .15s,transform .1s}
 .pl-o:active{transform:scale(.98)}
 .pl-ck{flex:0 0 22px;height:22px;border-radius:50%;border:2px solid rgba(228,196,126,.6);display:flex;align-items:center;justify-content:center;font-size:.8rem}
 .pl-o.on{background:rgba(228,196,126,.16);border-color:var(--goldhi)}
@@ -806,23 +806,25 @@ const VOICE25={target:"صوت شباب +25",
 // التصويت جوه التشويق: مفتوح لحد ساعة الكشف، وبعدها الاختيار اللي كسب بيظهر في كارت الإعلان
 const POLL_WIN={until:"2026-11-14T20:00:00"};
 const pollWin=()=>{const P=D.poll;if(!P||!P.voters)return [];const mx=Math.max(...P.counts);return P.opts.filter((o,i)=>P.counts[i]===mx).slice(0,2)};
+const PL_SHORT=["💍 ارتباط وجواز","💼 شغل ونجاح","💸 فلوس","🧠 قلق وضغط","🙏 سهرة صلاة","🎤 أسئلة لأبونا","🏕 خلوة","🍽 عشا وتعارف","🤝 يوم خدمة"];
+const plS=o=>{const i=D.poll?D.poll.opts.indexOf(o):-1;return esc(PL_SHORT[i]||String(o).split("،")[0])};   // اسم قصير للعرض
 const pollMine=id=>{try{return JSON.parse(lsGet("gsyf_poll_"+id)||"null")}catch(e){return null}};
 const pollOn=()=>!!(D.poll&&D.poll.opts)&&Date.now()<new Date(POLL_WIN.until).getTime();
 function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMine(P.id),edit=window._plEdit&&!locked;
   const tot=P.counts.reduce((a,b)=>a+b,0),pc=i=>tot?Math.round(P.counts[i]/tot*100):0;
   const voteMode=!locked&&(!mine||edit);
-  const body=voteMode?`<div class="pl-opts">${P.opts.map((o,i)=>`<button type="button" class="pl-o${mine&&mine.includes(o)?" on":""}" data-i="${i}"><span class="pl-ck"></span>${esc(o)}</button>`).join("")}</div>
-      <button type="button" class="pl-go" disabled>صوّت 🗳</button>`
-    :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${esc(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
-  const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} صوّتوا لحد دلوقتي`:"كن أول واحد يصوّت"}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وصوّت"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر صوتي</button>`:""}</div>
-    <a class="pl-sh" href="https://wa.me/?text=${encodeURIComponent("🗳 نعمل إيه الشهر الجاي؟\nادخل صوّت، واللي هيكسب هيتعلن مع المفاجأة السبت ٨ بالليل 👀\nhttps://morcoseid.github.io/GSYF/#vote")}" target="_blank" rel="noopener">ابعته لصحابك على واتساب</a>`;
-  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🗳 صوّت</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?`اختار لحد ${P.max===2?"اتنين":P.max} · اللي هيكسب هيتعلن مع المفاجأة 👀`:mine?"شكرا! النتيجة لحد دلوقتي، واللي هيكسب هيتعلن مع المفاجأة 👀":"النتيجة لحد دلوقتي، واللي هيكسب هيتعلن مع المفاجأة 👀"}</p>${body}${foot}</div></section>`}
+  const body=voteMode?`<div class="pl-opts">${P.opts.map((o,i)=>`<button type="button" class="pl-o${mine&&mine.includes(o)?" on":""}" data-i="${i}"><span class="pl-ck"></span>${plS(o)}</button>`).join("")}</div>
+      <button type="button" class="pl-go" disabled>صوّت</button>`
+    :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).slice(0,3).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${plS(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
+  const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} صوّتوا`:""}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وصوّت"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر صوتي</button>`:""}</div>
+    `;
+  return `<section class="y-poll" id="vote"><div class="pl-in"><h2>🗳 ${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار اتنين":"اللي هيكسب هيتعلن الساعة ٨ 👀"}</p>${body}${foot}</div></section>`}
 function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!sec)return;const P=D.poll;
   const go=sec.querySelector(".pl-go"),sel=()=>[...sec.querySelectorAll(".pl-o.on")].map(b=>P.opts[+b.dataset.i]);
   if(go)go.disabled=!sel().length;
   sec.querySelectorAll(".pl-o").forEach(b=>b.onclick=()=>{if(!b.classList.contains("on")&&sel().length>=P.max){const f=sec.querySelector(".pl-o.on");f&&f.classList.remove("on")}b.classList.toggle("on");go.disabled=!sel().length});
   if(go)go.onclick=()=>{go.disabled=true;go.textContent="بيتبعت…";
-    callApi("vote",{email:lsGet("gsyf_reg")||"",tok:YT(),choices:sel()},r=>{lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine||sel()));if(r.poll)D.poll=r.poll;window._plEdit=0;renderHome()},m=>{go.disabled=false;go.textContent="صوّت 🗳";alert(m)})};
+    callApi("vote",{email:lsGet("gsyf_reg")||"",tok:YT(),choices:sel()},r=>{lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine||sel()));if(r.poll)D.poll=r.poll;window._plEdit=0;renderHome()},m=>{go.disabled=false;go.textContent="صوّت";alert(m)})};
   const ed=sec.querySelector(".pl-ed");if(ed)ed.onclick=()=>{window._plEdit=1;renderHome()};
   const rg=sec.querySelector(".pl-reg");if(rg)rg.onclick=()=>{if(pend)return;const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   // موبايل جديد: نجيب صوته القديم مرة واحدة
@@ -894,7 +896,7 @@ function renderHome(){
       <p class="sp-qt">٢. روحيًا، إنت فين دلوقتي؟</p><div class="sp-ch" data-max="1">${spQ.spirit.map(x=>`<button type="button">${esc(x)}</button>`).join("")}</div>
       <p class="sp-qt">٣. لو تقدر تسأل أبونا سؤال واحد، هيبقى إيه؟ <small>(اختياري)</small></p><textarea class="sp-tx" rows="2" maxlength="300" placeholder="اكتب سؤالك هنا…"></textarea>
       <button type="button" class="sp-go sp-qs">ابعت 💛</button><small class="sp-anon">من غير اسم. محدش هيعرف مين كتب إيه</small></div></div>`;
-  const spWO=spT&&!pollOn()?pollWin():[],spWin=spWO.length?`<div class="sp-win"><span>🏆 إنتوا اخترتوا للشهر الجاي</span><b>${spWO.map(esc).join("<br>")}</b><small>من ${D.poll.voters} صوت</small></div>`:"";
+  const spWO=spT&&!pollOn()?pollWin():[],spWin=spWO.length?`<div class="sp-win"><span>🏆 إنتوا اخترتوا للشهر الجاي</span><b>${spWO.map(plS).join("<br>")}</b><small>من ${D.poll.voters} صوت</small></div>`:"";
   const spLink="https://morcoseid.github.io/GSYF/#plus25";
   // "أنا جاي": حجز ببلاش على سطر أول اجتماع في شيت الإيفنتات (يظهر لـ الكل + الحجز مفتوح). العدد بيبان للكل
   const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
