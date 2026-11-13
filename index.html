@@ -321,6 +321,8 @@ body.youth #me{padding-top:56px}
 .pl-reg{background:var(--goldhi);color:var(--ink);font-weight:700}
 .pl-sh{align-self:center;color:var(--goldhi);font-size:.9rem;text-decoration:underline;text-underline-offset:4px}
 @media (prefers-reduced-motion:reduce){.pl-r i{animation:none}}
+.sp-win{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;background:linear-gradient(135deg,rgba(228,196,126,.22),rgba(228,196,126,.06));border:1px solid var(--goldhi);border-radius:16px;padding:12px 10px;margin:4px 0}
+.sp-win span{font-size:.9rem;opacity:.9}.sp-win b{font-family:var(--kufi);font-size:1.3rem;color:var(--goldhi);line-height:1.4}.sp-win small{opacity:.7}
 .sp-share{display:inline-block;margin-top:6px;color:var(--goldhi);border:1px solid var(--goldhi);border-radius:999px;padding:7px 22px;text-decoration:none;font-weight:600}
 .sp-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .sp-burst i{position:absolute;top:30%;left:50%;font-style:normal;font-size:1.3rem;animation:fly 1.1s ease-out forwards}
@@ -757,7 +759,7 @@ function cdBox(d,time){const m=String(time||"18:00").match(/(\d{1,2})[:.](\d{2})
   return `<div class="cd" data-at="${at}">${["ثانية","دقيقة","ساعة","يوم"].map(u=>`<div class="cd-u"><b>--</b><span>${u}</span></div>`).join("")}</div>`}
 const cdAt=(at,re)=>`<div class="cd" data-at="${at}"${re?' data-re="1"':""}>${["ثانية","دقيقة","ساعة","يوم"].map(u=>`<div class="cd-u"><b>--</b><span>${u}</span></div>`).join("")}</div>`;
 function cdTick(){document.querySelectorAll(".cd").forEach(el=>{let s=Math.max(0,Math.floor((+el.dataset.at-Date.now())/1000));
-  if(!s&&el.dataset.re){el.removeAttribute("data-re");setTimeout(renderHome,300);return}
+  if(!s&&el.dataset.re){el.removeAttribute("data-re");setTimeout(()=>{try{load()}catch(e){renderHome()}},300);return}   // ساعة الكشف: هات آخر داتا (نتيجة التصويت)
   if(!s){el.outerHTML=`<p class="sp-when">النهارده! 🎉</p>`;return}
   const v=[s%60,Math.floor(s/60)%60,Math.floor(s/3600)%24,Math.floor(s/86400)];el.querySelectorAll("b").forEach((b,i)=>b.textContent=String(v[i]).padStart(2,"0"))})}
 setInterval(cdTick,1000);
@@ -801,9 +803,11 @@ const VOICE25={target:"صوت شباب +25",
   worries:["💼 الشغل والمستقبل","💍 الارتباط والجواز","💸 الفلوس","🏠 العيلة","🫥 الوحدة","😮‍💨 الضغط والقلق","⏳ الوقت مش مكفي","🙏 علاقتي بربنا"],
   spirit:["🔥 ماشي كويس","🌤️ طالع نازل","🌫️ تايه شوية","🧊 بعيد ومحتاج حد"]};
 /* ===== تصويت +25 "نعمل إيه الشهر الجاي؟": بيظهر بعد كشف المفاجأة. الأصوات في تاب "التصويت" (صوت واحد للحساب) ===== */
-const POLL_WIN={from:"2026-11-14T20:00:00",until:"2026-11-30"};
+// التصويت جوه التشويق: مفتوح لحد ساعة الكشف، وبعدها الاختيار اللي كسب بيظهر في كارت الإعلان
+const POLL_WIN={until:"2026-11-14T20:00:00"};
+const pollWin=()=>{const P=D.poll;if(!P||!P.voters)return [];const mx=Math.max(...P.counts);return P.opts.filter((o,i)=>P.counts[i]===mx).slice(0,2)};
 const pollMine=id=>{try{return JSON.parse(lsGet("gsyf_poll_"+id)||"null")}catch(e){return null}};
-const pollOn=()=>!!(D.poll&&D.poll.opts)&&Date.now()>=new Date(POLL_WIN.from).getTime()&&D.today<=POLL_WIN.until;
+const pollOn=()=>!!(D.poll&&D.poll.opts)&&Date.now()<new Date(POLL_WIN.until).getTime();
 function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMine(P.id),edit=window._plEdit&&!locked;
   const tot=P.counts.reduce((a,b)=>a+b,0),pc=i=>tot?Math.round(P.counts[i]/tot*100):0;
   const voteMode=!locked&&(!mine||edit);
@@ -811,8 +815,8 @@ function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMi
       <button type="button" class="pl-go" disabled>صوّت 🗳</button>`
     :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${esc(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
   const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} صوّتوا لحد دلوقتي`:"كن أول واحد يصوّت"}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وصوّت"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر صوتي</button>`:""}</div>
-    <a class="pl-sh" href="https://wa.me/?text=${encodeURIComponent("🗳 نعمل إيه الشهر الجاي في اجتماع +25؟\nادخل صوّت، صوتك بيفرق 👇\nhttps://morcoseid.github.io/GSYF/#vote")}" target="_blank" rel="noopener">ابعته لصحابك على واتساب</a>`;
-  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🗳 تصويت +25</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?`اختار لحد ${P.max===2?"اتنين":P.max} · صوتك بيحدد برنامج الشهر`:mine?"شكرا! دي النتيجة لحد دلوقتي 👇":"النتيجة لحد دلوقتي 👇"}</p>${body}${foot}</div></section>`}
+    <a class="pl-sh" href="https://wa.me/?text=${encodeURIComponent("🗳 نعمل إيه الشهر الجاي؟\nادخل صوّت، واللي هيكسب هيتعلن مع المفاجأة السبت ٨ بالليل 👀\nhttps://morcoseid.github.io/GSYF/#vote")}" target="_blank" rel="noopener">ابعته لصحابك على واتساب</a>`;
+  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🗳 صوّت</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?`اختار لحد ${P.max===2?"اتنين":P.max} · اللي هيكسب هيتعلن مع المفاجأة 👀`:mine?"شكرا! النتيجة لحد دلوقتي، واللي هيكسب هيتعلن مع المفاجأة 👀":"النتيجة لحد دلوقتي، واللي هيكسب هيتعلن مع المفاجأة 👀"}</p>${body}${foot}</div></section>`}
 function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!sec)return;const P=D.poll;
   const go=sec.querySelector(".pl-go"),sel=()=>[...sec.querySelectorAll(".pl-o.on")].map(b=>P.opts[+b.dataset.i]);
   if(go)go.disabled=!sel().length;
@@ -890,6 +894,7 @@ function renderHome(){
       <p class="sp-qt">٢. روحيًا، إنت فين دلوقتي؟</p><div class="sp-ch" data-max="1">${spQ.spirit.map(x=>`<button type="button">${esc(x)}</button>`).join("")}</div>
       <p class="sp-qt">٣. لو تقدر تسأل أبونا سؤال واحد، هيبقى إيه؟ <small>(اختياري)</small></p><textarea class="sp-tx" rows="2" maxlength="300" placeholder="اكتب سؤالك هنا…"></textarea>
       <button type="button" class="sp-go sp-qs">ابعت 💛</button><small class="sp-anon">من غير اسم. محدش هيعرف مين كتب إيه</small></div></div>`;
+  const spWO=spT&&!pollOn()?pollWin():[],spWin=spWO.length?`<div class="sp-win"><span>🏆 إنتوا اخترتوا للشهر الجاي</span><b>${spWO.map(esc).join("<br>")}</b><small>من ${D.poll.voters} صوت</small></div>`:"";
   const spLink="https://morcoseid.github.io/GSYF/#plus25";
   // "أنا جاي": حجز ببلاش على سطر أول اجتماع في شيت الإيفنتات (يظهر لـ الكل + الحجز مفتوح). العدد بيبان للكل
   const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
@@ -901,7 +906,7 @@ function renderHome(){
   const spShare=spT?"https://wa.me/?text="+encodeURIComponent("🎁 المفاجأة اتكشفت!\n"+spT+"\n📅 "+spWhen+"\n📍 "+((spW&&spW.place)||"الكنيسة")+"\nكل التفاصيل هنا 👇\n"+spLink):"";
   const surprise=!spT?"":!spRev?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2><p>حاجة جديدة جاية… المفاجأة هتتكشف هنا بعد</p>${cdAt(new Date(spC.reveal).getTime(),1)}<p class="small" style="opacity:.8">خليك فاكر تفتح الموقع 😉</p></div></section>`
     :!spOpen?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>المفاجأة وصلت!</h2><p>افتح الهدية وشوف إيه اللي مستنيك</p><button type="button" class="sp-open">افتح الهدية</button></div></section>`
-    :`<section class="y-surp" id="plus25"><div class="sp-in${window._spJust?" sp-rv":""}"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}${spRsvp}${spQuiz}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
+    :`<section class="y-surp" id="plus25"><div class="sp-in${window._spJust?" sp-rv":""}"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}${spWin}${spRsvp}${spQuiz}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
@@ -931,7 +936,7 @@ function renderHome(){
   renderReg();cdTick();
   const bi=[];
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
-  if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"صوّت: "+D.poll.q,s:"صوتك بيحدد برنامج +25",go:".y-poll"});
+  if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"صوّت: "+D.poll.q,s:"اللي هيكسب هيتعلن مع المفاجأة",go:".y-poll"});
   if(spT)bi.push(spRev?{id:"spr:"+spT,e:"🎁",t:"المفاجأة اتكشفت! افتح الهدية",s:spWhen,go:".y-surp"}:{id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:"هتتكشف قريب على الموقع",go:".y-surp"});
   if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:locked?"فيه رحلة جاية!":"رحلة إسكندرية السبت ٢١ نوفمبر",s:locked?"سجّل عشان تشوف التفاصيل":"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
