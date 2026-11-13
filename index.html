@@ -348,6 +348,8 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .fld.bad input{border-color:#C0392B;box-shadow:0 0 0 3px rgba(192,57,43,.12)}
 .fld.good input{border-color:#3C8D5A}
 .fld em{font-style:normal;font-size:.8rem;color:#C0392B;min-height:0}
+.sv-card{display:flex;flex-direction:column;gap:12px}.sv-hero{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:6px 0}.sv-hero b{font-family:var(--kufi);font-size:1.4rem;color:var(--accent)}.sv-hero span{color:var(--muted)}.sv-ic{font-size:2.6rem!important;color:inherit!important}
+.sv-big{display:block;width:100%;text-align:center;font-size:1.2rem!important;padding:16px!important;font-weight:700}
 .rg-send{align-self:stretch;font-size:1.05rem!important;padding:12px!important}
 @media (prefers-reduced-motion:reduce){.sp-gift{animation:none}}
 
@@ -852,30 +854,32 @@ if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceW
 /* ================= التسجيل (الشباب) ================= */
 const REG_ST={"مستني":["⏳","طلبك وصل وبيتراجع. أول ما نوافق عليه الصفحة كلها هتتفتح لك."],"مقبول":["✅","اتقبلت! أهلا بيك في G.S.Y. Family 💛"],"مرفوض":["✖️","طلبك متقبلش. لو في حاجة غلط كلمنا على الواتساب."]};
 // زرار واتساب الخدمة (بيفتح الشات على طول برسالة جاهزة)
-const WA_BTN=()=>{const em=lsGet("gsyf_reg")||"",t="أهلا، أنا سجلت في G.S.Y. Family وعايز أتابع طلبي"+(em?" ("+em+")":"");return `<a class="wa-btn" href="https://wa.me/201200690490?text=${encodeURIComponent(t)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.6-.3Z"/></svg><span>تابع طلبك على واتساب</span><small dir="ltr">+20 120 069 0490</small></a>`};
+const WA_BTN=()=>{const em=realEm(lsGet("gsyf_reg")),t="أهلا، أنا سجلت في G.S.Y. Family وعايز أتابع طلبي"+(em?" ("+em+")":"");return `<a class="wa-btn" href="https://wa.me/201200690490?text=${encodeURIComponent(t)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.3 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.6-.3Z"/></svg><span>تابع طلبك على واتساب</span><small dir="ltr">+20 120 069 0490</small></a>`};
 // الصفحة بتتفتح بس لما الخدام يقبلوا الطلب
+// اللي سجل من لينك الخدام من غير إيميل بياخد إيميل داخلي مش بيظهر
+const realEm=e=>/@khadem\.gsyf$/i.test(String(e||""))?"":String(e||"");
 const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مقبول";
 // حساب الشاب: الموبايل + رقم سري. التوكن بيتحفظ على الموبايل وبيتبعت مع الحجز والبروفايل
 const YT=()=>lsGet("gsyf_ytok")||"";
 function ySave(r){if(r.email)lsSet("gsyf_reg",r.email);if(r.status!==undefined)lsSet("gsyf_reg_st",r.status||"");if(r.tok)lsSet("gsyf_ytok",r.tok);if(r.name)lsSet("gsyf_yname",r.name);meBtn()}
-function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname","gsyf_yphoto"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
+function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname","gsyf_yphoto","gsyf_srv"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
 function meBtn(){const b=$("meBtn");if(!b)return;const n=(D&&D.me&&D.me.name)||lsGet("gsyf_yname")||"";b.hidden=(!n&&!YT())||!!(D&&D.level);const ph=YT()&&lsGet("gsyf_yphoto");if(ph)b.innerHTML=`<img src="${ph}" alt="">`;else b.textContent=n?n.trim()[0]:"👤"}
 const PIN_CK={pin:v=>/^\d{4}$/.test(toEn(v))?"":"الرقم السري لازم 4 أرقام",pin2:(v,f)=>toEn(v)===toEn(f.elements.pin.value)?"":"الرقمين مش زي بعض"};
 // دخول واحد للكل: الخادم اللي الأمين فتح له بيدخل على صفحة الخدام، والشاب على البروفايل بتاعه
-function yLoginForm(box){
-  box.innerHTML=`<form class="rgf yl" novalidate><div class="rg-head"><b>ادخل بحسابك</b><span>رقم الموبايل اللي سجلت بيه والرقم السري</span></div>
-    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
+function yLoginForm(box,o){o=o||{};
+  box.innerHTML=`<form class="rgf yl" novalidate><div class="rg-head"><b>ادخل بحسابك</b><span>${esc(o.note||"رقم الموبايل اللي سجلت بيه والرقم السري")}</span></div>
+    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx" value="${esc(o.phone||"")}"><em></em></label>
     <label class="fld"><span>الرقم السري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password"><em></em></label>
     <label class="fld y-em" hidden><span>الإيميل اللي سجلت بيه (مرة واحدة بس)</span><input name="email" type="email" dir="ltr" autocomplete="email"><em></em></label>
     <button type="submit" class="primary rg-send">دخول</button><p class="msg small"></p>
     <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
   const f=box.querySelector("form"),msg=f.querySelector(".msg");
-  f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderReg()};
+  f.querySelector(".y-back").onclick=e=>{e.preventDefault();(o.back||renderReg)()};
   f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
     if(!/^01[0125]\d{8}$/.test(phone)||!/^\d{4}$/.test(pin)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك والرقم السري (4 أرقام)";return}
     const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيدخل…";
     const emF=f.elements.email,em=(emF.value.trim()||lsGet("gsyf_reg")||"").toLowerCase();
-    callApi("yLogin",{phone,pin,email:em},r=>{if(r.needEmail){b.disabled=false;f.querySelector(".y-em").hidden=false;emF.focus();msg.className="msg small muted";msg.textContent="أول مرة تدخل: اكتب الإيميل اللي سجلت بيه، والرقم السري اللي كتبته هيبقى رقمك على طول";return}if(r.tok)ySave(r);if(r.key){load(r.key,true);return}location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
+    callApi("yLogin",{phone,pin,email:em},r=>{if(r.needEmail){b.disabled=false;f.querySelector(".y-em").hidden=false;emF.focus();msg.className="msg small muted";msg.textContent="أول مرة تدخل: اكتب الإيميل اللي سجلت بيه، والرقم السري اللي كتبته هيبقى رقمك على طول";return}if(r.tok)ySave(r);if(r.key){load(r.key,true);return}if(o.done){o.done(r);return}location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
 }
 const toEn=x=>String(x||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 const normPhone=x=>{let v=toEn(x).replace(/[\s\-().]/g,"");v=v.replace(/^(\+|00)?20(?=1)/,"0");return v};
@@ -912,7 +916,7 @@ function regForm(box){
 function renderReg(){
   const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
-    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
+    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(realEm(em))}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
     box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
     const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>yLoginForm(box);
     callApi("regStatus",{email:em,tok:YT()},r=>{if(r.key&&!D.level){load(r.key,true);return}const was=regOk();lsSet("gsyf_reg_st",r.status||"");
@@ -953,9 +957,9 @@ function renderMe(){
   const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
   const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.paid||b.status==="مؤكد"?"✅ مؤكد (دفع)":b.status==="مستني الدفع"?"⏳ مستني الدفع"+(b.proof?" · إثبات: "+esc(b.proof):""):"✓ محجوز"}</div></div></div>`;
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
-  box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
+  box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
-    <details class="panel"><summary class="me-sum">بياناتي</summary><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd><dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></details>`
+    <details class="panel"><summary class="me-sum">بياناتي</summary><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd>${realEm(p.email)?`<dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>`:""}${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></details>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">الاجتماعات والحجز هيتفتحوا لك أول ما طلبك يتقبل.</p>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
@@ -971,7 +975,7 @@ const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((
 const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return isNaN(a)?"":a};
 function regPanel(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
-  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(r.email)}${r.phone?" · "+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
+  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
   return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
 // اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
@@ -1178,7 +1182,7 @@ async function aiAsk(q){
 function renderApprove(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني").slice(0,15);
   const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(r.name)}</b><span class="muted small">${esc(r.at)}</span></div>
-    <div class="ap-meta"><span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}<span dir="ltr">✉️ ${esc(r.email)}</span></div>
+    <div class="ap-meta"><span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
     <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
@@ -1204,39 +1208,67 @@ function bindLogin(f,ph,pw,msg){
     callApi("login",{phone,pin:k},r=>{b.disabled=false;lsSet("gsyf_kh_phone",phone);if(r.key){msg.textContent="";load(r.key,true)}else{msg.textContent=KH_ST[r.status]||"حصلت مشكلة"}},
       m=>{b.disabled=false;msg.classList.remove("muted");msg.classList.add("err");msg.textContent=m})};
 }
+/* ================= لينك الخدام (#servant) =================
+   الخادم بيدوس على اللينك، يسجل أو يدخل بحسابه العادي، وطلبه يروح للأمين. محدش بيبقى خادم غير لما الأمين يوافق من "الإدارة ← الخدام" */
+const SV_ST={"مستني":["⏳","طلبك وصل للأمين","أول ما يوافق، الموقع هيتحوّل لصفحة الخدام لوحده. ممكن تقفل دلوقتي وترجع بعدين من نفس اللينك."],"مرفوض":["✖️","طلبك متقبلش","لو في حاجة غلط كلّم أمين الخدمة."],"موقوف":["⏸️","حسابك كخادم متوقف","كلّم أمين الخدمة."]};
+const SV_HEAD=`<div class="sv-hero"><span class="sv-ic">🙌</span><b>أهلا بيك يا خادم</b><span>خطوة واحدة وتبقى معانا على الموقع</span></div>`;
+function svGo(r){MEP=null;if(r.key){load(r.key,true);return}if(r.srv!==undefined)lsSet("gsyf_srv",r.srv||"");renderKhadem()}
+function svAsk(btn,msg){btn.disabled=true;btn.textContent="بيتبعت…";
+  callApi("srvRequest",{tok:YT()},svGo,m=>{btn.disabled=false;btn.textContent="ابعت طلبي";msg.textContent=m;if(/ادخل/.test(m)){yOut();renderKhadem()}})}
 function renderKhadem(){
   const box=$("khadem");
-  if(D.me){box.innerHTML=`<section class="panel"><h3>✅ انت داخل باسم ${esc(D.me.name)}</h3><p class="muted" style="margin:0">التاسكات بتاعتك في صفحة المتابعة.</p><div class="btns"><a class="btn" href="#follow">افتح المتابعة</a></div></section>`;return}
-  const last=lsGet("gsyf_kh_phone")||"";
+  if(D.level){box.innerHTML=D.me?`<section class="panel sv-card">${SV_HEAD.replace("🙌","✅").replace("أهلا بيك يا خادم","إنت خادم بالفعل").replace("خطوة واحدة وتبقى معانا على الموقع","داخل باسم "+esc(D.me.name))}<a class="btn primary sv-big" href="#follow">افتح صفحة الخدام</a></section>`
+      :`<section class="panel sv-card"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">اخرج وادخل بحسابك (رقم الموبايل والرقم السري).</p><button type="button" class="sv-big sv-out">خروج</button></section>`;
+    const o=box.querySelector(".sv-out");if(o)o.onclick=()=>{try{localStorage.removeItem("gsyf_key")}catch(e){}KEY="";location.hash="servant";load("")};return}
+  const tok=YT(),st=lsGet("gsyf_srv"),name=lsGet("gsyf_yname")||"";
+  if(!tok){
+    box.innerHTML=`<section class="panel sv-card">${SV_HEAD}
+      <button type="button" class="primary sv-big sv-new">أول مرة: سجّلني</button>
+      <button type="button" class="sv-big sv-old">عندي حساب على الموقع</button>
+      <p class="small muted" style="margin:0;text-align:center">بعد ما تسجل، أمين الخدمة بيوافق على طلبك وتبقى خادم على الموقع.</p></section>`;
+    box.querySelector(".sv-new").onclick=()=>srvRegForm(box);
+    box.querySelector(".sv-old").onclick=()=>svLogin(box);
+    return}
+  const S=SV_ST[st];
+  if(S){box.innerHTML=`<section class="panel sv-card"><div class="sv-hero"><span class="sv-ic">${S[0]}</span><b>${S[1]}</b><span>${esc(name)}</span></div><p style="margin:0;text-align:center">${S[2]}</p>${st!=="مستني"?WA_BTN():""}<p class="small" style="margin:0;text-align:center"><a href="#" class="sv-x">مش إنت؟ اخرج</a></p></section>`}
+  else if(st==="مقبول"){box.innerHTML=`<section class="panel sv-card"><div class="sv-hero"><span class="sv-ic">✅</span><b>إنت خادم بالفعل</b><span>ادخل برقم موبايلك والرقم السري بتاع حساب الخادم</span></div><div class="sv-lg"></div></section>`;
+    svLogin(box.querySelector(".sv-lg"));return}
+  else{box.innerHTML=`<section class="panel sv-card">${SV_HEAD.replace("أهلا بيك يا خادم","أهلا يا "+esc(name.split(" ")[0]||"خادم"))}<button type="button" class="primary sv-big sv-ask">أنا خادم: ابعت طلبي</button><p class="msg small err" style="margin:0"></p><p class="small" style="margin:0;text-align:center"><a href="#" class="sv-x">مش إنت؟ اخرج</a></p></section>`;
+    const b=box.querySelector(".sv-ask");b.onclick=()=>svAsk(b,box.querySelector(".msg"))}
+  const x=box.querySelector(".sv-x");if(x)x.onclick=e=>{e.preventDefault();yOut();renderKhadem()};
+  if(!window._svChk){window._svChk=1;callApi("regStatus",{email:lsGet("gsyf_reg")||"",tok},r=>{window._svChk=0;if(r.key){load(r.key,true);return}if((r.srv||"")!==st){lsSet("gsyf_srv",r.srv||"");if(location.hash==="#servant")renderKhadem()}},()=>{window._svChk=0})}
+}
+function svLogin(box,o){yLoginForm(box,Object.assign({back:renderKhadem,note:"رقم الموبايل والرقم السري اللي بتدخل بيهم الموقع",
+  done:r=>{if(!r.tok){renderKhadem();return}box.innerHTML='<p class="muted" style="text-align:center;padding:20px">بيبعت طلبك…</p>';callApi("srvRequest",{tok:r.tok},svGo,()=>renderKhadem())}},o||{}))}
+function srvRegForm(box){
   box.innerHTML=`<section class="panel"><form class="rgf" novalidate>
-    <div class="rg-head"><b>سجّل كخادم</b><span>سجّل مرة واحدة بس. بعد ما الأمناء يوافقوا هتدخل كل مرة برقمك والرقم السري، وهتلاقي التاسكات بتاعتك.</span></div>
-    <label class="fld"><span>الاسم ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
+    <div class="rg-head"><b>سجّلني كخادم</b><span>اكتب بياناتك مرة واحدة بس</span></div>
+    <label class="fld"><span>اسمك ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
-    <label class="fld"><span>اختار رقم سري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" dir="ltr"><em></em></label>
-    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="new-password" dir="ltr"><em></em></label>
-    <button type="submit" class="primary rg-send">سجلني كخادم</button><p class="msg small"></p>
-    <p class="small muted" style="margin:0">حتى لو سجلت في الموقع قبل كده، سجّل هنا علشان نعرف إنك خادم. بياناتك بتوصل لأمناء الخدمة بس.</p></form></section>
-    <section class="panel"><h3>متسجل قبل كده؟ ادخل</h3><form class="kl" style="display:flex;flex-wrap:wrap;gap:8px"><input type="tel" inputmode="tel" dir="ltr" placeholder="رقم الموبايل" autocomplete="tel" value="${esc(last)}" style="flex:1 1 140px;min-width:0"><input type="password" inputmode="numeric" placeholder="الرقم السري" autocomplete="current-password" style="flex:1 1 140px;min-width:0"><button type="submit">دخول</button></form><p class="lmsg small err" style="margin:0"></p></section>`;
-  const kl=box.querySelector(".kl"),ins=kl.querySelectorAll("input");bindLogin(kl,ins[0],ins[1],box.querySelector(".lmsg"));
-  const f=box.querySelector(".rgf");
-  const CK={name:REG_CHECK.name,phone:REG_CHECK.phone,pin:v=>/^\d{4}$/.test(toEn(v))?"":"الرقم السري لازم 4 أرقام",pin2:(v,f)=>toEn(v)===toEn(f.elements.pin.value)?"":"الرقمين مش زي بعض"};
-  const check=(n,show)=>{const el=f.elements[n],e=CK[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
-  Object.keys(CK).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
-  f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(CK).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
-    const msg=f.querySelector(".msg");if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
-    const btn=f.querySelector(".rg-send"),phone=normPhone(f.elements.phone.value);btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
-    callApi("servantJoin",{name:f.elements.name.value.trim().replace(/\s+/g," "),phone,pin:toEn(f.elements.pin.value)},
-      r=>{lsSet("gsyf_kh_phone",phone);ins[0].value=phone;
-        if(r.key){load(r.key,true);return}
-        btn.disabled=false;msg.className="msg small ok";
-        msg.textContent=r.existed?`الرقم ده متسجل قبل كده. ${r.status==="مقبول"?"ادخل برقمك والرقم السري تحت.":KH_ST[r.status]||""}`:KH_ST["مستني"].replace("⏳ ","✅ ")},
-      e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
+    <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
+    <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
+    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
+    <label class="fld"><span>الإيميل (لو عندك، مش لازم)</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
+    <button type="submit" class="primary rg-send">سجّلني</button><p class="msg small"></p>
+    <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form></section>`;
+  const f=box.querySelector("form"),msg=f.querySelector(".msg");
+  f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderKhadem()};
+  const RC={name:REG_CHECK.name,phone:REG_CHECK.phone,birth:REG_CHECK.birth,pin:PIN_CK.pin,pin2:PIN_CK.pin2,email:v=>!v.trim()||REG_CHECK.email(v)===""?"":"الإيميل مش مظبوط، أو سيبه فاضي"};
+  const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
+  Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
+  f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
+    if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
+    const btn=f.querySelector(".rg-send"),phone=normPhone(f.elements.phone.value),em=f.elements.email.value.trim().toLowerCase();btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
+    const old=()=>svLogin(box,{phone,note:"إنت متسجل قبل كده على الموقع. ادخل برقمك والرقم السري بتاعك"});
+    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone,email:em,pin:toEn(f.elements.pin.value),srv:1},
+      r=>{if(r.existed||!r.tok){old();return}ySave(r);lsSet("gsyf_srv",r.srv||"مستني");renderKhadem();window.scrollTo(0,0)},
+      e=>{if(/متسجل قبل كده/.test(e)){old();return}btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
 // صفحة الأمناء: الموافقة على الخدام وفتح/قفل الصلاحيات لكل واحد
 function renderTeam(){
   const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
-  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}</div>
+  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
     <div class="ap-btns"><button type="button" class="ap-ok us" data-f="status" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
   const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}${u.role==="أمين"?' <span class="small muted">(أمين)</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
     <div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${!!u.perms[k]}">${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div>
@@ -1375,20 +1407,20 @@ function route(){
   let h=location.hash.slice(1);
   if(h==="app")h="home";                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
-  if(!D.level)h=h==="me"&&YT()?"me":"home";               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
+  if(!D.level)h=h==="me"&&YT()?"me":h==="servant"?"servant":"home";   // servant = لينك الخدام (تسجيل + طلب، والأمين بيوافق)               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
   else if(!h)h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
   if((h==="team"||h==="admin")&&D.level!==2)h="follow";
-  if(D.level===1&&!["follow","home","me","approve","att"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="khadem", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att";
+  if(D.level===1&&!["follow","home","me","approve","att","servant"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att";
   $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt);$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
-  document.body.classList.toggle("youth",isHome||(isMe&&!D.level));$("hero").hidden=!isHome;
+  document.body.classList.toggle("youth",isHome||((isMe||isK)&&!D.level));$("hero").hidden=!isHome;
   $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt;
   const w=mt&&D.weekly[+mt[1]-1];
   $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow||isAt?"follow":isAp?"approve":isK?"khadem":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
+  renderNav(mt?h:isHome?"home":isFollow||isAt?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
   if(isA)renderAdmin();
   if(isAt)renderAtt();
   if(isMe)renderMe();
@@ -1439,7 +1471,7 @@ function load(k,fromLogin){
   else if(!D){$("sub").textContent="بيحمّل…"}
   apiGet({api:"data",k:key}).then(d=>{
     if(d&&d.ok===false)throw new Error(d.error);
-    if(fromLogin&&!d.level){$("loginMsg").textContent="الباسورد غلط";const x=document.querySelector("#khadem .lmsg");if(x)x.textContent="الباسورد غلط";return}
+    if(fromLogin&&!d.level){$("loginMsg").textContent="الباسورد غلط";return}
     if(k!==undefined)KEY=k;
     try{d.level?localStorage.setItem("gsyf_key",KEY):localStorage.removeItem("gsyf_key")}catch(e){}
     if(!d.level){try{localStorage.setItem(CACHE_KEY,JSON.stringify(d))}catch(e){}}
@@ -1456,10 +1488,10 @@ if(!KEY){document.body.classList.add("youth");$("hero").hidden=false}
 // التحديث الفوري: أول ما الصفحة ترجع قدامك بتجيب آخر بيانات، واللي طلبه مستني بيتشيّك عليه كل 30 ثانية
 let lastLoad=Date.now();
 function yCheck(){const em=lsGet("gsyf_reg");if(!D||D.level||(!em&&!YT()))return;
-  callApi("regStatus",{email:em||"",tok:YT()},r=>{if(r.key){load(r.key,true);return}const was=lsGet("gsyf_reg_st")||"";if(r.status&&r.status!==was){lsSet("gsyf_reg_st",r.status);if(location.hash!=="#me")renderHome();else renderMe()}},()=>{})}
+  callApi("regStatus",{email:em||"",tok:YT()},r=>{if(r.key){load(r.key,true);return}if(YT()&&(r.srv||"")!==(lsGet("gsyf_srv")||"")){lsSet("gsyf_srv",r.srv||"");if(location.hash==="#servant")renderKhadem()}const was=lsGet("gsyf_reg_st")||"";if(r.status&&r.status!==was){lsSet("gsyf_reg_st",r.status);if(location.hash!=="#me")renderHome();else renderMe()}},()=>{})}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||!D||PREVIEW_DATA)return;
   if(Date.now()-lastLoad>20000){lastLoad=Date.now();if(D.level)load();else yCheck()}});
-setInterval(()=>{if(document.visibilityState==="visible"&&D&&!D.level&&!PREVIEW_DATA&&lsGet("gsyf_reg_st")!=="مقبول")yCheck()},30000);
+setInterval(()=>{if(document.visibilityState==="visible"&&D&&!D.level&&!PREVIEW_DATA&&(lsGet("gsyf_reg_st")!=="مقبول"||lsGet("gsyf_srv")==="مستني"))yCheck()},30000);
 function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}yOut();KEY="";location.hash="";load("")}
 load();
 </script>
