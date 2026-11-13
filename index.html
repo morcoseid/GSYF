@@ -279,6 +279,12 @@ body.youth #me{padding-top:56px}
 @keyframes rv{from{opacity:0;transform:scale(.85) translateY(10px)}}
 .sp-prog{list-style:none;padding:0;margin:6px 0;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
 .sp-prog li{background:rgba(228,196,126,.1);border:1px solid rgba(228,196,126,.4);border-radius:12px;padding:6px 12px;font-size:.95rem}
+.sp-rsvp{display:flex;flex-direction:column;align-items:center;gap:6px;margin:6px 0 2px}
+.sp-go{font-family:var(--kufi);font-size:1.25rem;background:var(--goldhi);color:var(--ink);border:0;border-radius:999px;padding:12px 36px;cursor:pointer;box-shadow:0 8px 22px rgba(228,196,126,.25)}
+.sp-go:disabled{opacity:.7}
+.sp-rsvp b{font-family:var(--kufi);font-size:1.2rem;color:var(--goldhi)}
+.sp-no{background:none;border:0;color:var(--onnavy);opacity:.7;text-decoration:underline;font-size:.85rem;cursor:pointer}
+.sp-cnt{font-size:.95rem!important;opacity:.9}
 .sp-share{display:inline-block;margin-top:6px;color:var(--goldhi);border:1px solid var(--goldhi);border-radius:999px;padding:7px 22px;text-decoration:none;font-weight:600}
 .sp-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .sp-burst i{position:absolute;top:30%;left:50%;font-style:normal;font-size:1.3rem;animation:fly 1.1s ease-out forwards}
@@ -760,7 +766,7 @@ function renderHome(){
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
   // مفاجأة +25: لحد 20 نوفمبر مش بتظهر في الاجتماعات خالص (كارت "مفاجأة" لوحده فوق الإيفنتات)، والأحد القديم باهت ومكتوب ملغي
   // reveal = ساعة كشف المفاجأة (بتوقيت الموبايل). قبلها عداد للكشف، بعدها هدية تتفتح وتظهر كل التفاصيل للكل. لينك الإعلان: الموقع/#plus25
-  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",reveal:"2026-11-08T20:00:00",old:"اجتماع الأحد",oldDay:0,
+  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",reveal:"2026-11-14T20:00:00",old:"اجتماع الأحد",oldDay:0,
     prog:[["🙏","صلاة"],["✝️","كلمة أبونا"],["🥤","سناكس وقعدة حلوة"]]}};
   const spOut=sp=>Date.now()>=new Date(sp.reveal).getTime();
   const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
@@ -807,16 +813,26 @@ function renderHome(){
     <div class="ax-wa"><span>📞 للتواصل واتساب</span>${ALEX.wa.map(w=>`<a href="https://wa.me/${w[1]}" target="_blank" rel="noopener"><b>${w[0]}</b><span dir="ltr">${w[2]}</span></a>`).join("")}</div>
     <details><summary>البوستر ▾</summary><img src="alex.jpg" alt="بوستر رحلة إسكندرية" loading="lazy" style="width:100%;border-radius:12px;display:block"></details></section>`;
   const spC=spT&&SURPRISE[spT],spRev=spT&&spOut(spC),spOpen=spRev&&lsGet("gsyf_sp_open")===spT;
-  const spWhen=spT?`${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · "+esc(tm(spW.time)):""}`:"";
+  const spWhen=spT?`${WD[spD.getDay()]} ${spD.getDate()} ${GM[spD.getMonth()]}${spW&&spW.time?" · الساعة "+esc(h12(tm(spW.time))):""}`:"";
+
+  // 18:00 ← ٦ مساءً
+  function h12(x){const m=/^(\d{1,2}):(\d{2})$/.exec(x);if(!m)return x;let h=+m[1];const pm=h>=12;h=h%12||12;return h.toLocaleString("ar-EG")+(+m[2]?":"+m[2]:"")+(pm?" مساءً":" صباحًا")}
   const spLink="https://morcoseid.github.io/GSYF/#plus25";
+  // "أنا جاي": حجز ببلاش على سطر أول اجتماع في شيت الإيفنتات (يظهر لـ الكل + الحجز مفتوح). العدد بيبان للكل
+  const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
+  const spMine=spE&&MYBK.find(b=>b.event===spE.title&&b.date===spE.date&&b.status!=="ملغي");
+  const spN=spE?(spE.booked||0):0,spCnt=spN>=3?`<p class="sp-cnt">🙋 ${spN} قالوا جايين لحد دلوقتي</p>`:"";
+  const spRsvp=!spE||!spE.booking?"":spMine?`<div class="sp-rsvp" data-bk="${spMine.row}"><b>✅ إنت جاي! مستنيينك 💛</b><button type="button" class="sp-no">مش هقدر آجي</button></div>${spCnt}`
+    :locked?`<div class="sp-rsvp"><button type="button" class="sp-go sp-reg">${pend?"⏳ طلبك بيتراجع، وبعدها تقدر تقول أنا جاي":"سجّل وقول أنا جاي ✋"}</button></div>${spCnt}`
+    :`<div class="sp-rsvp"><button type="button" class="sp-go sp-yes" data-row="${spE.row}">أنا جاي ✋</button></div>${spCnt}`;
   const spShare=spT?"https://wa.me/?text="+encodeURIComponent("🎁 المفاجأة اتكشفت!\n"+spT+"\n📅 "+spWhen+"\n📍 "+((spW&&spW.place)||"الكنيسة")+"\nكل التفاصيل هنا 👇\n"+spLink):"";
   const surprise=!spT?"":!spRev?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2><p>حاجة جديدة جاية… المفاجأة هتتكشف هنا بعد</p>${cdAt(new Date(spC.reveal).getTime(),1)}<p class="small" style="opacity:.8">خليك فاكر تفتح الموقع 😉</p></div></section>`
     :!spOpen?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>المفاجأة وصلت!</h2><p>افتح الهدية وشوف إيه اللي مستنيك</p><button type="button" class="sp-open">افتح الهدية</button></div></section>`
-    :`<section class="y-surp" id="plus25"><div class="sp-in sp-rv"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
+    :`<section class="y-surp" id="plus25"><div class="sp-in${window._spJust?" sp-rv":""}"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}${spRsvp}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
-  const evList=soon.filter(e=>!(alex&&axE&&e.row===axE.row));
+  const evList=soon.filter(e=>!(alex&&axE&&e.row===axE.row)&&!(spE&&e.row===spE.row));
   const evCard=e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${bkSlot(e)}</div></article>`;
   // التقييم: بيظهر بس اللي لسه متقيمش
   const rateLeft=rate.filter(e=>!lsGet("rt_"+e.row+e.title+e.date));
@@ -846,12 +862,17 @@ function renderHome(){
   if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:locked?"فيه رحلة جاية!":"رحلة إسكندرية السبت ٢١ نوفمبر",s:locked?"سجّل عشان تشوف التفاصيل":"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
   (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
-  if(!locked)soon.slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
+  if(!locked)soon.filter(e=>!(spE&&e.row===spE.row)).slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
   renderBell(bi);
   const axr=$("home").querySelector(".ax-reg");if(axr)axr.onclick=()=>{const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   const spB=$("home").querySelector(".sp-open");if(spB)spB.onclick=()=>{const sec=spB.closest(".y-surp");sec.classList.add("opening");spB.disabled=true;
     const b=document.createElement("div");b.className="sp-burst";b.innerHTML=Array.from({length:18},(_,k)=>{const a=k/18*6.283,r=90+Math.random()*80;return `<i style="--x:${Math.cos(a)*r}px;--y:${Math.sin(a)*r}px;--r:${Math.random()*360}deg">${["✨","🎉","💛","⭐"][k%4]}</i>`}).join("");sec.appendChild(b);
-    setTimeout(()=>{lsSet("gsyf_sp_open",spT);renderHome();const x=$("plus25");if(x)x.scrollIntoView({behavior:"smooth",block:"center"})},650)};
+    setTimeout(()=>{lsSet("gsyf_sp_open",spT);window._spJust=1;renderHome();window._spJust=0;const x=$("plus25");if(x)x.scrollIntoView({behavior:"smooth",block:"center"})},650)};
+  const spY=$("home").querySelector(".sp-yes");if(spY)spY.onclick=()=>{spY.disabled=true;spY.textContent="لحظة…";
+    callApi("book",{row:spE.row,title:spE.title,email:lsGet("gsyf_reg")||"",tok:YT()},r=>{setMyBk(r.mine);spE.booked=(spE.booked||0)+1;renderHome()},m=>{spY.disabled=false;spY.textContent="أنا جاي ✋";alert(m)})};
+  const spX=$("home").querySelector(".sp-no");if(spX)spX.onclick=()=>{if(!confirm("مش هتقدر تيجي أول اجتماع؟"))return;spX.disabled=true;
+    callApi("bookCancel",{email:lsGet("gsyf_reg")||"",tok:YT(),row:+spX.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);spE.booked=Math.max(0,(spE.booked||1)-1);renderHome()},m=>{spX.disabled=false;alert(m)})};
+  const spR=$("home").querySelector(".sp-reg");if(spR)spR.onclick=()=>{if(pend)return;const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   if(location.hash==="#plus25"&&!window._spGo){window._spGo=1;setTimeout(()=>{const x=$("plus25");if(x)x.scrollIntoView({block:"center"})},80)}
   if(location.hash==="#alex"&&!window._axGo){window._axGo=1;setTimeout(()=>{const x=$("alex");if(x)x.scrollIntoView({block:"start"})},80)}
   const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
