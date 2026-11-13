@@ -247,6 +247,14 @@ body.youth #me{padding-top:56px}
 .me-tag{display:inline-block;border-radius:999px;padding:2px 10px;font-size:.8rem;background:var(--y-soft,#f6ecd6);color:var(--ink);margin:4px 4px 0 0;border:1px solid var(--line)}
 .me-info{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0}
 .me-info dt{color:var(--muted,#777)}.me-info dd{margin:0;overflow-wrap:anywhere}
+.me-real{display:block;font-size:.8rem;color:var(--muted,#777);font-weight:400}
+.me-ask{border:1.5px dashed var(--gold,#A97A22)}.me-ask h3{margin:0 0 4px}.me-ask p{margin:0 0 8px}
+.gpick{display:flex;gap:8px}.gpick label{flex:1;cursor:pointer;position:relative}.fld .gpick input,.gpick input{position:absolute;inset:0;width:1px;height:1px;padding:0;margin:0;border:0;opacity:0;pointer-events:none}
+.gpick span{display:block;text-align:center;padding:10px;border:1.5px solid var(--line);border-radius:12px;font-weight:700}
+.gpick input:checked+span{background:var(--gold,#A97A22);border-color:var(--gold,#A97A22);color:#fff}
+.gpick input:focus-visible+span{box-shadow:0 0 0 3px rgba(169,122,34,.3)}
+.fld small.hint{color:var(--muted,#777);font-size:.8rem;background:none;padding:0;border:0}
+.ed-row{padding:8px 0;border-top:1px solid var(--line)}.ed-row:first-of-type{border-top:0}
 .me-open{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
 .y-reg{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:10px}
 .y-reg .btns{display:flex;flex-wrap:wrap;gap:8px}
@@ -905,9 +913,9 @@ function renderHome(){
   const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
   const spMine=spE&&MYBK.find(b=>b.event===spE.title&&b.date===spE.date&&b.status!=="ملغي");
   const spN=spE?(spE.booked||0):0,spCnt=spN>=3?`<p class="sp-cnt">🙋 ${spN} قالوا جايين لحد دلوقتي</p>`:"";
-  const spRsvp=!spE||!spE.booking?"":spMine?`<div class="sp-rsvp" data-bk="${spMine.row}"><b>✅ إنت جاي! مستنيينك 💛</b><button type="button" class="sp-no">مش هقدر آجي</button></div>${spCnt}`
+  const spRsvp=!spE||!spE.booking?"":spMine?`<div class="sp-rsvp" data-bk="${spMine.row}"><b>${isGirl()?"✅ إنتي جاية! مستنيينك 💛":"✅ إنت جاي! مستنيينك 💛"}</b><button type="button" class="sp-no">مش هقدر آجي</button></div>${spCnt}`
     :locked?`<div class="sp-rsvp"><button type="button" class="sp-go sp-reg">${pend?"⏳ طلبك بيتراجع، وبعدها تقدر تقول أنا جاي":"سجّل وقول أنا جاي ✋"}</button></div>${spCnt}`
-    :`<div class="sp-rsvp"><button type="button" class="sp-go sp-yes" data-row="${spE.row}">أنا جاي ✋</button></div>${spCnt}`;
+    :`<div class="sp-rsvp"><button type="button" class="sp-go sp-yes" data-row="${spE.row}">${isGirl()?"أنا جاية ✋":"أنا جاي ✋"}</button></div>${spCnt}`;
   const spShare=spT?"https://wa.me/?text="+encodeURIComponent("🎁 المفاجأة اتكشفت!\n"+spT+"\n📅 "+spWhen+"\n📍 "+((spW&&spW.place)||"الكنيسة")+"\nكل التفاصيل هنا 👇\n"+spLink):"";
   const surprise=!spT?"":!spRev?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2><p>حاجة جديدة جاية… المفاجأة هتتكشف هنا بعد</p>${cdAt(new Date(spC.reveal).getTime(),1)}<p class="small" style="opacity:.8">خليك فاكر تفتح الموقع 😉</p></div></section>`
     :!spOpen?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>المفاجأة وصلت!</h2><p>افتح الهدية وشوف إيه اللي مستنيك</p><button type="button" class="sp-open">افتح الهدية</button></div></section>`
@@ -953,7 +961,7 @@ function renderHome(){
     const b=document.createElement("div");b.className="sp-burst";b.innerHTML=Array.from({length:18},(_,k)=>{const a=k/18*6.283,r=90+Math.random()*80;return `<i style="--x:${Math.cos(a)*r}px;--y:${Math.sin(a)*r}px;--r:${Math.random()*360}deg">${["✨","🎉","💛","⭐"][k%4]}</i>`}).join("");sec.appendChild(b);
     setTimeout(()=>{lsSet("gsyf_sp_open",spT);window._spJust=1;renderHome();window._spJust=0;const x=$("plus25");if(x)x.scrollIntoView({behavior:"smooth",block:"center"})},650)};
   const spY=$("home").querySelector(".sp-yes");if(spY)spY.onclick=()=>{spY.disabled=true;spY.textContent="لحظة…";
-    callApi("book",{row:spE.row,title:spE.title,email:lsGet("gsyf_reg")||"",tok:YT()},r=>{setMyBk(r.mine);spE.booked=(spE.booked||0)+1;renderHome()},m=>{spY.disabled=false;spY.textContent="أنا جاي ✋";alert(m)})};
+    callApi("book",{row:spE.row,title:spE.title,email:lsGet("gsyf_reg")||"",tok:YT()},r=>{setMyBk(r.mine);spE.booked=(spE.booked||0)+1;renderHome()},m=>{spY.disabled=false;spY.textContent=isGirl()?"أنا جاية ✋":"أنا جاي ✋";alert(m)})};
   const spX=$("home").querySelector(".sp-no");if(spX)spX.onclick=()=>{if(!confirm("مش هتقدر تيجي أول اجتماع؟"))return;spX.disabled=true;
     callApi("bookCancel",{email:lsGet("gsyf_reg")||"",tok:YT(),row:+spX.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);spE.booked=Math.max(0,(spE.booked||1)-1);renderHome()},m=>{spX.disabled=false;alert(m)})};
   const spR=$("home").querySelector(".sp-reg");if(spR)spR.onclick=()=>{if(pend)return;const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
@@ -1003,12 +1011,18 @@ const WA_BTN=()=>{const em=realEm(lsGet("gsyf_reg")),t="أهلا، أنا سجل
 // الصفحة بتتفتح بس لما الخدام يقبلوا الطلب
 // اللي سجل من لينك الخدام من غير إيميل بياخد إيميل داخلي مش بيظهر
 const realEm=e=>/@khadem\.gsyf$/i.test(String(e||""))?"":String(e||"");
+// اسم الشهرة: اللي الناس تعرفه بيه. الخدام بيشوفوا الاتنين: "اسم الشهرة (الاسم الرسمي)"
+const dn=o=>o&&o.nick?`${o.nick} (${o.name})`:(o&&o.name)||"";
+const gTag=g=>g==="بنت"?"👧 بنت":g==="شاب"?"👦 شاب":"";
+const isGirl=()=>lsGet("gsyf_ygender")==="بنت";
+// اختيار شاب/بنت (دوسة واحدة)
+const gPick=(cur,nm)=>`<div class="gpick" role="radiogroup">${["شاب","بنت"].map(g=>`<label><input type="radio" name="${nm||"gender"}" value="${g}"${cur===g?" checked":""}><span>${gTag(g)}</span></label>`).join("")}</div>`;
 const regOk=()=>!!lsGet("gsyf_reg")&&lsGet("gsyf_reg_st")==="مقبول";
 // حساب الشاب: الموبايل + رقم سري. التوكن بيتحفظ على الموبايل وبيتبعت مع الحجز والبروفايل
 const YT=()=>lsGet("gsyf_ytok")||"";
-function ySave(r){if(r.email)lsSet("gsyf_reg",r.email);if(r.status!==undefined)lsSet("gsyf_reg_st",r.status||"");if(r.tok)lsSet("gsyf_ytok",r.tok);if(r.name)lsSet("gsyf_yname",r.name);meBtn()}
-function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname","gsyf_yphoto","gsyf_srv"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
-function meBtn(){const b=$("meBtn");if(!b)return;const n=(D&&D.me&&D.me.name)||lsGet("gsyf_yname")||"";b.hidden=(!n&&!YT())||!!(D&&D.level);const ph=YT()&&lsGet("gsyf_yphoto");if(ph)b.innerHTML=`<img src="${ph}" alt="">`;else b.textContent=n?n.trim()[0]:"👤"}
+function ySave(r){if(r.email)lsSet("gsyf_reg",r.email);if(r.status!==undefined)lsSet("gsyf_reg_st",r.status||"");if(r.tok)lsSet("gsyf_ytok",r.tok);if(r.name)lsSet("gsyf_yname",r.nick||r.name);if(r.nick!==undefined)lsSet("gsyf_ynick",r.nick||"");if(r.gender!==undefined)lsSet("gsyf_ygender",r.gender||"");meBtn()}
+function yOut(){["gsyf_reg","gsyf_reg_st","gsyf_ytok","gsyf_yname","gsyf_ynick","gsyf_ygender","gsyf_yphoto","gsyf_srv"].forEach(k=>lsSet(k,""));setMyBk([]);meBtn()}
+function meBtn(){const b=$("meBtn");if(!b)return;const n=(D&&D.me&&(D.me.nick||D.me.name))||lsGet("gsyf_yname")||"";b.hidden=(!n&&!YT())||!!(D&&D.level);const ph=YT()&&lsGet("gsyf_yphoto");if(ph)b.innerHTML=`<img src="${ph}" alt="">`;else b.textContent=n?n.trim()[0]:"👤"}
 const PIN_CK={pin:v=>/^\d{4}$/.test(toEn(v))?"":"الرقم السري لازم 4 أرقام",pin2:(v,f)=>toEn(v)===toEn(f.elements.pin.value)?"":"الرقمين مش زي بعض"};
 // دخول واحد للكل: الخادم اللي الأمين فتح له بيدخل على صفحة الخدام، والشاب على البروفايل بتاعه
 function yLoginForm(box,o){o=o||{};
@@ -1035,10 +1049,14 @@ const REG_CHECK={
   email:v=>/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim())?"":"الإيميل مش مظبوط",
   email2:(v,f)=>v.trim().toLowerCase()===f.elements.email.value.trim().toLowerCase()?"":"الإيميلين مش زي بعض"
 };
+// شاب ولا بنت: لازم يختار (دوسة واحدة)
+function gChk(f){const fl=f.querySelector(".g-fld");if(!fl)return true;const ok=!!f.elements.gender.value;fl.querySelector("em").textContent=ok?"":"اختار شاب ولا بنت";fl.classList.toggle("bad",!ok);
+  if(!fl._b){fl._b=1;fl.querySelectorAll("input").forEach(i=>i.onchange=()=>gChk(f))}return ok}
 function regForm(box){
   box.innerHTML=`<form class="rgf" novalidate>
     <div class="rg-head"><b>سجّل في دقيقة</b><span>بعد ما الخدام يوافقوا على طلبك هتتفتح لك الاجتماعات والإيفنتات والحجز</span></div>
-    <label class="fld"><span>الاسم ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
+    <label class="fld"><span>اسمك الحقيقي ثلاثي بالعربي (زي البطاقة)</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><small class="hint">لو الناس بتعرفك باسم تاني، هتقدر تضيفه من بروفايلك بعد التسجيل.</small><em></em></label>
+    <div class="fld g-fld"><span>أنا</span>${gPick("")}<em></em></div>
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
     <label class="fld"><span>الإيميل</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
@@ -1052,16 +1070,17 @@ function regForm(box){
   const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
   Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
   f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
-    const msg=f.querySelector(".msg");if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
+    if(!gChk(f))ok=false;
+    const msg=f.querySelector(".msg");if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";(f.querySelector(".bad input")||{focus(){}}).focus();return}
     const btn=f.querySelector(".rg-send"),em=f.elements.email.value.trim().toLowerCase();btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
-    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone:normPhone(f.elements.phone.value),email:em,pin:toEn(f.elements.pin.value)},
+    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone:normPhone(f.elements.phone.value),email:em,pin:toEn(f.elements.pin.value),gender:f.elements.gender.value},
       r=>{lsSet("gsyf_reg",em);lsSet("gsyf_reg_st",r&&r.status||"مستني");if(r&&r.tok)ySave(r);renderHome();setTimeout(()=>{const x=$("regSec");if(x)x.scrollIntoView({block:"center"})},50)},
       e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
 function renderReg(){
   const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
-    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(realEm(em))}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
+    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(realEm(em))}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()&&!lsGet("gsyf_ynick")&&!lsGet("gsyf_nick_skip")?`<p class="small" style="margin:0">💡 الناس بتعرفك باسم تاني غير اسمك الرسمي؟ <a href="#me">ضيفه من بروفايلك</a></p>`:""}${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
     box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
     const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>yLoginForm(box);
     callApi("regStatus",{email:em,tok:YT()},r=>{if(r.key&&!D.level){load(r.key,true);return}const was=regOk();lsSet("gsyf_reg_st",r.status||"");
@@ -1093,24 +1112,92 @@ function bindPhoto(box,tok){
   f.onchange=()=>{const fl=f.files&&f.files[0];if(!fl)return;ph.textContent="بتترفع…";
     shrinkPhoto(fl).then(d=>sendPhoto(tok,d,r=>{if(MEP)MEP.me.photo=r.photo||d;lsSet("gsyf_yphoto",r.photo||d);meBtn();renderMe()},m=>{ph.className="small err me-ph";ph.textContent=m}),m=>{ph.className="small err me-ph";ph.textContent=m})};
 }
+// بعد التسجيل: سؤال واحد بسيط في البروفايل (شاب ولا بنت، وبعدين اسم الشهرة) لحد ما يرد
+function meAsk(p){
+  if(!p.gender)return `<section class="panel me-ask"><h3>إنت شاب ولا بنت؟</h3><p class="small muted">علشان نكلمك صح 🙂</p>${gPick("","askg")}</section>`;
+  if(!p.nick&&!lsGet("gsyf_nick_skip"))return `<section class="panel me-ask"><h3>الناس بتعرفك باسم تاني؟</h3><p class="small muted">اسمك الرسمي بيفضل في البيانات، والاسم ده هو اللي هيظهر للناس على الموقع.</p>
+    <div class="fld"><input class="ask-nick" maxlength="25" placeholder="اسم الشهرة"><em class="err small"></em></div><div class="btns"><button type="button" class="primary small ask-save">احفظ</button><button type="button" class="small ask-skip">لأ، الناس بتعرفني باسمي ده</button></div></section>`;
+  return "";
+}
+function meSaved(r,tok){MEP={tok,me:Object.assign({},MEP&&MEP.me,r.me)};ySave({name:r.me.name,nick:r.me.nick||"",gender:r.me.gender||"",email:r.me.email});renderMe()}
+function bindAsk(box,tok,p){
+  box.querySelectorAll('input[name="askg"]').forEach(i=>i.onchange=()=>{box.querySelectorAll('input[name="askg"]').forEach(x=>x.disabled=true);
+    callApi("meEdit",{tok,gender:i.value},r=>meSaved(r,tok),m=>{alert(m);renderMe()})});
+  const sv=box.querySelector(".ask-save");if(!sv)return;
+  box.querySelector(".ask-skip").onclick=()=>{lsSet("gsyf_nick_skip","1");renderMe()};
+  sv.onclick=()=>{const v=box.querySelector(".ask-nick").value.trim(),e=box.querySelector(".me-ask em");if(v.length<2){e.textContent="اكتب الاسم اللي الناس بتعرفك بيه";return}
+    sv.disabled=true;sv.textContent="…";callApi("meEdit",{tok,nick:v},r=>meSaved(r,tok),m=>{sv.disabled=false;sv.textContent="احفظ";e.textContent=m})};
+}
+// بياناتي: عرض + "عدّل بياناتي" (هو بس اللي يعدّلها من حسابه، والأمناء بيشوفوا التعديل)
+function meData(sec,tok,p){
+  const em=realEm(p.email);
+  sec.innerHTML=`<h3>بياناتي</h3><dl class="me-info">
+    <dt>اسم الشهرة</dt><dd>${p.nick?esc(p.nick):`<span class="muted">مفيش (بيظهر اسمك الرسمي)</span>`}</dd>
+    <dt>الاسم الرسمي</dt><dd>${esc(p.name)}</dd>
+    ${p.gender?`<dt>النوع</dt><dd>${gTag(p.gender)}</dd>`:""}
+    ${p.birth?`<dt>الميلاد</dt><dd>${esc(p.birth)} (${age(p.birth)} سنة)</dd>`:""}
+    <dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd>
+    ${em?`<dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(em)}</dd>`:""}
+    ${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl>
+    <div class="btns"><button type="button" class="primary small me-edit">✏️ عدّل بياناتي</button></div>`;
+  sec.querySelector(".me-edit").onclick=()=>meEditForm(sec,tok,p);
+}
+function meEditForm(sec,tok,p){
+  const em=realEm(p.email);
+  sec.innerHTML=`<h3>عدّل بياناتي</h3><form class="rgf" novalidate>
+    <label class="fld"><span>اسم الشهرة (اختياري)</span><input name="nick" maxlength="25" value="${esc(p.nick||"")}" placeholder="الاسم اللي الناس بتعرفك بيه"><small class="hint">اسمك الرسمي بيفضل في البيانات، والاسم ده هو اللي هيظهر للناس.</small><em></em></label>
+    <label class="fld"><span>اسمك الرسمي ثلاثي بالعربي (زي البطاقة)</span><input name="name" value="${esc(p.name||"")}"><em></em></label>
+    <div class="fld g-fld"><span>أنا</span>${gPick(p.gender||"")}<em></em></div>
+    <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}" value="${esc(p.birth||"")}"><em></em></label>
+    <label class="fld"><span>الإيميل${em?"":" (لو عندك)"}</span><input name="email" type="email" dir="ltr" value="${esc(em)}" placeholder="name@gmail.com"><em></em></label>
+    <div class="btns"><button type="submit" class="primary ed-save">احفظ</button><button type="button" class="ed-x">إلغاء</button></div><p class="msg small"></p>
+    <p class="small" style="margin:0">📱 رقمك: <span dir="ltr">${esc(p.phone)}</span> · <a href="#" class="ed-ph">غيّر رقم الموبايل</a></p></form>`;
+  const f=sec.querySelector("form"),msg=f.querySelector(".msg"),bad=(n,t)=>{const fl=(f.elements[n].closest?f.elements[n]:f.querySelector(".g-fld")).closest(".fld");fl.querySelector("em").textContent=t;fl.classList.toggle("bad",!!t);return !t};
+  f.querySelector(".ed-x").onclick=()=>meData(sec,tok,p);
+  f.querySelector(".ed-ph").onclick=e=>{e.preventDefault();mePhoneForm(sec,tok,p)};
+  f.onsubmit=ev=>{ev.preventDefault();const v={nick:f.elements.nick.value.trim().replace(/\s+/g," "),name:f.elements.name.value.trim().replace(/\s+/g," "),gender:f.elements.gender.value,birth:f.elements.birth.value,email:f.elements.email.value.trim().toLowerCase()};
+    let ok=bad("nick",v.nick&&(v.nick.length<2||!/^[\u0621-\u064Aa-zA-Z ]+$/.test(v.nick))?"حروف بس، من 2 لـ 25 حرف":"");
+    ok=bad("name",REG_CHECK.name(v.name))&&ok;ok=bad("birth",REG_CHECK.birth(v.birth))&&ok;ok=bad("email",v.email||em?REG_CHECK.email(v.email):"")&&ok;
+    if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";return}
+    const q={tok};if(v.nick!==(p.nick||""))q.nick=v.nick;if(v.name!==p.name)q.name=v.name;if(v.gender&&v.gender!==p.gender)q.gender=v.gender;if(v.birth!==p.birth)q.birth=v.birth;if(v.email!==em)q.mail=v.email;
+    if(Object.keys(q).length<2){meData(sec,tok,p);return}
+    const b=f.querySelector(".ed-save");b.disabled=true;msg.className="msg small muted";msg.textContent="بيتحفظ…";
+    callApi("meEdit",q,r=>meSaved(r,tok),m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
+}
+// تغيير الموبايل: بالرقم السري الحالي. بعدها بيدخل بالرقم الجديد ونفس الرقم السري
+function mePhoneForm(sec,tok,p){
+  sec.innerHTML=`<h3>غيّر رقم الموبايل</h3><form class="rgf" novalidate>
+    <label class="fld"><span>الرقم الجديد</span><input name="phone" type="tel" inputmode="tel" dir="ltr" placeholder="01xxxxxxxxx"><em></em></label>
+    <label class="fld"><span>الرقم السري بتاعك (4 أرقام) للتأكيد</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password"><em></em></label>
+    <p class="small muted" style="margin:0">بعد كده هتدخل بالرقم الجديد ونفس الرقم السري.</p>
+    <div class="btns"><button type="submit" class="primary ph-save">غيّر الرقم</button><button type="button" class="ph-x">رجوع</button></div><p class="msg small"></p></form>`;
+  const f=sec.querySelector("form"),msg=f.querySelector(".msg");
+  f.querySelector(".ph-x").onclick=()=>meEditForm(sec,tok,p);
+  f.onsubmit=ev=>{ev.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim(),e=REG_CHECK.phone(phone)||PIN_CK.pin(pin);
+    if(e){msg.className="msg small err";msg.textContent=e;return}
+    const b=f.querySelector(".ph-save");b.disabled=true;msg.className="msg small muted";msg.textContent="بيتغير…";
+    callApi("mePhone",{tok,phone,pin},r=>{lsSet("gsyf_ytok",r.tok);MEP={tok:r.tok,me:Object.assign({},p,{phone:r.phone})};if(r.key&&D.level){load(r.key,true);return}renderMe()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
+}
 function renderMe(){
   const box=$("me"),sv=D.me,tok=YT(),p=MEP&&MEP.tok===tok?MEP.me:null;
-  const name=(p&&p.name)||(sv&&sv.name)||lsGet("gsyf_yname")||"";
+  const real=(p&&p.name)||(sv&&sv.name)||"",nick=p?p.nick||"":sv?sv.nick||"":lsGet("gsyf_ynick")||"";
+  const name=nick||real||lsGet("gsyf_yname")||"",gen=p?p.gender||"":(sv&&sv.gender)||lsGet("gsyf_ygender")||"";
   const photo=tok?(p?p.photo||"":lsGet("gsyf_yphoto")||""):"";
   if(!sv&&!tok){box.innerHTML=`<section class="panel"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">البروفايل لكل واحد بحسابه. اخرج وادخل برقم موبايلك والرقم السري.</p><div class="btns"><button type="button" class="me-out">خروج</button></div></section>`;box.querySelector(".me-out").onclick=logout;return}
-  const role=sv?srvTitle(sv.role,sv.group):p&&p.servant?srvTitle(p.servant,p.group):"شاب",st=p?p.status:lsGet("gsyf_reg_st")||"";
+  const role=sv?srvTitle(sv.role,sv.group):p&&p.servant?srvTitle(p.servant,p.group):gen,st=p?p.status:lsGet("gsyf_reg_st")||"";
   const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
   const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.paid||b.status==="مؤكد"?"✅ مؤكد (دفع)":b.status==="مستني الدفع"?"⏳ مستني الدفع"+(b.proof?" · إثبات: "+esc(b.proof):""):"✓ محجوز"}</div></div></div>`;
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[sv.role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
-  box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
+  box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
-    <details class="panel"><summary class="me-sum">بياناتي</summary><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd>${realEm(p.email)?`<dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>`:""}${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></details>`
+    ${meAsk(p)}<section class="panel me-data"></section>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">الاجتماعات والحجز هيتفتحوا لك أول ما طلبك يتقبل.</p>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
   if(tok)bindPhoto(box,tok);
+  if(tok&&p){meData(box.querySelector(".me-data"),tok,p);bindAsk(box,tok,p)}
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
-  if(tok&&!p)callApi("profile",{tok},r=>{if(r.key&&!D.level){load(r.key,true);return}MEP={tok,me:r.me};ySave({name:r.me.name,status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
+  if(tok&&!p)callApi("profile",{tok},r=>{if(r.key&&!D.level){load(r.key,true);return}MEP={tok,me:r.me};ySave({name:r.me.name,nick:r.me.nick||"",gender:r.me.gender||"",status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
     m=>{if(/ادخل/.test(m)){yOut();location.hash="home";renderHome();return}box.insertAdjacentHTML("beforeend",`<p class="err small">${esc(m)}</p>`)});
 }
 
@@ -1120,7 +1207,7 @@ const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((
 const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return isNaN(a)?"":a};
 function regPanel(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
-  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
+  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b>${r.gender?" · "+gTag(r.gender):""} · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
   return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
 // اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
@@ -1144,9 +1231,9 @@ function bookPanel(){
   return `<section class="panel"><h3>الحجوزات</h3>${evs.length?evs.map(e=>{const A=bk[e.title+"|"+e.date]||[],L=A.filter(b=>b.status!=="ملغي"),X=A.filter(b=>b.status==="ملغي"),paid=L.filter(b=>b.paid),wait=L.filter(b=>!b.paid&&b.status==="مستني الدفع"),pr=money(e.price);
     return `<details class="mrow" data-ev="${e.row}"><summary><span class="d num">${dm(e.date)}<small>${e.booking?"الحجز مفتوح":"الحجز مقفول"}</small></span><span><b>${esc(e.title)}</b></span><span class="muted">${L.length}${e.cap?" من "+e.cap:""} حجز${pr?` · ${paid.length} دفع (${(paid.length*pr).toLocaleString("ar-EG")} ج)`:""}</span><span></span></summary>
     ${wait.length?`<p class="note" style="margin:6px 0">⏳ ${wait.length} لسه مدفعوش${wait.filter(b=>b.proof).length?` · ${wait.filter(b=>b.proof).length} كتبوا إثبات دفع، راجعه وعلّم "دفع"`:""}</p>`:""}
-    ${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t"><b>${esc(b.name)}</b> · <a class="num" dir="ltr" href="https://wa.me/2${esc(b.phone)}" target="_blank" rel="noopener">${esc(b.phone)}</a>${b.proof?`<div class="why">💳 ${esc(b.proof)}</div>`:""}${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<div class="btns" style="margin-top:4px">${pr||b.paid?`<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label>`:""}<button type="button" class="small bk-del" data-row="${b.row}">إلغاء الحجز</button></div></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}
+    ${L.map(b=>`<div class="row"><div class="d"><small>${esc(b.at)}</small></div><div class="t"><b>${esc(dn(b))}</b> · <a class="num" dir="ltr" href="https://wa.me/2${esc(b.phone)}" target="_blank" rel="noopener">${esc(b.phone)}</a>${b.proof?`<div class="why">💳 ${esc(b.proof)}</div>`:""}${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}<div class="btns" style="margin-top:4px">${pr||b.paid?`<label class="small"><input type="checkbox" class="pd" data-row="${b.row}" ${b.paid?"checked":""}> دفع</label>`:""}<button type="button" class="small bk-del" data-row="${b.row}">إلغاء الحجز</button></div></div></div>`).join("")||`<p class="empty">لسه مفيش حد حجز.</p>`}
     ${L.length?`<div class="btns" style="margin-top:6px"><button type="button" class="small bk-copy" data-ev="${e.row}">📋 انسخ الأسامي</button></div>`:""}
-    ${X.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتلغى (${X.length})</summary>${X.map(b=>`<div class="row"><div class="t small muted"><s>${esc(b.name)}</s></div></div>`).join("")}</details>`:""}
+    ${X.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتلغى (${X.length})</summary>${X.map(b=>`<div class="row"><div class="t small muted"><s>${esc(dn(b))}</s></div></div>`).join("")}</details>`:""}
     </details>`}).join(""):`<p class="empty">مفيش إيفنت الحجز فيه مفتوح. افتح الحجز من عمود "الحجز" في شيت الإيفنتات، وعدد الأماكن في العمود اللي بعد السعر.</p>`}</section>`;
 }
 // ===== التقييم الشهري للخدمة: سطر لكل شهر + مقارنة بالشهر اللي قبله =====
@@ -1187,7 +1274,7 @@ function renderFollow(){
   const openF=[...document.querySelectorAll("#follow details[data-fold][open]")].map(d=>d.dataset.fold);
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
   $("follow").innerHTML=`
-    ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
+    ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
@@ -1211,10 +1298,10 @@ function renderFollow(){
   F.querySelectorAll(".dn").forEach(b=>b.onclick=()=>{const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row);b.disabled=true;b.textContent="…";
     callApi("done",{row,title:e.title},()=>{e.status="تم";renderFollow()},fail(b))});
   F.querySelectorAll(".pd").forEach(c=>c.onchange=()=>{const b=(D.bookings||[]).find(x=>x.row===+c.dataset.row);c.disabled=true;callApi("paid",{row:b.row,value:c.checked},()=>{b.paid=c.checked;if(b.status!=="ملغي"&&b.status!=="محجوز")b.status=c.checked?"مؤكد":"مستني الدفع";renderFollow()},m=>{c.checked=!c.checked;c.disabled=false;alert(m)})});
-  F.querySelectorAll(".bk-del").forEach(x=>x.onclick=()=>{const b=(D.bookings||[]).find(y=>y.row===+x.dataset.row);if(!confirm("إلغاء حجز "+b.name+"؟"))return;x.disabled=true;
+  F.querySelectorAll(".bk-del").forEach(x=>x.onclick=()=>{const b=(D.bookings||[]).find(y=>y.row===+x.dataset.row);if(!confirm("إلغاء حجز "+dn(b)+"؟"))return;x.disabled=true;
     callApi("bookCancel",{row:b.row},()=>{b.status="ملغي";renderFollow()},fail(x))});
   F.querySelectorAll(".bk-copy").forEach(x=>x.onclick=()=>{const e=D.events.find(y=>y.row===+x.dataset.ev),L=(D.bookings||[]).filter(b=>b.event===e.title&&b.date===e.date&&b.status!=="ملغي");
-    const txt=e.title+" ("+e.date+")\n"+L.map((b,i)=>(i+1)+". "+b.name+(money(e.price)?(b.paid?" ✓":" (لسه مدفعش)"):"")).join("\n");
+    const txt=e.title+" ("+e.date+")\n"+L.map((b,i)=>(i+1)+". "+dn(b)+(money(e.price)?(b.paid?" ✓":" (لسه مدفعش)"):"")).join("\n");
     const done=()=>{x.textContent="اتنسخ ✓"};if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>prompt("انسخ:",txt));else prompt("انسخ:",txt)});
   F.querySelectorAll(".cl").forEach(b=>b.onclick=()=>{const r=ev.find(x=>x.row===+b.dataset.row);b.disabled=true;callApi("closeEval",{row:r.row},()=>{r.closed=true;renderFollow()},fail(b))});
   F.querySelectorAll(".sv").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=D.events.find(x=>x.row===+box.dataset.row);
@@ -1328,12 +1415,14 @@ async function aiAsk(q){
 /* ================= موافقة سريعة على طلبات التسجيل (#approve) ================= */
 function renderApprove(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني").slice(0,15);
-  const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(r.name)}</b><span class="muted small">${esc(r.at)}</span></div>
-    <div class="ap-meta"><span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
+  const edits=R.filter(r=>r.edited).sort((a,b)=>b.edited.localeCompare(a.edited)).slice(0,15);
+  const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(dn(r))}</b><span class="muted small">${esc(r.at)}</span></div>
+    <div class="ap-meta">${r.gender?`<span>${gTag(r.gender)}</span>`:""}<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
     <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
-    ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(r.name)}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span></div></div>`).join("")}</details>`:""}`;
+    ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span></div></div>`).join("")}</details>`:""}
+    ${edits.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">✏️ آخر تعديلات الأعضاء في بياناتهم (${edits.length})</summary>${edits.map(r=>`<div class="ed-row"><b>${esc(dn(r))}</b><div class="small muted">${esc(r.edited)}</div></div>`).join("")}</details>`:""}`;
   $("apRef").onclick=()=>{$("apRef").textContent="…";load()};
   $("approve").querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row),c=b.closest(".ap-card");c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;c.classList.add(b.dataset.v==="مقبول"?"is-ok":"is-no");c.querySelector(".ap-btns").innerHTML=`<b>${b.dataset.v==="مقبول"?"اتقبل ✓":"اترفض"}</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
@@ -1390,7 +1479,8 @@ function svLogin(box,o){yLoginForm(box,Object.assign({back:renderKhadem,note:"ر
 function srvRegForm(box){
   box.innerHTML=`<section class="panel"><form class="rgf" novalidate>
     <div class="rg-head"><b>سجّلني كخادم</b><span>اكتب بياناتك مرة واحدة بس</span></div>
-    <label class="fld"><span>اسمك ثلاثي بالعربي</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><em></em></label>
+    <label class="fld"><span>اسمك الحقيقي ثلاثي بالعربي (زي البطاقة)</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><small class="hint">لو الناس بتعرفك باسم تاني، هتقدر تضيفه من بروفايلك بعد التسجيل.</small><em></em></label>
+    <div class="fld g-fld"><span>أنا</span>${gPick("")}<em></em></div>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
@@ -1404,10 +1494,11 @@ function srvRegForm(box){
   const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
   Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
   f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
-    if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";f.querySelector(".bad input").focus();return}
+    if(!gChk(f))ok=false;
+    if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";(f.querySelector(".bad input")||{focus(){}}).focus();return}
     const btn=f.querySelector(".rg-send"),phone=normPhone(f.elements.phone.value),em=f.elements.email.value.trim().toLowerCase();btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
     const old=()=>svLogin(box,{phone,note:"إنت متسجل قبل كده على الموقع. ادخل برقمك والرقم السري بتاعك"});
-    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone,email:em,pin:toEn(f.elements.pin.value),srv:1},
+    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone,email:em,pin:toEn(f.elements.pin.value),gender:f.elements.gender.value,srv:1},
       r=>{if(r.existed||!r.tok){old();return}ySave(r);lsSet("gsyf_srv",r.srv||"مستني");renderKhadem();window.scrollTo(0,0)},
       e=>{if(/متسجل قبل كده/.test(e)){old();return}btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
@@ -1420,11 +1511,11 @@ const grpChips=(cur,cls)=>GRP.map(([v,l])=>`<button type="button" class="pt ${cl
 function renderTeam(){
   const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
-  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
+  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
     <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips("","pg")}</div></div>
     <div class="tm-pick"><span>الدور:</span><div class="tm-perms"><button type="button" class="pt pr" data-r="خادم" aria-pressed="true">خادم</button><button type="button" class="pt pr" data-r="أمين" aria-pressed="false">أمين (كل حاجة)</button></div></div>
     <div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار المجموعة الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
-  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}${u.role==="أمين"?' <span class="tm-badge">أمين</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
+  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}${u.role==="أمين"?' <span class="tm-badge">أمين</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
     <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.group,"ug")}</div></div>
     <div class="tm-pick"><span>يقدر يشوف:</span><div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${u.role==="أمين"||!!u.perms[k]}"${u.role==="أمين"?" disabled":""}>${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div></div>
     <div class="tm-more">${wa(u)}${u.noPin?'<span class="err">الرقم السري اتمسح، مستني يسجل تاني</span>':`<a href="#" class="us" data-f="resetPin">امسح الرقم السري</a>`}<a href="#" class="us" data-f="status" data-v="موقوف">إيقاف</a></div></article>`;
@@ -1439,7 +1530,7 @@ function renderTeam(){
     ${on.length?"":`<p class="empty">لسه مفيش خدام. ابعت لينك الخدام أو افتح صلاحية لحد متسجل من تحت.</p>`}
     <section class="panel" id="tmAdd"><h3>➕ افتح صلاحية خادم</h3><p class="small muted" style="margin:0">لو حد متسجل على الموقع ومبعتش طلب: دوّر عليه هنا واختار هو خادم في أنهي اجتماع.</p>
       <input type="search" class="tm-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="tm-res"></div></section>
-    ${off.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">مرفوض أو موقوف (${off.length})</summary>${off.map(u=>`<div class="row" data-row="${u.row}"><div class="d"><small>${esc(u.status)}</small></div><div class="t"><b>${esc(u.name)}</b> <button type="button" class="small us" data-f="status" data-v="مقبول">رجّعه</button></div></div>`).join("")}</details>`:""}`;
+    ${off.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">مرفوض أو موقوف (${off.length})</summary>${off.map(u=>`<div class="row" data-row="${u.row}"><div class="d"><small>${esc(u.status)}</small></div><div class="t"><b>${esc(dn(u))}</b> <button type="button" class="small us" data-f="status" data-v="مقبول">رجّعه</button></div></div>`).join("")}</details>`:""}`;
   const T=$("team");
   $("tmRef").onclick=()=>{$("tmRef").textContent="…";load()};
   const done=()=>{renderTeam();renderNav("team")};
@@ -1457,8 +1548,8 @@ function renderTeam(){
   const q=T.querySelector(".tm-q"),res=T.querySelector(".tm-res");
   const R=(D.regs||[]).filter(r=>r.status!=="مرفوض");
   const showQ=()=>{const v=normAr(toEn(q.value)).trim();if(v.length<2){res.innerHTML="";return}
-    const L=R.filter(r=>normAr(r.name).includes(v)||String(r.phone).includes(v)).slice(0,8);
-    res.innerHTML=L.map(r=>`<div class="row" data-reg="${r.row}"><div class="t"><b>${esc(r.name)}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div>${r.servant?"":`<div class="tm-perms tm-mkg" hidden>${grpChips("","mg")}</div>`}</div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:`<button type="button" class="small primary tm-mk">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. ابعتله لينك الخدام.</p>`;
+    const L=R.filter(r=>normAr(r.name).includes(v)||normAr(r.nick).includes(v)||String(r.phone).includes(v)).slice(0,8);
+    res.innerHTML=L.map(r=>`<div class="row" data-reg="${r.row}"><div class="t"><b>${esc(dn(r))}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div>${r.servant?"":`<div class="tm-perms tm-mkg" hidden>${grpChips("","mg")}</div>`}</div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:`<button type="button" class="small primary tm-mk">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. ابعتله لينك الخدام.</p>`;
     res.querySelectorAll(".tm-mk").forEach(b=>b.onclick=()=>{const w=b.closest(".row").querySelector(".tm-mkg");w.hidden=false;b.textContent="اختار الاجتماع ←";b.disabled=true});
     res.querySelectorAll(".mg").forEach(b=>b.onclick=()=>{const row=b.closest(".row"),r=R.find(x=>x.row===+row.dataset.reg),btn=row.querySelector(".tm-mk");
       row.querySelectorAll(".mg").forEach(x=>x.disabled=true);btn.textContent="…";
