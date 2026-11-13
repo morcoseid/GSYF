@@ -803,8 +803,8 @@ const VOICE25={target:"صوت شباب +25",
   worries:["💼 الشغل والمستقبل","💍 الارتباط والجواز","💸 الفلوس","🏠 العيلة","🫥 الوحدة","😮‍💨 الضغط والقلق","⏳ الوقت مش مكفي","🙏 علاقتي بربنا"],
   spirit:["🔥 ماشي كويس","🌤️ طالع نازل","🌫️ تايه شوية","🧊 بعيد ومحتاج حد"]};
 /* ===== تصويت +25 "نعمل إيه الشهر الجاي؟": بيظهر بعد كشف المفاجأة. الأصوات في تاب "التصويت" (صوت واحد للحساب) ===== */
-// التصويت جوه التشويق: مفتوح لحد ساعة الكشف، وبعدها الاختيار اللي كسب بيظهر في كارت الإعلان
-const POLL_WIN={until:"2026-11-14T20:00:00"};
+// التصويت: مفتوح من التشويق لحد ميعاد أول اجتماع (٢٠ نوفمبر ٦ م)، وبعدها اللي كسب بيظهر في كارت +25
+const POLL_WIN={until:"2026-11-20T18:00:00"};
 const pollWin=()=>{const P=D.poll;if(!P||!P.voters)return [];const mx=Math.max(...P.counts);return P.opts.filter((o,i)=>P.counts[i]===mx).slice(0,2)};
 const PL_SHORT=["💍 ارتباط وجواز","💼 شغل ونجاح","💸 فلوس","🧠 قلق وضغط","🙏 سهرة صلاة","🎤 أسئلة لأبونا","🏕 خلوة","🍽 عشا وتعارف","🤝 يوم خدمة"];
 const plS=o=>{const i=D.poll?D.poll.opts.indexOf(o):-1;return esc(PL_SHORT[i]||String(o).split("،")[0])};   // اسم قصير للعرض
@@ -818,7 +818,7 @@ function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMi
     :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).slice(0,3).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${plS(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
   const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} صوّتوا`:""}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وصوّت"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر صوتي</button>`:""}</div>
     `;
-  return `<section class="y-poll" id="vote"><div class="pl-in"><h2>🗳 ${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار اتنين":"اللي هيكسب هيتعلن الساعة ٨ 👀"}</p>${body}${foot}</div></section>`}
+  return `<section class="y-poll" id="vote"><div class="pl-in"><h2>🗳 ${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار اتنين · النتيجة يوم ٢٠ نوفمبر":"اللي هيكسب هيتعلن يوم ٢٠ نوفمبر 👀"}</p>${body}${foot}</div></section>`}
 function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!sec)return;const P=D.poll;
   const go=sec.querySelector(".pl-go"),sel=()=>[...sec.querySelectorAll(".pl-o.on")].map(b=>P.opts[+b.dataset.i]);
   if(go)go.disabled=!sel().length;
@@ -938,7 +938,7 @@ function renderHome(){
   renderReg();cdTick();
   const bi=[];
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
-  if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"صوّت: "+D.poll.q,s:"اللي هيكسب هيتعلن مع المفاجأة",go:".y-poll"});
+  if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"صوّت: "+D.poll.q,s:"النتيجة يوم ٢٠ نوفمبر",go:".y-poll"});
   if(spT)bi.push(spRev?{id:"spr:"+spT,e:"🎁",t:"المفاجأة اتكشفت! افتح الهدية",s:spWhen,go:".y-surp"}:{id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:"هتتكشف قريب على الموقع",go:".y-surp"});
   if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:locked?"فيه رحلة جاية!":"رحلة إسكندرية السبت ٢١ نوفمبر",s:locked?"سجّل عشان تشوف التفاصيل":"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
