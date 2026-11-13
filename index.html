@@ -285,6 +285,18 @@ body.youth #me{padding-top:56px}
 .sp-rsvp b{font-family:var(--kufi);font-size:1.2rem;color:var(--goldhi)}
 .sp-no{background:none;border:0;color:var(--onnavy);opacity:.7;text-decoration:underline;font-size:.85rem;cursor:pointer}
 .sp-cnt{font-size:.95rem!important;opacity:.9}
+.sp-q{width:100%;margin:8px 0 4px;display:flex;flex-direction:column;align-items:center}
+.sp-qgo{font-family:var(--kufi);font-size:1.05rem;background:rgba(228,196,126,.12);color:var(--goldhi);border:1px dashed var(--goldhi);border-radius:14px;padding:10px 22px;cursor:pointer}
+.sp-qb{width:100%;display:flex;flex-direction:column;align-items:center;gap:8px;background:rgba(0,0,0,.25);border:1px solid rgba(228,196,126,.35);border-radius:16px;padding:14px 10px}
+.sp-qb[hidden]{display:none}
+.sp-qt{font-family:var(--kufi);color:var(--goldhi);font-size:1rem!important}.sp-qt small{opacity:.7;font-family:var(--brand)}
+.sp-ch{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.sp-ch button{background:rgba(255,255,255,.06);color:var(--onnavy);border:1px solid rgba(228,196,126,.4);border-radius:12px;padding:7px 11px;font-size:.92rem;cursor:pointer}
+.sp-ch button.on{background:var(--goldhi);color:var(--ink);border-color:var(--goldhi);font-weight:700}
+.sp-tx{width:100%;border-radius:12px;border:1px solid rgba(228,196,126,.4);background:rgba(255,251,246,.96);color:#1A0D0B;padding:8px 10px;font:inherit;resize:vertical}
+.sp-anon{opacity:.7;font-size:.78rem}
+.v25 .bar{display:flex;align-items:center;gap:8px;margin:4px 0}.v25 .bar span{flex:0 0 46%;font-size:.9rem}.v25 .bar i{display:block;height:10px;border-radius:6px;background:var(--gold,#B08A3E)}.v25 .bar b{font-size:.85rem}
+.v25 ul{margin:4px 0;padding-inline-start:18px}
 .sp-share{display:inline-block;margin-top:6px;color:var(--goldhi);border:1px solid var(--goldhi);border-radius:999px;padding:7px 22px;text-decoration:none;font-weight:600}
 .sp-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}
 .sp-burst i{position:absolute;top:30%;left:50%;font-style:normal;font-size:1.3rem;animation:fly 1.1s ease-out forwards}
@@ -759,6 +771,9 @@ function bkBind(root){
   root.querySelectorAll(".bk-pf").forEach(b=>b.onclick=()=>{const box=b.closest("[data-bk]");
     openForm(box,[{t:"input",l:"رقم العملية في إنستاباي أو اسم اللي حوّل",req:1}],(a,ok,fail)=>callApi("bookProof",{email:em,tok:YT(),row:+box.dataset.bk,proof:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),()=>"وصل ✓ الخادم هيأكد حجزك")});
 }
+const VOICE25={target:"صوت شباب +25",
+  worries:["💼 الشغل والمستقبل","💍 الارتباط والجواز","💸 الفلوس","🏠 العيلة","🫥 الوحدة","😮‍💨 الضغط والقلق","⏳ الوقت مش مكفي","🙏 علاقتي بربنا"],
+  spirit:["🔥 ماشي كويس","🌤️ طالع نازل","🌫️ تايه شوية","🧊 بعيد ومحتاج حد"]};
 function renderHome(){
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
@@ -817,6 +832,14 @@ function renderHome(){
 
   // 18:00 ← ٦ مساءً
   function h12(x){const m=/^(\d{1,2}):(\d{2})$/.exec(x);if(!m)return x;let h=+m[1];const pm=h>=12;h=h%12||12;return h.toLocaleString("ar-EG")+(+m[2]?":"+m[2]:"")+(pm?" مساءً":" صباحًا")}
+  // لعبة "صوت +25": ٣ أسئلة سريعة من غير اسم، بتتسجل في التقييمات (target ثابت) والملخص بيظهر للخدام اللي ليهم التقييمات بس
+  const spQ=VOICE25,spQDone=lsGet("gsyf_v25");
+  const spQuiz=!spT?"":spQDone?`<div class="sp-q"><p class="sp-qt">شكرا 💛 إجابتك هتفرق في مواضيع الاجتماع</p></div>`
+    :`<div class="sp-q"><button type="button" class="sp-qgo">🎯 العب معانا ٣٠ ثانية</button><div class="sp-qb" hidden>
+      <p class="sp-qt">١. اختار لحد ٣ كروت: إيه أكتر حاجة شاغلة بالك الفترة دي؟</p><div class="sp-ch" data-max="3">${spQ.worries.map(x=>`<button type="button">${esc(x)}</button>`).join("")}</div>
+      <p class="sp-qt">٢. روحيًا، إنت فين دلوقتي؟</p><div class="sp-ch" data-max="1">${spQ.spirit.map(x=>`<button type="button">${esc(x)}</button>`).join("")}</div>
+      <p class="sp-qt">٣. لو تقدر تسأل أبونا سؤال واحد، هيبقى إيه؟ <small>(اختياري)</small></p><textarea class="sp-tx" rows="2" maxlength="300" placeholder="اكتب سؤالك هنا…"></textarea>
+      <button type="button" class="sp-go sp-qs">ابعت 💛</button><small class="sp-anon">من غير اسم. محدش هيعرف مين كتب إيه</small></div></div>`;
   const spLink="https://morcoseid.github.io/GSYF/#plus25";
   // "أنا جاي": حجز ببلاش على سطر أول اجتماع في شيت الإيفنتات (يظهر لـ الكل + الحجز مفتوح). العدد بيبان للكل
   const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
@@ -828,7 +851,7 @@ function renderHome(){
   const spShare=spT?"https://wa.me/?text="+encodeURIComponent("🎁 المفاجأة اتكشفت!\n"+spT+"\n📅 "+spWhen+"\n📍 "+((spW&&spW.place)||"الكنيسة")+"\nكل التفاصيل هنا 👇\n"+spLink):"";
   const surprise=!spT?"":!spRev?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>مفاجأة</h2><p>حاجة جديدة جاية… المفاجأة هتتكشف هنا بعد</p>${cdAt(new Date(spC.reveal).getTime(),1)}<p class="small" style="opacity:.8">خليك فاكر تفتح الموقع 😉</p></div></section>`
     :!spOpen?`<section class="y-surp" id="plus25"><div class="sp-in"><span class="sp-gift" aria-hidden="true">🎁</span><h2>المفاجأة وصلت!</h2><p>افتح الهدية وشوف إيه اللي مستنيك</p><button type="button" class="sp-open">افتح الهدية</button></div></section>`
-    :`<section class="y-surp" id="plus25"><div class="sp-in${window._spJust?" sp-rv":""}"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}${spRsvp}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
+    :`<section class="y-surp" id="plus25"><div class="sp-in${window._spJust?" sp-rv":""}"><span class="sp-tag">جديد ✨</span><h2>اجتماع شباب الربع قرن</h2><div class="sp-big">+25</div><p>اجتماع جديد لينا إحنا اللي عدّينا الـ ٢٥ 💛</p><p class="sp-when">${spWhen}</p><p>📍 ${esc((spW&&spW.place)||"الكنيسة")}</p><ul class="sp-prog">${spC.prog.map(x=>`<li>${x[0]} ${esc(x[1])}</li>`).join("")}</ul>${cdBox(spD,spW&&spW.time)}${spRsvp}${spQuiz}<p>هات صاحبك وتعالى، أول اجتماع ومحدش يفوته 🔥</p><a class="sp-share" href="${spShare}" target="_blank" rel="noopener">ابعتها لصحابك على واتساب</a></div></section>`;
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
@@ -873,6 +896,14 @@ function renderHome(){
   const spX=$("home").querySelector(".sp-no");if(spX)spX.onclick=()=>{if(!confirm("مش هتقدر تيجي أول اجتماع؟"))return;spX.disabled=true;
     callApi("bookCancel",{email:lsGet("gsyf_reg")||"",tok:YT(),row:+spX.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);spE.booked=Math.max(0,(spE.booked||1)-1);renderHome()},m=>{spX.disabled=false;alert(m)})};
   const spR=$("home").querySelector(".sp-reg");if(spR)spR.onclick=()=>{if(pend)return;const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
+  const qg=$("home").querySelector(".sp-qgo");if(qg)qg.onclick=()=>{qg.hidden=true;qg.nextElementSibling.hidden=false};
+  $("home").querySelectorAll(".sp-ch").forEach(g=>g.querySelectorAll("button").forEach(b=>b.onclick=()=>{const max=+g.dataset.max;
+    if(max===1)g.querySelectorAll("button").forEach(x=>x!==b&&x.classList.remove("on"));
+    if(!b.classList.contains("on")&&g.querySelectorAll(".on").length>=max)return;b.classList.toggle("on")}));
+  const qs=$("home").querySelector(".sp-qs");if(qs)qs.onclick=()=>{const gs=[...$("home").querySelectorAll(".sp-ch")].map(g=>[...g.querySelectorAll(".on")].map(b=>b.textContent));
+    const tx=$("home").querySelector(".sp-tx").value.trim();if(!gs[0].length&&!gs[1].length&&!tx){alert("اختار حاجة واحدة على الأقل");return}
+    qs.disabled=true;qs.textContent="بيتبعت…";
+    callApi("evaluate",{kind:"event-youth",target:VOICE25.target,answers:[gs[0].join("، "),gs[1].join(""),tx]},()=>{lsSet("gsyf_v25","1");renderHome()},m=>{qs.disabled=false;qs.textContent="ابعت 💛";alert(m)})};
   if(location.hash==="#plus25"&&!window._spGo){window._spGo=1;setTimeout(()=>{const x=$("plus25");if(x)x.scrollIntoView({block:"center"})},80)}
   if(location.hash==="#alex"&&!window._axGo){window._axGo=1;setTimeout(()=>{const x=$("alex");if(x)x.scrollIntoView({block:"start"})},80)}
   const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
@@ -1080,7 +1111,7 @@ function renderFollow(){
   const ev=D.evals||[];
   const recent=D.events.filter(e=>e.type!=="ديدلاين"&&e.status!=="اتلغى"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=30).sort((a,b)=>b.date.localeCompare(a.date));
   const tgt=e=>e.title+" ("+e.date+")";
-  const notes=[],closedN=[];ev.forEach(r=>{const L=r.closed?closedN:notes;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])L.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
+  const notes=[],closedN=[];ev.forEach(r=>{if(r.target===VOICE25.target)return;const L=r.closed?closedN:notes;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])L.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
   const mine=D.me?open.filter(e=>isMine(e.owner,D.me.name)):[];
   const allTasks=`<section class="panel"><h3>${D.me?"كل التاسكات المفتوحة":"مفتوح ومحتاج يتقفل"} (${late.length+now.length})</h3>
       ${late.length+now.length?late.concat(now).map(taskRow).join(""):`<p class="empty">مفيش حاجة مفتوحة الشهر ده.</p>`}
@@ -1096,6 +1127,7 @@ function renderFollow(){
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
     ${srvMeetPanel()}
+    ${v25Panel(ev)}
     ${monthNow?monthPanel(ev):""}
     ${can("regs")&&(D.regs||[]).some(r=>r.status==="مستني")?regPanel():""}
     ${can("bookings")?bookPanel():""}
@@ -1339,6 +1371,14 @@ function renderAdmin(){
 const RP={ev:"",f:"all",d:null,t:null};
 const rpNum=n=>Number(n).toLocaleString("ar-EG"),rpFmt=n=>(Math.round(n*10)/10).toLocaleString("ar-EG");
 function stopRatings(){if(RP.t){clearInterval(RP.t);RP.t=null}}
+// ملخص "صوت شباب +25" للخدام اللي ليهم التقييمات: عدد كل اختيار + أسئلة لأبونا. من غير أسامي
+function v25Panel(ev){const R=(ev||[]).filter(r=>r.target===VOICE25.target);if(!R.length)return "";
+  const cnt=(list,i,split)=>list.map(o=>[o,R.filter(r=>(split?String(r.a[i]).split("، "):[r.a[i]]).includes(o)).length]).sort((a,b)=>b[1]-a[1]);
+  const bars=L=>{const mx=Math.max(1,...L.map(x=>x[1]));return L.map(([o,n])=>`<div class="bar"><span>${esc(o)}</span><i style="width:${Math.round(n/mx*40)}%"></i><b>${n}</b></div>`).join("")};
+  const qs=R.map(r=>r.a[2]).filter(Boolean);
+  return `<section class="panel v25"><h3>🎯 صوت شباب +25 (${R.length} رد)</h3><p class="small muted">من غير أسامي. استخدموه في اختيار مواضيع الاجتماع.</p>
+    <h4>اللي شاغلهم</h4>${bars(cnt(VOICE25.worries,0,1))}<h4>روحيًا</h4>${bars(cnt(VOICE25.spirit,1))}
+    ${qs.length?`<details><summary>أسئلة لأبونا (${qs.length})</summary><ul>${qs.map(q=>`<li>${esc(q)}</li>`).join("")}</ul></details>`:""}</section>`}
 function renderRatings(){
   const box=$("ratings");if(!RP.d)box.innerHTML='<p class="muted" style="text-align:center;padding:30px">بيحمّل التقييمات…</p>';
   rpLoad();stopRatings();RP.t=setInterval(()=>{if(!document.hidden&&!$("ratings").hidden)rpLoad()},60000);
