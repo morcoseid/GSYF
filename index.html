@@ -745,8 +745,9 @@ function bkSlot(e){
 function bkBind(root){
   const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
   root.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest("[data-row]"),e=evOf(b);
-    openForm(box,[{t:"text",l:"ملاحظات للخدام (اختياري)"}],(a,ok,fail)=>callApi("book",{row:e.row,title:e.title,email:em,tok:YT(),notes:a[0]},r=>{setMyBk(r.mine);ok(r);setTimeout(renderHome,1200)},fail),
-      ()=>"اتحجز ✓",`الحجز هيتسجل باسمك.${e.price?" الاشتراك: "+e.price+". الحجز بيتأكد بالدفع.":""}`)});
+    // دوسة واحدة: الاسم والموبايل بيتاخدوا من حساب الشاب (التسجيل) ويتسجلوا مع الحجز. مفيش فورم
+    b.disabled=true;b.textContent="بيتحجز…";
+    callApi("book",{row:e.row,title:e.title,email:em,tok:YT()},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;b.textContent="احجز مكانك";alert(m)})});
   root.querySelectorAll(".bk-x").forEach(b=>b.onclick=()=>{const e=evOf(b);if(!confirm("متأكد إنك عايز تلغي حجزك في "+e.title+"؟"))return;b.disabled=true;
     callApi("bookCancel",{email:em,tok:YT(),row:+b.closest("[data-bk]").dataset.bk},r=>{setMyBk(r.mine);renderHome()},m=>{b.disabled=false;alert(m)})});
   root.querySelectorAll(".bk-pf").forEach(b=>b.onclick=()=>{const box=b.closest("[data-bk]");
@@ -897,32 +898,16 @@ function yLoginForm(box){
   box.innerHTML=`<form class="rgf yl" novalidate><div class="rg-head"><b>ادخل بحسابك</b><span>رقم الموبايل اللي سجلت بيه والرقم السري</span></div>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
     <label class="fld"><span>الرقم السري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password"><em></em></label>
+    <label class="fld y-em" hidden><span>الإيميل اللي سجلت بيه (مرة واحدة بس)</span><input name="email" type="email" dir="ltr" autocomplete="email"><em></em></label>
     <button type="submit" class="primary rg-send">دخول</button><p class="msg small"></p>
-    <p class="small" style="margin:0"><a href="#" class="y-first">أول مرة أدخل؟ (سجلت قبل كده من غير رقم سري)</a></p>
     <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
   const f=box.querySelector("form"),msg=f.querySelector(".msg");
   f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderReg()};
-  f.querySelector(".y-first").onclick=e=>{e.preventDefault();ySetPinForm(box)};
   f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
     if(!/^01[0125]\d{8}$/.test(phone)||!/^\d{4}$/.test(pin)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك والرقم السري (4 أرقام)";return}
     const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيدخل…";
-    callApi("yLogin",{phone,pin},r=>{if(r.tok)ySave(r);if(r.key){load(r.key,true);return}location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
-}
-function ySetPinForm(box){
-  box.innerHTML=`<form class="rgf" novalidate><div class="rg-head"><b>اعمل رقم سري لحسابك</b><span>اكتب الموبايل والإيميل اللي سجلت بيهم، واختار رقم سري تدخل بيه بعد كده</span></div>
-    <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
-    <label class="fld"><span>الإيميل اللي سجلت بيه</span><input name="email" type="email" dir="ltr" autocomplete="email"><em></em></label>
-    <label class="fld"><span>اختار رقم سري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
-    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
-    <button type="submit" class="primary rg-send">احفظ وادخل</button><p class="msg small"></p><p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
-  const f=box.querySelector("form"),msg=f.querySelector(".msg");
-  f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderReg()};
-  const em0=lsGet("gsyf_reg");if(em0)f.elements.email.value=em0;
-  f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),em=f.elements.email.value.trim().toLowerCase();
-    const bad=REG_CHECK.phone(phone)||REG_CHECK.email(em)||PIN_CK.pin(f.elements.pin.value)||PIN_CK.pin2(f.elements.pin2.value,f);
-    if(bad){msg.className="msg small err";msg.textContent=bad;return}
-    const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيتحفظ…";
-    callApi("ySetPin",{phone,email:em,pin:toEn(f.elements.pin.value)},r=>{ySave(r);location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
+    const emF=f.elements.email,em=(emF.value.trim()||lsGet("gsyf_reg")||"").toLowerCase();
+    callApi("yLogin",{phone,pin,email:em},r=>{if(r.needEmail){b.disabled=false;f.querySelector(".y-em").hidden=false;emF.focus();msg.className="msg small muted";msg.textContent="أول مرة تدخل: اكتب الإيميل اللي سجلت بيه، والرقم السري اللي كتبته هيبقى رقمك على طول";return}if(r.tok)ySave(r);if(r.key){load(r.key,true);return}location.hash="me";renderHome()},m=>{b.disabled=false;msg.className="msg small err";msg.textContent=m})};
 }
 const toEn=x=>String(x||"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 const normPhone=x=>{let v=toEn(x).replace(/[\s\-().]/g,"");v=v.replace(/^(\+|00)?20(?=1)/,"0");return v};
@@ -959,9 +944,9 @@ function regForm(box){
 function renderReg(){
   const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
-    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">اعمل رقم سري لحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">بالرقم السري يبقى ليك بروفايل وحسابك محدش يدخله غيرك.</p>`}`;
+    box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(em)}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
     box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
-    const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>ySetPinForm(box);
+    const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>yLoginForm(box);
     callApi("regStatus",{email:em,tok:YT()},r=>{if(r.key&&!D.level){load(r.key,true);return}const was=regOk();lsSet("gsyf_reg_st",r.status||"");
       if(!r.status){lsSet("gsyf_reg","");renderHome();return}
       if(setMyBk(r.mine)||was!==regOk()){renderHome();return}
