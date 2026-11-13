@@ -817,7 +817,7 @@ function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMi
     :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).slice(0,3).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${plS(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
   const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} توقعوا`:""}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وتوقّع"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر توقعي</button>`:""}</div>
     `;
-  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🎁 توقّع المفاجأة</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار توقعك، والإجابة بتتكشف السبت ٨ بالليل 🎁":"شوف الناس توقعت إيه… الإجابة السبت ٨ بالليل 👀"}</p>${body}${foot}</div></section>`}
+  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🎁 توقّع المفاجأة</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار لحد توقعين، والإجابة بتتكشف السبت ٨ بالليل 🎁":"شوف الناس توقعت إيه… الإجابة السبت ٨ بالليل 👀"}</p>${body}${foot}</div></section>`}
 function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!sec)return;const P=D.poll;
   const go=sec.querySelector(".pl-go"),sel=()=>[...sec.querySelectorAll(".pl-o.on")].map(b=>P.opts[+b.dataset.i]);
   if(go)go.disabled=!sel().length;
