@@ -353,7 +353,17 @@ body.youth #me{padding-top:56px}
 .pl-ed,.pl-reg{background:none;border:1px solid rgba(228,196,126,.5);color:var(--goldhi);border-radius:999px;padding:5px 14px;font:inherit;font-size:.85rem;cursor:pointer}
 .pl-reg{background:var(--goldhi);color:var(--ink);font-weight:700}
 .pl-sh{align-self:center;color:var(--goldhi);font-size:.9rem;text-decoration:underline;text-underline-offset:4px}
-@media (prefers-reduced-motion:reduce){.pl-r i{animation:none}}
+.pl-l{position:relative;display:grid;gap:7px;min-width:0}
+/* صور التفاعل: صغيرة ورا بعض، مبتتداسش ومفيهاش أسامي */
+.fstk{display:flex;align-items:center;padding-inline-start:9px;pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.fstk>span{flex:0 0 28px;width:28px;height:28px;border-radius:50%;margin-inline-start:-9px;border:2px solid #1a0b08;background:#4a2c1c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='15' r='7' fill='%23e4c47e' fill-opacity='.75'/%3E%3Cpath d='M6 38c1-9 7-13 14-13s13 4 14 13z' fill='%23e4c47e' fill-opacity='.75'/%3E%3C/svg%3E") center/cover no-repeat;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:fsp .45s cubic-bezier(.2,.8,.3,1.4) both}
+.fstk>.me{border-color:var(--goldhi)}
+.ev .fstk>span:not(.me){border-color:#fff}
+.fstk>.more{display:flex;align-items:center;justify-content:center;background:var(--goldhi);color:var(--ink);font-size:.72rem;font-weight:700}
+.fstk-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.85rem;opacity:.9}
+.fstk-row.sp-cnt{justify-content:center}
+@keyframes fsp{from{opacity:0;transform:scale(.4) translateY(6px)}}
+@media (prefers-reduced-motion:reduce){.pl-r i,.fstk>span{animation:none}}
 .sp-win{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;background:linear-gradient(135deg,rgba(228,196,126,.22),rgba(228,196,126,.06));border:1px solid var(--goldhi);border-radius:16px;padding:12px 10px;margin:4px 0}
 .sp-win span{font-size:.9rem;opacity:.9}.sp-win b{font-family:var(--kufi);font-size:1.3rem;color:var(--goldhi);line-height:1.4}.sp-win small{opacity:.7}
 .sp-share{display:inline-block;margin-top:6px;color:var(--goldhi);border:1px solid var(--goldhi);border-radius:999px;padding:7px 22px;text-decoration:none;font-weight:600}
@@ -814,16 +824,23 @@ function renderBell(items){const b=$("bell"),pn=$("bellPanel");if(!b)return;
 document.addEventListener("click",e=>{const pn=$("bellPanel");if(pn&&!pn.hidden&&!e.target.closest("#bell,#bellPanel"))pn.hidden=true});
 /* ================= الحجز (الشاب بيحجز بحسابه المسجل) ================= */
 let MYBK=[];try{MYBK=JSON.parse(lsGet("gsyf_bk")||"[]")||[]}catch(e){MYBK=[]}
-const setMyBk=L=>{const s=JSON.stringify(L||[]),ch=s!==JSON.stringify(MYBK);MYBK=L||[];lsSet("gsyf_bk",s);return ch};
+// صور التفاعل (مكوّن واحد للتوقع والحجوزات): لحد ٦ صور ورا بعض + "+N"، من غير أسامي
+const faceStack=(L,total)=>{if(!L||!L.length)return "";const more=Math.max(0,(total||0)-L.length);
+  return `<div class="fstk" aria-hidden="true">${L.map((f,j)=>`<span class="${f.me?"me":""}" style="${f.p?`background-image:url('${f.p}');`:""}animation-delay:${j*70}ms"></span>`).join("")}${more?`<span class="more" style="animation-delay:${L.length*70}ms"><bdi dir="ltr">+${more}</bdi></span>`:""}</div>`};
+const bkKey=e=>e.title+"|"+e.date,bkFaces=e=>(window._bkF||{})[bkKey(e)];
+// بنجيب صور اللي حاجزين مرة واحدة للمسجلين بس (بعد أي حجز/إلغاء بتتجاب تاني)
+function bkFacesLoad(evs){const em=lsGet("gsyf_reg");if(!em||window._bkFA)return;const ks=[...new Set(evs.filter(e=>e&&(e.booked||0)>0).map(bkKey))].slice(0,12);if(!ks.length)return;
+  window._bkFA=1;callApi("bkFaces",{email:em,tok:YT(),keys:ks},r=>{window._bkF=r.faces||{};if(Object.values(window._bkF).some(x=>x&&x.length))renderHome()},()=>{})}
+const setMyBk=L=>{window._bkFA=0;const s=JSON.stringify(L||[]),ch=s!==JSON.stringify(MYBK);MYBK=L||[];lsSet("gsyf_bk",s);return ch};
 const BK_ST={"مستني الدفع":["⏳","اتحجز، مستني الدفع"],"مؤكد":["✅","حجزك متأكد"],"محجوز":["✅","إنت محجوز"]};
 function bkSlot(e){
   const m=MYBK.find(b=>b.event===e.title&&b.date===e.date);
-  if(m){const s=BK_ST[m.status]||["✅",m.status],wait=m.status==="مستني الدفع";
-    return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${wait?`<span class="small">${e.price?"💰 "+esc(e.price)+" · ":""}الحجز بيتأكد لما الخادم يستلم الفلوس</span>${m.proof?`<span class="small muted">إثبات الدفع: ${esc(m.proof)}</span>`:""}`:""}${m.status!=="مؤكد"?`<div class="btns">${wait?`<button type="button" class="small bk-pf">${m.proof?"عدّل إثبات الدفع":"دفعت؟ اكتب رقم العملية"}</button>`:""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
+  if(m){const s=BK_ST[m.status]||["✅",m.status],wait=m.status==="مستني الدفع",mf=faceStack(bkFaces(e),e.booked);
+    return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${mf?`<div class="fstk-row">${mf}<span>حاجزين معاك</span></div>`:""}${wait?`<span class="small">${e.price?"💰 "+esc(e.price)+" · ":""}الحجز بيتأكد لما الخادم يستلم الفلوس</span>${m.proof?`<span class="small muted">إثبات الدفع: ${esc(m.proof)}</span>`:""}`:""}${m.status!=="مؤكد"?`<div class="btns">${wait?`<button type="button" class="small bk-pf">${m.proof?"عدّل إثبات الدفع":"دفعت؟ اكتب رقم العملية"}</button>`:""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
   if(!e.booking)return "";
-  const left=e.cap?e.cap-(e.booked||0):null;
+  const left=e.cap?e.cap-(e.booked||0):null,fc=faceStack(bkFaces(e),e.booked);
   if(left!==null&&left<=0)return `<p class="small err" style="margin:6px 0 0">الأماكن خلصت 😔</p>`;
-  return `<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>${left!==null&&left<=15?`<span class="small muted">فاضل ${left} ${left<=10?"أماكن":"مكان"} بس</span>`:""}`;
+  return `<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>${fc?`<div class="fstk-row">${fc}<span>حاجزين</span></div>`:""}${left!==null&&left<=15?`<span class="small muted">فاضل ${left} ${left<=10?"أماكن":"مكان"} بس</span>`:""}`;
 }
 function bkBind(root){
   const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
@@ -851,7 +868,7 @@ function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMi
   const voteMode=!locked&&(!mine||edit);
   const body=voteMode?`<div class="pl-opts">${P.opts.map((o,i)=>`<button type="button" class="pl-o${mine&&mine.includes(o)?" on":""}" data-i="${i}"><span class="pl-ck"></span>${plS(o)}</button>`).join("")}</div>
       <button type="button" class="pl-go" disabled>ده توقعي</button>`
-    :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).slice(0,3).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${plS(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
+    :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).slice(0,3).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><div class="pl-l"><span>${plS(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span>${faceStack((window._plFaces||{})[x.o],P.counts[x.i])}</div><b>${x.n}%</b></div>`).join("")}</div>`;
   const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} توقعوا`:""}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وتوقّع"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر توقعي</button>`:""}</div>
     `;
   return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🎁 توقّع المفاجأة</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار لحد توقعين، والإجابة بتتكشف الأحد ٨ بالليل 🎁":"شوف الناس توقعت إيه… الإجابة الأحد ٨ بالليل 👀"}</p>${body}${foot}</div></section>`}
@@ -860,11 +877,12 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
   if(go)go.disabled=!sel().length;
   sec.querySelectorAll(".pl-o").forEach(b=>b.onclick=()=>{if(!b.classList.contains("on")&&sel().length>=P.max){const f=sec.querySelector(".pl-o.on");f&&f.classList.remove("on")}b.classList.toggle("on");go.disabled=!sel().length});
   if(go)go.onclick=()=>{go.disabled=true;go.textContent="بيتبعت…";
-    callApi("vote",{email:lsGet("gsyf_reg")||"",tok:YT(),choices:sel()},r=>{lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine||sel()));if(r.poll)D.poll=r.poll;window._plEdit=0;renderHome()},m=>{go.disabled=false;go.textContent="ده توقعي";alert(m)})};
+    callApi("vote",{email:lsGet("gsyf_reg")||"",tok:YT(),choices:sel()},r=>{lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine||sel()));if(r.poll)D.poll=r.poll;if(r.faces)window._plFaces=r.faces;window._plEdit=0;renderHome()},m=>{go.disabled=false;go.textContent="ده توقعي";alert(m)})};
   const ed=sec.querySelector(".pl-ed");if(ed)ed.onclick=()=>{window._plEdit=1;renderHome()};
   const rg=sec.querySelector(".pl-reg");if(rg)rg.onclick=()=>{if(pend)return;const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   // موبايل جديد: نجيب صوته القديم مرة واحدة
-  if(!locked&&!pollMine(P.id)&&!window._plAsk&&lsGet("gsyf_reg")){window._plAsk=1;callApi("pollMine",{email:lsGet("gsyf_reg")||"",tok:YT()},r=>{if(r.mine&&r.mine.length){lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine));renderHome()}},()=>{})}
+  // وبعد ما يتوقع: صور اللي توقعوا (مرة واحدة)
+  if(!locked&&(!pollMine(P.id)||!window._plFaces)&&!window._plAsk&&lsGet("gsyf_reg")){window._plAsk=1;callApi("pollMine",{email:lsGet("gsyf_reg")||"",tok:YT()},r=>{if(r.faces)window._plFaces=r.faces;if(r.mine&&r.mine.length)lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine));if(r.faces||(r.mine&&r.mine.length))renderHome()},()=>{})}
 }
 function renderHome(){
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
@@ -937,7 +955,7 @@ function renderHome(){
   // "أنا جاي": حجز ببلاش على سطر أول اجتماع في شيت الإيفنتات (يظهر لـ الكل + الحجز مفتوح). العدد بيبان للكل
   const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
   const spMine=spE&&MYBK.find(b=>b.event===spE.title&&b.date===spE.date&&b.status!=="ملغي");
-  const spN=spE?(spE.booked||0):0,spCnt=spN>=3?`<p class="sp-cnt">🙋 ${spN} قالوا جايين لحد دلوقتي</p>`:"";
+  const spN=spE?(spE.booked||0):0,spFc=spE?faceStack(bkFaces(spE),spN):"",spCnt=spFc?`<div class="fstk-row sp-cnt">${spFc}<span>قالوا جايين</span></div>`:spN>=3?`<p class="sp-cnt">🙋 ${spN} قالوا جايين لحد دلوقتي</p>`:"";
   const spRsvp=!spE||!spE.booking?"":spMine?`<div class="sp-rsvp" data-bk="${spMine.row}"><b>${isGirl()?"✅ إنتي جاية! مستنيينك 💛":"✅ إنت جاي! مستنيينك 💛"}</b><button type="button" class="sp-no">مش هقدر آجي</button></div>${spCnt}`
     :locked?`<div class="sp-rsvp"><button type="button" class="sp-go sp-reg">${pend?"⏳ طلبك بيتراجع، وبعدها تقدر تقول أنا جاي":"سجّل وقول أنا جاي ✋"}</button></div>${spCnt}`
     :`<div class="sp-rsvp"><button type="button" class="sp-go sp-yes" data-row="${spE.row}">${isGirl()?"أنا جاية ✋":"أنا جاي ✋"}</button></div>${spCnt}`;
@@ -968,7 +986,7 @@ function renderHome(){
     <section class="y-follow sm"><div>تابع أخبار الخدمة أول بأول</div>${installBtn()}<div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div></section>
 `;
   const ev=r=>D.events.find(e=>e.row===+r);
-  bkBind($("home"));
+  bkBind($("home"));bkFacesLoad([axE,spE].concat(evList));
   const fg=$("home").querySelector(".ft-go");if(fg)fg.onclick=()=>{const box=fg.closest(".ev");fg.parentElement.remove();box.querySelector(".ft-txt").remove();
     openForm(box,fq.qs,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:feat.title+" ("+feat.date+")",answers:a},r=>{lsSet("rt_"+feat.row+feat.title+feat.date,"1");ok(r)},fail),()=>esc(fq.thanks||"شكرا على رأيك 💛"),fq.intro)};
   renderReg();cdTick();
