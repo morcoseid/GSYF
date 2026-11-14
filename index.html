@@ -885,7 +885,8 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
   if(!locked&&(!pollMine(P.id)||!window._plFaces)&&!window._plAsk&&lsGet("gsyf_reg")){window._plAsk=1;callApi("pollMine",{email:lsGet("gsyf_reg")||"",tok:YT()},r=>{if(r.faces)window._plFaces=r.faces;if(r.mine&&r.mine.length)lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine));if(r.faces||(r.mine&&r.mine.length))renderHome()},()=>{})}
 }
 function renderHome(){
-  const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
+  // الشباب يشوفوا إيفنتات الشهر الجاري بس (الشهر الجاي بيظهر أول يوم فيه)
+  const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t&&e.date.slice(0,7)<=t.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
   // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
@@ -966,8 +967,9 @@ function renderHome(){
   const regSec=`<section class="y-sec" id="regSec"><h2 class="y-h">${locked?"انضم لـ G.S.Y. Family":"تسجيلك"}</h2><div class="y-reg" id="regBox"></div></section>`;
   const lockOpen=locked?`<div class="lockwrap locked"><div class="lock-msg">${pend?`<b>⏳ طلبك بيتراجع</b><span>كل ده هيتفتح لك أول ما الخدام يوافقوا على طلبك. للمتابعة كلمنا على واتساب:</span>${WA_BTN()}`:`<b>🔒 كل ده هيتفتح لما تسجل</b><span>الاجتماعات والإيفنتات والحجز والتقييم، بعد ما الخدام يوافقوا على طلبك</span><button type="button" class="primary go-reg">سجّل دلوقتي</button>`}</div><div class="lock-body" aria-hidden="true" inert>`:"";
   const lockClose=locked?`</div></div>`:"";
-  const evList=soon.filter(e=>!(alex&&axE&&e.row===axE.row)&&!(spE&&e.row===spE.row));
-  const evCard=e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${bkSlot(e)}</div></article>`;
+  // الرحلة بقت كارت إيفنت عادي بالميعاد (MORCOS 14 نوفمبر)، مش إعلان كبير
+  const evList=soon.filter(e=>!(spE&&e.row===spE.row));
+  const evCard=e=>`<article class="y-card"${axE&&e.row===axE.row?' id="alex"':""}>${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${bkSlot(e)}</div></article>`;
   // التقييم: بيظهر بس اللي لسه متقيمش
   const rateLeft=rate.filter(e=>!lsGet("rt_"+e.row+e.title+e.date));
   // "تسجيلك" مش بيظهر للي متسجل وداخل بحسابه (بياناته في بروفايلي)
@@ -976,17 +978,17 @@ function renderHome(){
     ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">قيّم الحفلة 🎉</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في الحفلة الجاية. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
     ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="y-news"><span class="y-tag">إعلان</span><div>${esc(n.text)}</div></div>`).join("")}
     ${locked?regSec:""}
-    ${locked?surprise+pollCard(locked,pend)+kas+alex:""}
+    ${locked?surprise+pollCard(locked,pend)+kas:""}
     ${lockOpen}
     <section class="y-sec"><h2 class="y-h">الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>meetCard(w,d,p,cls)).join("")}</div></section>
-    <section class="y-sec"><h2 class="y-h">الجاي</h2>${locked?"":surprise+pollCard(locked,pend)+kas+alex}${evList.length?`<div class="y-cards">${evList.slice(0,3).map(evCard).join("")}</div>${evList.length>3?`<details class="y-more"><summary>شوف الكل (${evList.length})</summary><div class="y-cards">${evList.slice(3).map(evCard).join("")}</div></details>`:""}`:!locked&&(surprise||kas||alex)?"":`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
+    <section class="y-sec"><h2 class="y-h">الجاي خلال شهر ${GM[parse(t).getMonth()]}</h2>${locked?"":surprise+pollCard(locked,pend)+kas}${evList.length?`<div class="y-cards">${evList.slice(0,3).map(evCard).join("")}</div>${evList.length>3?`<details class="y-more"><summary>شوف الكل (${evList.length})</summary><div class="y-cards">${evList.slice(3).map(evCard).join("")}</div></details>`:""}`:!locked&&(surprise||kas)?"":`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
     ${rateLeft.length?`<section class="y-sec"><h2 class="y-h">قيّم</h2><div class="y-cards">${rateLeft.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
     ${lockClose}
     ${locked||!showReg?"":regSec}
     <section class="y-follow sm"><div>تابع أخبار الخدمة أول بأول</div>${installBtn()}<div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div></section>
 `;
   const ev=r=>D.events.find(e=>e.row===+r);
-  bkBind($("home"));bkFacesLoad([axE,spE].concat(evList));
+  bkBind($("home"));bkFacesLoad([spE].concat(evList));
   const fg=$("home").querySelector(".ft-go");if(fg)fg.onclick=()=>{const box=fg.closest(".ev");fg.parentElement.remove();box.querySelector(".ft-txt").remove();
     openForm(box,fq.qs,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:feat.title+" ("+feat.date+")",answers:a},r=>{lsSet("rt_"+feat.row+feat.title+feat.date,"1");ok(r)},fail),()=>esc(fq.thanks||"شكرا على رأيك 💛"),fq.intro)};
   renderReg();cdTick();
@@ -994,7 +996,6 @@ function renderHome(){
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
   if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"توقّع المفاجأة: "+D.poll.q,s:"الإجابة الأحد ٨ بالليل",go:".y-poll"});
   if(spT)bi.push(spRev?{id:"spr:"+spT,e:"🎁",t:"المفاجأة اتكشفت! افتح الهدية",s:spWhen,go:".y-surp"}:{id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:"هتتكشف قريب على الموقع",go:".y-surp"});
-  if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:locked?"فيه رحلة جاية!":"رحلة إسكندرية السبت ٢١ نوفمبر",s:locked?"سجّل عشان تشوف التفاصيل":"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
   (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
   if(!locked)soon.filter(e=>!(spE&&e.row===spE.row)).slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
