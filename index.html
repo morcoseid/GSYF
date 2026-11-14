@@ -489,7 +489,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .kl input{font:inherit;font-size:1rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .pt{border-radius:999px;padding:4px 12px;font-size:.88rem}
 .pt[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
-.tm-perms{display:flex;flex-wrap:wrap;gap:6px}
+.tm-perms{display:flex;flex-wrap:wrap;gap:6px}.tm-hint{margin:-4px 0 0;line-height:1.5}
 .tm-pick{display:flex;flex-direction:column;gap:4px}.tm-pick>span{font-size:.82rem;color:var(--muted)}
 .tm-badge{font-size:.75rem;background:var(--accent);color:#fff;border-radius:999px;padding:1px 8px;vertical-align:middle}
 .tm-hot{border-color:var(--busy)!important}.tm-sec h3{margin:0}
@@ -1112,9 +1112,16 @@ function yLoginForm(box,o){o=o||{};
     <label class="fld"><span>الرقم السري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password"><em></em></label>
     <label class="fld y-em" hidden><span>الإيميل اللي سجلت بيه (مرة واحدة بس)</span><input name="email" type="email" dir="ltr" autocomplete="email"><em></em></label>
     <button type="submit" class="primary rg-send">دخول</button><p class="msg small"></p>
-    <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
+    <p class="small" style="margin:0;display:flex;justify-content:space-between"><a href="#" class="y-back">رجوع</a><a href="#" class="y-fgt">نسيت الرقم السري؟</a></p></form>`;
   const f=box.querySelector("form"),msg=f.querySelector(".msg");
   f.querySelector(".y-back").onclick=e=>{e.preventDefault();(o.back||renderReg)()};
+  // نسيت الرقم السري: الطلب بيروح للخدام يمسحوه، وبعدها يدخل برقم سري جديد + الإيميل اللي سجل بيه
+  f.querySelector(".y-fgt").onclick=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),a=e.target;
+    if(!/^01[0125]\d{8}$/.test(phone)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك اللي سجلت بيه الأول، وبعدين دوس نسيت الرقم السري";f.elements.phone.focus();return}
+    a.style.pointerEvents="none";msg.className="msg small muted";msg.textContent="بيبعت…";
+    callApi("pinForgot",{phone},r=>{a.style.pointerEvents="";msg.className="msg small ok";
+      msg.textContent=r.noPin?"رقمك السري القديم اتمسح خلاص ✓ اكتب رقم سري جديد (4 أرقام) ودوس دخول، والموقع هيسألك على الإيميل اللي سجلت بيه مرة واحدة.":"✓ طلبك وصل للخدام. أول ما يمسحوا الرقم القديم، ادخل برقم موبايلك واكتب رقم سري جديد، والموقع هيسألك على الإيميل اللي سجلت بيه مرة واحدة."},
+      m=>{a.style.pointerEvents="";msg.className="msg small err";msg.textContent=m})};
   f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
     if(!/^01[0125]\d{8}$/.test(phone)||!/^\d{4}$/.test(pin)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك والرقم السري (4 أرقام)";return}
     const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيدخل…";
@@ -1411,7 +1418,7 @@ function meetCard(w,d,p,cls){
   const body=cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:has?"":out;
   return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}${has?" has":""}"><svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg>${has?`<div class="mh">${head}</div><div class="mc2"><div class="mtr">${p.icon?`<span class="mi">${esc(p.icon)}</span>`:""}<b class="mtt">${esc(p.topic)}</b></div>${tz.length?`<ul class="tz">${tz.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}${out}</div>`:head+body}</article>`}
 // مين يكتب لأنهي اجتماع: الأمين لكل الاجتماعات، والخادم للاجتماع اللي في مجموعته بس
-function mcCan(w){if(!D||!D.level)return false;if(D.level===2)return true;const g=D.me&&D.me.group;if(!g)return false;
+function mcCan(w){if(!D||!D.level)return false;if(D.level===2)return true;const g=D.me&&D.me.group;if(!g||g===OTHER)return false;
   return g==="الاتنين"||(g==="جامعيين"?/جامعيين/:/الربع قرن|\+25/).test(w.title)}
 const mcMeets=()=>(D.weekly||[]).filter(mcCan);
 function mcDates(w,n){const out=[];let d=parse(D.today);for(let i=0;i<7&&d.getDay()!==w.day;i++)d=addDays(d,1);for(let i=0;i<n;i++)out.push(addDays(d,7*i));return out}
@@ -1618,14 +1625,29 @@ async function aiAsk(q){
 function renderApprove(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني").slice(0,15);
   const edits=R.filter(r=>r.edited).sort((a,b)=>b.edited.localeCompare(a.edited)).slice(0,15);
+  const fg=R.filter(r=>r.forgot).sort((a,b)=>b.forgot.localeCompare(a.forgot));
+  // نسيان الرقم السري: الرقم متشفر ومحدش يقدر يقراه، فالخادم بيمسحه والشاب يعمل رقم جديد بالإيميل اللي سجل بيه
+  const pinRow=r=>`<div class="row" data-reg="${r.row}" style="grid-template-columns:minmax(0,1fr) auto;align-items:center"><div class="t"><b>${esc(dn(r))}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div>${r.forgot?`<div class="why">طلب <span dir="ltr">${esc(r.forgot)}</span></div>`:""}</div>${r.pin?`<button type="button" class="small primary pin-rs" style="flex:none;width:auto;min-height:0;padding:8px 12px;align-self:center">امسح الرقم السري</button>`:`<span class="small muted">مفيش رقم سري، يدخل ويعمل رقم جديد</span>`}</div>`;
   const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(dn(r))}</b><span class="muted small">${esc(r.at)}</span></div>
     <div class="ap-meta">${r.gender?`<span>${gTag(r.gender)}</span>`:""}<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
     <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
+    ${fg.length?`<section class="panel tm-hot"><h3>🔑 نسيوا الرقم السري (${fg.length})</h3><p class="small muted" style="margin:0">امسحه، وبعدها الشاب يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه.</p>${fg.map(pinRow).join("")}</section>`:""}
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
+    <details class="panel"><summary class="small muted" style="cursor:pointer">🔑 حد نسي الرقم السري؟</summary><p class="small muted" style="margin:6px 0 0">دوّر عليه وامسح الرقم السري. بعدها يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه مرة واحدة.</p>
+      <input type="search" class="pin-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="pin-res"></div></details>
     ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span></div></div>`).join("")}</details>`:""}
     ${edits.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">✏️ آخر تعديلات الأعضاء في بياناتهم (${edits.length})</summary>${edits.map(r=>`<div class="ed-row"><b>${esc(dn(r))}</b><div class="small muted">${esc(r.edited)}</div></div>`).join("")}</details>`:""}`;
   $("apRef").onclick=()=>{$("apRef").textContent="…";load()};
+  const A=$("approve"),pq=A.querySelector(".pin-q"),pres=A.querySelector(".pin-res");
+  const pinBind=box=>box.querySelectorAll(".pin-rs").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.closest("[data-reg]").dataset.reg);
+    if(!confirm(`تمسح الرقم السري بتاع ${dn(r)}؟ هيدخل برقم موبايله ويعمل رقم سري جديد بالإيميل اللي سجل بيه.`))return;
+    b.disabled=true;b.textContent="…";
+    callApi("regResetPin",{row:r.row,email:r.email},()=>{r.pin=false;r.forgot="";b.outerHTML=`<span class="small ok">اتمسح ✓ قوله يدخل برقمه ويعمل رقم جديد</span>`;renderNav("approve")},m=>{b.disabled=false;b.textContent="امسح الرقم السري";alert(m)})});
+  pinBind(A);
+  pq.oninput=()=>{const v=normAr(toEn(pq.value)).trim();if(v.length<2){pres.innerHTML="";return}
+    const L=R.filter(r=>r.status!=="مرفوض"&&(normAr(r.name).includes(v)||normAr(r.nick).includes(v)||String(r.phone).includes(v))).slice(0,8);
+    pres.innerHTML=L.map(pinRow).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل.</p>`;pinBind(pres)};
   $("approve").querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row),c=b.closest(".ap-card");c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;c.classList.add(b.dataset.v==="مقبول"?"is-ok":"is-no");c.querySelector(".ap-btns").innerHTML=`<b>${b.dataset.v==="مقبول"?"اتقبل ✓":"اترفض"}</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
       m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent=m})});
@@ -1704,33 +1726,35 @@ function srvRegForm(box){
       r=>{if(r.existed||!r.tok){old();return}ySave(r);lsSet("gsyf_srv",r.srv||"مستني");renderKhadem();window.scrollTo(0,0)},
       e=>{if(/متسجل قبل كده/.test(e)){old();return}btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
-// مجموعات الخدام: خدام اجتماع جامعيين، خدام اجتماع الربع قرن +25، أو الاتنين
-const GRP=[["جامعيين","جامعيين"],["الربع قرن","الربع قرن +25"],["الاتنين","الاتنين"]];
+// مجموعات الخدام: خدام اجتماع جامعيين، خدام اجتماع الربع قرن +25، الاتنين، أو خدمة تانية من غير اجتماع (زي المسرح)
+const OTHER="خدمة تانية";
+const GRP=[["جامعيين","جامعيين"],["الربع قرن","الربع قرن +25"],["الاتنين","الاتنين"],[OTHER,"خدمة تانية"]];
 const grpL=g=>(GRP.find(x=>x[0]===g)||[,""])[1];
-const srvTitle=(role,g)=>(role==="أمين"?"أمين":"خادم")+(g==="الاتنين"?" جامعيين و+25":g?" "+grpL(g):"");
+const srvTitle=(role,g)=>(role==="أمين"?"أمين":"خادم")+(g==="الاتنين"?" جامعيين و+25":g&&g!==OTHER?" "+grpL(g):"");
+const grpHint=`<p class="small muted tm-hint">"خدمة تانية" للي بيخدم برا الاجتماعين (زي المسرح): بياخد كل حاجة الخادم بياخدها، بس مش بيكتب إعلان اجتماع.</p>`;
 const grpChips=(cur,cls)=>GRP.map(([v,l])=>`<button type="button" class="pt ${cls}" data-g="${v}" aria-pressed="${cur===v}">${esc(l)}</button>`).join("");
 // صفحة الأمناء: الموافقة على الخدام (بالمجموعة والدور في خطوة واحدة) وفتح/قفل الصلاحيات
 function renderTeam(){
   const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
   const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
-    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips("","pg")}</div></div>
+    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips("","pg")}</div></div>${grpHint}
     <div class="tm-pick"><span>الدور:</span><div class="tm-perms"><button type="button" class="pt pr" data-r="خادم" aria-pressed="true">خادم</button><button type="button" class="pt pr" data-r="أمين" aria-pressed="false">أمين (كل حاجة)</button></div></div>
-    <div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار المجموعة الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
+    <div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار بيخدم فين الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
   const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}${u.role==="أمين"?' <span class="tm-badge">أمين</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
     <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.group,"ug")}</div></div>
     <div class="tm-pick"><span>يقدر يشوف:</span><div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${u.role==="أمين"||!!u.perms[k]}"${u.role==="أمين"?" disabled":""}>${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div></div>
     <div class="tm-more">${wa(u)}${u.noPin?'<span class="err">الرقم السري اتمسح، مستني يسجل تاني</span>':`<a href="#" class="us" data-f="resetPin">امسح الرقم السري</a>`}<a href="#" class="us" data-f="status" data-v="موقوف">إيقاف</a></div></article>`;
   const ord=(a,b)=>(a.role==="أمين"?0:1)-(b.role==="أمين"?0:1)||a.name.localeCompare(b.name,"ar");
-  const sec=(t,L,hot)=>L.length?`<section class="panel tm-sec${hot?" tm-hot":""}"><h3>${t} <span class="muted">(${L.length}${L.some(u=>u.role==="أمين")?" · منهم "+L.filter(u=>u.role==="أمين").length+" أمين":""})</span></h3>${hot?`<p class="small" style="margin:0">اختار لكل واحد هو خادم في أنهي اجتماع.</p>`:""}</section>${L.sort(ord).map(card).join("")}`:"";
+  const sec=(t,L,hot)=>L.length?`<section class="panel tm-sec${hot?" tm-hot":""}"><h3>${t} <span class="muted">(${L.length}${L.some(u=>u.role==="أمين")?" · منهم "+L.filter(u=>u.role==="أمين").length+" أمين":""})</span></h3>${hot?`<p class="small" style="margin:0">اختار لكل واحد هو خادم في أنهي اجتماع، أو "خدمة تانية" لو مش في اجتماع.</p>`:""}</section>${L.sort(ord).map(card).join("")}`:"";
   const nog=on.filter(u=>!u.group);
   $("team").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> خادم مستني موافقة</span><button type="button" id="tmRef">↻ تحديث</button></div>
     ${wait.map(pend).join("")}
     <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">${GRP.map(([g,l])=>`${esc(l)}: <b>${on.filter(u=>u.group===g).length}</b>`).join(" · ")}${nog.length?` · من غير مجموعة: <b>${nog.length}</b>`:""}<br>الأمين بيشوف كل حاجة. الخادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول"، وأي صلاحية تفتحها له.</p></section>
     ${sec("⚠️ لسه من غير مجموعة",nog,1)}
-    ${GRP.map(([g,l])=>sec(g==="الاتنين"?"خدام الاجتماعين":"خدام "+l,on.filter(u=>u.group===g))).join("")}
+    ${GRP.map(([g,l])=>sec(g==="الاتنين"?"خدام الاجتماعين":g===OTHER?"خدام خدمات تانية (من غير اجتماع)":"خدام "+l,on.filter(u=>u.group===g))).join("")}
     ${on.length?"":`<p class="empty">لسه مفيش خدام. ابعت لينك الخدام أو افتح صلاحية لحد متسجل من تحت.</p>`}
-    <section class="panel" id="tmAdd"><h3>➕ افتح صلاحية خادم</h3><p class="small muted" style="margin:0">لو حد متسجل على الموقع ومبعتش طلب: دوّر عليه هنا واختار هو خادم في أنهي اجتماع.</p>
+    <section class="panel" id="tmAdd"><h3>➕ افتح صلاحية خادم</h3><p class="small muted" style="margin:0">لو حد متسجل على الموقع ومبعتش طلب: دوّر عليه هنا واختار هو خادم في أنهي اجتماع (أو خدمة تانية).</p>
       <input type="search" class="tm-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="tm-res"></div></section>
     ${off.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">مرفوض أو موقوف (${off.length})</summary>${off.map(u=>`<div class="row" data-row="${u.row}"><div class="d"><small>${esc(u.status)}</small></div><div class="t"><b>${esc(dn(u))}</b> <button type="button" class="small us" data-f="status" data-v="مقبول">رجّعه</button></div></div>`).join("")}</details>`:""}`;
   const T=$("team");
@@ -1768,7 +1792,7 @@ function renderTeam(){
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
   // الخادم: 3 تابات بس. الأمين: تاب رابع "الإدارة" جواه الطلبات والخدام والتقييمات وخطة السنة والبرامج
-  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
+  const nw=(D.regs||[]).filter(r=>r.status==="مستني"||r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
   const c=ADM_PAGES.includes(cur)||/^(meet|m)-/.test(cur)?"admin":cur;
   const items=[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:[]),["home","الشباب"],["me","بروفايلي"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===c?'aria-current="page"':""}>${esc(l)}</a>`).join("");
@@ -1776,8 +1800,8 @@ function renderNav(cur){
 const ADM_PAGES=["admin","approve","team","ratings","year"];
 // صفحة الإدارة (للأمناء): زراير كبيرة للصفحات اللي مش محتاجها كل يوم
 function renderAdmin(){
-  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
-  const L=[...(can("regs")?[["approve","📝","طلبات التسجيل",nw?nw+" مستني":"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
+  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nf=(D.regs||[]).filter(r=>r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
+  const L=[...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
   $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
