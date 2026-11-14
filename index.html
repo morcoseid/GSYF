@@ -447,6 +447,10 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .pt{border-radius:999px;padding:4px 12px;font-size:.88rem}
 .pt[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
 .tm-perms{display:flex;flex-wrap:wrap;gap:6px}
+.tm-pick{display:flex;flex-direction:column;gap:4px}.tm-pick>span{font-size:.82rem;color:var(--muted)}
+.tm-badge{font-size:.75rem;background:var(--accent);color:#fff;border-radius:999px;padding:1px 8px;vertical-align:middle}
+.tm-hot{border-color:var(--busy)!important}.tm-sec h3{margin:0}
+.ap-acc:disabled{opacity:.55}
 .tm-more{display:flex;flex-wrap:wrap;gap:12px;font-size:.85rem}.tm-more a{color:var(--muted)}
 .ap-ok{background:#2E7D4F!important;border-color:#2E7D4F!important;color:#fff!important}
 .ap-no{background:transparent;color:#B23A2E!important;border-color:#B23A2E!important}
@@ -1094,10 +1098,10 @@ function renderMe(){
   const name=(p&&p.name)||(sv&&sv.name)||lsGet("gsyf_yname")||"";
   const photo=tok?(p?p.photo||"":lsGet("gsyf_yphoto")||""):"";
   if(!sv&&!tok){box.innerHTML=`<section class="panel"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">البروفايل لكل واحد بحسابه. اخرج وادخل برقم موبايلك والرقم السري.</p><div class="btns"><button type="button" class="me-out">خروج</button></div></section>`;box.querySelector(".me-out").onclick=logout;return}
-  const role=sv?sv.role:p&&p.servant?p.servant:"شاب",st=p?p.status:lsGet("gsyf_reg_st")||"";
+  const role=sv?srvTitle(sv.role,sv.group):p&&p.servant?srvTitle(p.servant,p.group):"شاب",st=p?p.status:lsGet("gsyf_reg_st")||"";
   const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
   const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.paid||b.status==="مؤكد"?"✅ مؤكد (دفع)":b.status==="مستني الدفع"?"⏳ مستني الدفع"+(b.proof?" · إثبات: "+esc(b.proof):""):"✓ محجوز"}</div></div></div>`;
-  const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
+  const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[sv.role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}</b><span class="me-tag">${esc(role)}</span>${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
     <details class="panel"><summary class="me-sum">بياناتي</summary><dl class="me-info">${p.birth?`<dt>السن</dt><dd>${age(p.birth)} سنة</dd>`:""}<dt>الموبايل</dt><dd dir="ltr" style="text-align:right">${esc(p.phone)}</dd>${realEm(p.email)?`<dt>الإيميل</dt><dd dir="ltr" style="text-align:right">${esc(p.email)}</dd>`:""}${p.since?`<dt>مسجل من</dt><dd>${esc(String(p.since).slice(0,10))}</dd>`:""}</dl></details>`
@@ -1183,7 +1187,7 @@ function renderFollow(){
   const openF=[...document.querySelectorAll("#follow details[data-fold][open]")].map(d=>d.dataset.fold);
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
   $("follow").innerHTML=`
-    ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋</p>`:""}
+    ${D.me?`<p class="hello">أهلاً ${esc(D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
@@ -1407,36 +1411,65 @@ function srvRegForm(box){
       r=>{if(r.existed||!r.tok){old();return}ySave(r);lsSet("gsyf_srv",r.srv||"مستني");renderKhadem();window.scrollTo(0,0)},
       e=>{if(/متسجل قبل كده/.test(e)){old();return}btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
-// صفحة الأمناء: الموافقة على الخدام وفتح/قفل الصلاحيات لكل واحد
+// مجموعات الخدام: خدام اجتماع جامعيين، خدام اجتماع الربع قرن +25، أو الاتنين
+const GRP=[["جامعيين","جامعيين"],["الربع قرن","الربع قرن +25"],["الاتنين","الاتنين"]];
+const grpL=g=>(GRP.find(x=>x[0]===g)||[,""])[1];
+const srvTitle=(role,g)=>(role==="أمين"?"أمين":"خادم")+(g==="الاتنين"?" جامعيين و+25":g?" "+grpL(g):"");
+const grpChips=(cur,cls)=>GRP.map(([v,l])=>`<button type="button" class="pt ${cls}" data-g="${v}" aria-pressed="${cur===v}">${esc(l)}</button>`).join("");
+// صفحة الأمناء: الموافقة على الخدام (بالمجموعة والدور في خطوة واحدة) وفتح/قفل الصلاحيات
 function renderTeam(){
   const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
   const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
-    <div class="ap-btns"><button type="button" class="ap-ok us" data-f="status" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
-  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}${u.role==="أمين"?' <span class="small muted">(أمين)</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
-    <div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${!!u.perms[k]}">${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div>
+    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips("","pg")}</div></div>
+    <div class="tm-pick"><span>الدور:</span><div class="tm-perms"><button type="button" class="pt pr" data-r="خادم" aria-pressed="true">خادم</button><button type="button" class="pt pr" data-r="أمين" aria-pressed="false">أمين (كل حاجة)</button></div></div>
+    <div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار المجموعة الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
+  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(u.name)}${u.role==="أمين"?' <span class="tm-badge">أمين</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
+    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.group,"ug")}</div></div>
+    <div class="tm-pick"><span>يقدر يشوف:</span><div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${u.role==="أمين"||!!u.perms[k]}"${u.role==="أمين"?" disabled":""}>${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div></div>
     <div class="tm-more">${wa(u)}${u.noPin?'<span class="err">الرقم السري اتمسح، مستني يسجل تاني</span>':`<a href="#" class="us" data-f="resetPin">امسح الرقم السري</a>`}<a href="#" class="us" data-f="status" data-v="موقوف">إيقاف</a></div></article>`;
+  const ord=(a,b)=>(a.role==="أمين"?0:1)-(b.role==="أمين"?0:1)||a.name.localeCompare(b.name,"ar");
+  const sec=(t,L,hot)=>L.length?`<section class="panel tm-sec${hot?" tm-hot":""}"><h3>${t} <span class="muted">(${L.length}${L.some(u=>u.role==="أمين")?" · منهم "+L.filter(u=>u.role==="أمين").length+" أمين":""})</span></h3>${hot?`<p class="small" style="margin:0">اختار لكل واحد هو خادم في أنهي اجتماع.</p>`:""}</section>${L.sort(ord).map(card).join("")}`:"";
+  const nog=on.filter(u=>!u.group);
   $("team").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> خادم مستني موافقة</span><button type="button" id="tmRef">↻ تحديث</button></div>
     ${wait.map(pend).join("")}
-    <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">كل خادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول". دوس على أي صلاحية علشان تفتحها (ملوّنة) أو تقفلها.</p></section>
-    ${on.map(card).join("")||`<p class="empty">لسه مفيش خدام. افتح صلاحية الخادم لحد متسجل من تحت.</p>`}
-    <section class="panel" id="tmAdd"><h3>➕ افتح صلاحية خادم</h3><p class="small muted" style="margin:0">الخادم بيسجل على الموقع زي أي حد، وبعدين تدوّر عليه هنا وتفتح له. هيدخل بنفس الموبايل والرقم السري بتوعه.</p>
+    <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">${GRP.map(([g,l])=>`${esc(l)}: <b>${on.filter(u=>u.group===g).length}</b>`).join(" · ")}${nog.length?` · من غير مجموعة: <b>${nog.length}</b>`:""}<br>الأمين بيشوف كل حاجة. الخادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول"، وأي صلاحية تفتحها له.</p></section>
+    ${sec("⚠️ لسه من غير مجموعة",nog,1)}
+    ${GRP.map(([g,l])=>sec(g==="الاتنين"?"خدام الاجتماعين":"خدام "+l,on.filter(u=>u.group===g))).join("")}
+    ${on.length?"":`<p class="empty">لسه مفيش خدام. ابعت لينك الخدام أو افتح صلاحية لحد متسجل من تحت.</p>`}
+    <section class="panel" id="tmAdd"><h3>➕ افتح صلاحية خادم</h3><p class="small muted" style="margin:0">لو حد متسجل على الموقع ومبعتش طلب: دوّر عليه هنا واختار هو خادم في أنهي اجتماع.</p>
       <input type="search" class="tm-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="tm-res"></div></section>
     ${off.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">مرفوض أو موقوف (${off.length})</summary>${off.map(u=>`<div class="row" data-row="${u.row}"><div class="d"><small>${esc(u.status)}</small></div><div class="t"><b>${esc(u.name)}</b> <button type="button" class="small us" data-f="status" data-v="مقبول">رجّعه</button></div></div>`).join("")}</details>`:""}`;
+  const T=$("team");
   $("tmRef").onclick=()=>{$("tmRef").textContent="…";load()};
-  const q=$("team").querySelector(".tm-q"),res=$("team").querySelector(".tm-res");
+  const done=()=>{renderTeam();renderNav("team")};
+  // كارت الطلب: اختار المجموعة (والدور) وبعدين قبول
+  T.querySelectorAll(".ap-card .pg,.ap-card .pr").forEach(b=>b.onclick=()=>{const c=b.closest(".ap-card"),k=b.classList.contains("pg")?".pg":".pr";
+    c.querySelectorAll(k).forEach(x=>x.setAttribute("aria-pressed",x===b));const g=c.querySelector('.pg[aria-pressed="true"]'),r=c.querySelector('.pr[aria-pressed="true"]'),ok=c.querySelector(".ap-acc");
+    if(g){ok.disabled=false;ok.textContent="✓ قبول "+srvTitle(r.dataset.r,g.dataset.g)}});
+  T.querySelectorAll(".ap-acc").forEach(b=>b.onclick=()=>{const c=b.closest(".ap-card"),u=U.find(x=>x.row===+c.dataset.row),g=c.querySelector('.pg[aria-pressed="true"]').dataset.g,r=c.querySelector('.pr[aria-pressed="true"]').dataset.r;
+    c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
+    callApi("userSet",{row:u.row,phone:u.phone,field:"status",value:"مقبول",group:g,role:r},()=>{u.status="مقبول";u.group=g;u.role=r;done()},m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent="✓ قبول";alert(m)})});
+  // تغيير المجموعة بدوسة
+  T.querySelectorAll(".ug").forEach(b=>b.onclick=()=>{const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),g=b.dataset.g;if(u.group===g)return;
+    b.closest(".tm-perms").querySelectorAll("button").forEach(x=>x.disabled=true);
+    callApi("userSet",{row:u.row,phone:u.phone,field:"group",value:g},()=>{u.group=g;done()},m=>{done();alert(m)})});
+  const q=T.querySelector(".tm-q"),res=T.querySelector(".tm-res");
   const R=(D.regs||[]).filter(r=>r.status!=="مرفوض");
   const showQ=()=>{const v=normAr(toEn(q.value)).trim();if(v.length<2){res.innerHTML="";return}
     const L=R.filter(r=>normAr(r.name).includes(v)||String(r.phone).includes(v)).slice(0,8);
-    res.innerHTML=L.map(r=>`<div class="row"><div class="t"><b>${esc(r.name)}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div></div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:`<button type="button" class="small primary tm-mk" data-row="${r.row}">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. خليه يسجل من الصفحة الرئيسية الأول.</p>`;
-    res.querySelectorAll(".tm-mk").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row);if(!confirm(`تفتح صلاحية خادم لـ ${r.name}؟`))return;b.disabled=true;b.textContent="…";
-      callApi("makeServant",{row:r.row,email:r.email},()=>{b.textContent="اتفتح ✓";load()},m=>{b.disabled=false;b.textContent="خليه خادم";alert(m)})})};
+    res.innerHTML=L.map(r=>`<div class="row" data-reg="${r.row}"><div class="t"><b>${esc(r.name)}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div>${r.servant?"":`<div class="tm-perms tm-mkg" hidden>${grpChips("","mg")}</div>`}</div>${r.servant?`<span class="ok small">${esc(r.servant)} ✓</span>`:`<button type="button" class="small primary tm-mk">خليه خادم</button>`}</div>`).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل. ابعتله لينك الخدام.</p>`;
+    res.querySelectorAll(".tm-mk").forEach(b=>b.onclick=()=>{const w=b.closest(".row").querySelector(".tm-mkg");w.hidden=false;b.textContent="اختار الاجتماع ←";b.disabled=true});
+    res.querySelectorAll(".mg").forEach(b=>b.onclick=()=>{const row=b.closest(".row"),r=R.find(x=>x.row===+row.dataset.reg),btn=row.querySelector(".tm-mk");
+      row.querySelectorAll(".mg").forEach(x=>x.disabled=true);btn.textContent="…";
+      callApi("makeServant",{row:r.row,email:r.email,group:b.dataset.g,role:"خادم"},()=>{btn.textContent="اتفتح ✓";load()},m=>{row.querySelectorAll(".mg").forEach(x=>x.disabled=false);btn.textContent="خليه خادم";alert(m)})})};
   q.oninput=showQ;
-  $("team").querySelectorAll(".us").forEach(b=>b.onclick=e=>{e.preventDefault();const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),f=b.dataset.f;
+  T.querySelectorAll(".us").forEach(b=>b.onclick=e=>{e.preventDefault();const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),f=b.dataset.f;
     if(f==="resetPin"&&!confirm(`تمسح الرقم السري بتاع ${u.name}؟ هيعمل رقم جديد من "عندي حساب؟ ادخل" ثم "أول مرة أدخل؟".`))return;
     if(f==="status"&&b.dataset.v==="موقوف"&&!confirm(`توقف حساب ${u.name}؟`))return;
+    if(f==="role"&&b.dataset.v==="أمين"&&!confirm(`تخلي ${u.name} أمين؟ الأمين بيشوف ويعدّل كل حاجة في الموقع.`))return;
     const isPerm=P.some(([k])=>k===f),v=isPerm?!u.perms[f]:b.dataset.v;b.disabled=true;
-    callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin")u.noPin=true;renderTeam();renderNav("team")},
+    callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin")u.noPin=true;done()},
       m=>{b.disabled=false;alert(m)})});
 }
 function renderNav(cur){
