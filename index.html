@@ -1074,9 +1074,16 @@ function yLoginForm(box,o){o=o||{};
     <label class="fld"><span>الرقم السري (4 أرقام)</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password"><em></em></label>
     <label class="fld y-em" hidden><span>الإيميل اللي سجلت بيه (مرة واحدة بس)</span><input name="email" type="email" dir="ltr" autocomplete="email"><em></em></label>
     <button type="submit" class="primary rg-send">دخول</button><p class="msg small"></p>
-    <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form>`;
+    <p class="small" style="margin:0;display:flex;justify-content:space-between"><a href="#" class="y-back">رجوع</a><a href="#" class="y-fgt">نسيت الرقم السري؟</a></p></form>`;
   const f=box.querySelector("form"),msg=f.querySelector(".msg");
   f.querySelector(".y-back").onclick=e=>{e.preventDefault();(o.back||renderReg)()};
+  // نسيت الرقم السري: الطلب بيروح للخدام يمسحوه، وبعدها يدخل برقم سري جديد + الإيميل اللي سجل بيه
+  f.querySelector(".y-fgt").onclick=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),a=e.target;
+    if(!/^01[0125]\d{8}$/.test(phone)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك اللي سجلت بيه الأول، وبعدين دوس نسيت الرقم السري";f.elements.phone.focus();return}
+    a.style.pointerEvents="none";msg.className="msg small muted";msg.textContent="بيبعت…";
+    callApi("pinForgot",{phone},r=>{a.style.pointerEvents="";msg.className="msg small ok";
+      msg.textContent=r.noPin?"رقمك السري القديم اتمسح خلاص ✓ اكتب رقم سري جديد (4 أرقام) ودوس دخول، والموقع هيسألك على الإيميل اللي سجلت بيه مرة واحدة.":"✓ طلبك وصل للخدام. أول ما يمسحوا الرقم القديم، ادخل برقم موبايلك واكتب رقم سري جديد، والموقع هيسألك على الإيميل اللي سجلت بيه مرة واحدة."},
+      m=>{a.style.pointerEvents="";msg.className="msg small err";msg.textContent=m})};
   f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
     if(!/^01[0125]\d{8}$/.test(phone)||!/^\d{4}$/.test(pin)){msg.className="msg small err";msg.textContent="اكتب رقم موبايلك والرقم السري (4 أرقام)";return}
     const b=f.querySelector("button");b.disabled=true;msg.className="msg small muted";msg.textContent="بيدخل…";
@@ -1579,14 +1586,29 @@ async function aiAsk(q){
 function renderApprove(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني").slice(0,15);
   const edits=R.filter(r=>r.edited).sort((a,b)=>b.edited.localeCompare(a.edited)).slice(0,15);
+  const fg=R.filter(r=>r.forgot).sort((a,b)=>b.forgot.localeCompare(a.forgot));
+  // نسيان الرقم السري: الرقم متشفر ومحدش يقدر يقراه، فالخادم بيمسحه والشاب يعمل رقم جديد بالإيميل اللي سجل بيه
+  const pinRow=r=>`<div class="row" data-reg="${r.row}" style="grid-template-columns:minmax(0,1fr) auto;align-items:center"><div class="t"><b>${esc(dn(r))}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div>${r.forgot?`<div class="why">طلب <span dir="ltr">${esc(r.forgot)}</span></div>`:""}</div>${r.pin?`<button type="button" class="small primary pin-rs" style="flex:none;width:auto;min-height:0;padding:8px 12px;align-self:center">امسح الرقم السري</button>`:`<span class="small muted">مفيش رقم سري، يدخل ويعمل رقم جديد</span>`}</div>`;
   const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(dn(r))}</b><span class="muted small">${esc(r.at)}</span></div>
     <div class="ap-meta">${r.gender?`<span>${gTag(r.gender)}</span>`:""}<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
     <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
+    ${fg.length?`<section class="panel tm-hot"><h3>🔑 نسيوا الرقم السري (${fg.length})</h3><p class="small muted" style="margin:0">امسحه، وبعدها الشاب يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه.</p>${fg.map(pinRow).join("")}</section>`:""}
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
+    <details class="panel"><summary class="small muted" style="cursor:pointer">🔑 حد نسي الرقم السري؟</summary><p class="small muted" style="margin:6px 0 0">دوّر عليه وامسح الرقم السري. بعدها يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه مرة واحدة.</p>
+      <input type="search" class="pin-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="pin-res"></div></details>
     ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span></div></div>`).join("")}</details>`:""}
     ${edits.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">✏️ آخر تعديلات الأعضاء في بياناتهم (${edits.length})</summary>${edits.map(r=>`<div class="ed-row"><b>${esc(dn(r))}</b><div class="small muted">${esc(r.edited)}</div></div>`).join("")}</details>`:""}`;
   $("apRef").onclick=()=>{$("apRef").textContent="…";load()};
+  const A=$("approve"),pq=A.querySelector(".pin-q"),pres=A.querySelector(".pin-res");
+  const pinBind=box=>box.querySelectorAll(".pin-rs").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.closest("[data-reg]").dataset.reg);
+    if(!confirm(`تمسح الرقم السري بتاع ${dn(r)}؟ هيدخل برقم موبايله ويعمل رقم سري جديد بالإيميل اللي سجل بيه.`))return;
+    b.disabled=true;b.textContent="…";
+    callApi("regResetPin",{row:r.row,email:r.email},()=>{r.pin=false;r.forgot="";b.outerHTML=`<span class="small ok">اتمسح ✓ قوله يدخل برقمه ويعمل رقم جديد</span>`;renderNav("approve")},m=>{b.disabled=false;b.textContent="امسح الرقم السري";alert(m)})});
+  pinBind(A);
+  pq.oninput=()=>{const v=normAr(toEn(pq.value)).trim();if(v.length<2){pres.innerHTML="";return}
+    const L=R.filter(r=>r.status!=="مرفوض"&&(normAr(r.name).includes(v)||normAr(r.nick).includes(v)||String(r.phone).includes(v))).slice(0,8);
+    pres.innerHTML=L.map(pinRow).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل.</p>`;pinBind(pres)};
   $("approve").querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row),c=b.closest(".ap-card");c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;c.classList.add(b.dataset.v==="مقبول"?"is-ok":"is-no");c.querySelector(".ap-btns").innerHTML=`<b>${b.dataset.v==="مقبول"?"اتقبل ✓":"اترفض"}</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
       m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent=m})});
@@ -1729,7 +1751,7 @@ function renderTeam(){
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
   // الخادم: 3 تابات بس. الأمين: تاب رابع "الإدارة" جواه الطلبات والخدام والتقييمات وخطة السنة والبرامج
-  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
+  const nw=(D.regs||[]).filter(r=>r.status==="مستني"||r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
   const c=ADM_PAGES.includes(cur)||/^(meet|m)-/.test(cur)?"admin":cur;
   const items=[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:[]),["home","الشباب"],["me","بروفايلي"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===c?'aria-current="page"':""}>${esc(l)}</a>`).join("");
@@ -1737,8 +1759,8 @@ function renderNav(cur){
 const ADM_PAGES=["admin","approve","team","ratings","year"];
 // صفحة الإدارة (للأمناء): زراير كبيرة للصفحات اللي مش محتاجها كل يوم
 function renderAdmin(){
-  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
-  const L=[...(can("regs")?[["approve","📝","طلبات التسجيل",nw?nw+" مستني":"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],
+  const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nf=(D.regs||[]).filter(r=>r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
+  const L=[...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
   $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
