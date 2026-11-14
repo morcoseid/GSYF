@@ -885,7 +885,8 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
   if(!locked&&(!pollMine(P.id)||!window._plFaces)&&!window._plAsk&&lsGet("gsyf_reg")){window._plAsk=1;callApi("pollMine",{email:lsGet("gsyf_reg")||"",tok:YT()},r=>{if(r.faces)window._plFaces=r.faces;if(r.mine&&r.mine.length)lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine));if(r.faces||(r.mine&&r.mine.length))renderHome()},()=>{})}
 }
 function renderHome(){
-  const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
+  // الشباب يشوفوا إيفنتات الشهر الجاري بس (الشهر الجاي بيظهر أول يوم فيه)
+  const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t&&e.date.slice(0,7)<=t.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
   // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
