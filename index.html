@@ -517,6 +517,43 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 #splash .sp-err{margin-top:18px;font-size:.95rem;color:#E4C47E;display:flex;flex-direction:column;gap:12px;align-items:center}
 #splash .sp-err button{background:#E4C47E;color:#120606;border:0;border-radius:999px;padding:8px 24px;font-weight:700;font-family:var(--brand);font-size:1rem}
 @media (prefers-reduced-motion:reduce){#splash .sp-bar::after{animation:none;width:100%}}
+/* توقع السنة (للخدام): خريطة نقط على 13 شهر + الأسابيع بشكل تايملاين */
+.fc-go{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:14px;background:var(--accent-soft);color:var(--accent);font-weight:700;text-decoration:none;border:1px solid var(--line)}
+.fc-intro{margin:0;font-size:.85rem;color:var(--muted)}
+.fc-map{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 6px 6px}
+.fc-map table{border-collapse:collapse;width:100%;table-layout:fixed}
+.fc-map th{font-size:.66rem;font-weight:500;color:var(--muted);padding:3px 0;line-height:1.2;cursor:pointer;border-radius:7px}
+.fc-map th small{display:block;font-size:.58rem;opacity:.8}
+.fc-map th.ic{width:28px;cursor:default}
+.fc-map td{text-align:center;height:27px;padding:0;cursor:pointer}
+.fc-map td.ic{font-size:.95rem;cursor:pointer}
+.fc-map .sel{background:var(--accent-soft)}.fc-map th.sel{color:var(--accent);font-weight:700}
+.fc-map tr.dim td{opacity:.18}
+.fc-dot{display:inline-block;width:13px;height:13px;border-radius:50%;vertical-align:middle}
+.fc-dot.o4{opacity:1;box-shadow:0 0 0 2px var(--surface),0 0 0 3px currentColor}.fc-dot.o3{opacity:.85}.fc-dot.o2{opacity:.5}.fc-dot.o1{opacity:.22}
+.fc-key{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;font-size:.72rem;color:var(--muted);padding:6px 4px 2px}
+.fc-key span{display:inline-flex;align-items:center;gap:5px}.fc-key .fc-dot{width:10px;height:10px;background:var(--fg)}
+.fc-cats{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}.fc-cats::-webkit-scrollbar{display:none}
+.fc-cats button{flex:none;font:inherit;font-size:.8rem;padding:6px 11px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.fc-cats button.on{border:2px solid var(--accent);color:var(--accent);font-weight:700;padding:5px 10px}
+.fc-mh{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fc-mh h2{margin:0;font-family:var(--display);font-size:1.2rem}
+.fc-mh button{font:inherit;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);font-size:1.1rem;cursor:pointer}
+.fc-mh button:disabled{opacity:.3;cursor:default}
+.fc-band{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:4px;font-size:.85rem}
+.fc-band b{color:var(--muted);font-weight:600;font-size:.78rem;margin-left:6px}.fc-band .no{color:var(--busy)}
+.fc-tl{position:relative;padding-right:22px}.fc-tl:before{content:"";position:absolute;right:7px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.fc-wh{position:relative;font-family:var(--display);font-size:.95rem;font-weight:600;margin:8px 0 6px}
+.fc-wh:before{content:"";position:absolute;right:-20px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:3px solid var(--bg)}
+.fc-wh small{font-family:var(--body);color:var(--muted);font-weight:400;font-size:.78rem;margin-right:6px}
+.fc-wh.now:after{content:"الأسبوع ده";font-family:var(--body);font-size:.7rem;font-weight:700;color:#fff;background:var(--accent);border-radius:99px;padding:1px 8px;margin-right:6px}
+.fc-c{background:var(--surface);border:1px solid var(--line);border-right:5px solid;border-radius:12px;padding:9px 11px;margin-bottom:7px}
+.fc-c .r{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.fc-c .k{font-size:.74rem;font-weight:700}.fc-c .n{font-weight:600;margin-top:2px}.fc-c .w{font-size:.78rem;color:var(--muted);margin-top:3px}
+.fc-c.no{border-right-color:var(--busy)}.fc-c.no .n{color:var(--busy)}
+.fc-c.calm .n{color:var(--muted);font-weight:400;font-size:.85rem}
+.fc-p{flex:none;font-size:.7rem;padding:2px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
+.fc-p.fix{background:var(--accent);color:#fff}.fc-p.hi{background:var(--accent-soft);color:var(--accent)}.fc-p.mid{background:var(--mid-soft);color:var(--mid)}.fc-p.low{color:var(--muted);border:1px dashed var(--line)}
 </style>
 </head>
 <body>
@@ -574,6 +611,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   <div id="admin" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="ratings" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="att" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="plan" hidden style="display:flex;flex-direction:column;gap:12px"></div>
   <div id="year" class="months"></div>
   <div id="meet" hidden style="display:flex;flex-direction:column;gap:16px"></div>
   <div id="month" hidden style="display:flex;flex-direction:column;gap:16px"></div>
@@ -1320,6 +1358,7 @@ function renderFollow(){
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
+    <a class="fc-go" href="#plan">📅 توقع أنشطة السنة الجاية</a>
     ${mcPanel()}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
@@ -1738,7 +1777,7 @@ const ADM_PAGES=["admin","approve","team","ratings","year"];
 // صفحة الإدارة (للأمناء): زراير كبيرة للصفحات اللي مش محتاجها كل يوم
 function renderAdmin(){
   const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
-  const L=[...(can("regs")?[["approve","📝","طلبات التسجيل",nw?nw+" مستني":"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],
+  const L=[...(can("regs")?[["approve","📝","طلبات التسجيل",nw?nw+" مستني":"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
   $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
@@ -1844,6 +1883,141 @@ function attFind(phone){
   },m=>{ATT.busy=false;attMsg(m,1)});
 }
 
+/* ===== توقع السنة (للخدام بس): ديسمبر 2026 لحد ديسمبر 2027 =====
+   مبني على كل اللي اتعمل من أكتوبر 2022 لأكتوبر 2026 (الشيت + شات جروب جامعيين)، ومربوط بمواعيد الكنيسة والإجازات.
+   الأسبوع = من السبت للجمعة، ورقمه = ترتيب الخميس بتاعه في الشهر.
+   الثقة: متقرر = اتقرر فعلا · متوقع جدا = اتعمل 3 أو 4 سنين من 4 · متوقع = سنتين · فكرة = مرة واحدة */
+const FC_CATS={
+  comp:{n:"مسابقات",i:"🏆",c:"#B7791F"},
+  trip:{n:"رحلات ومؤتمرات",i:"🚌",c:"#2D5AA0"},
+  out:{n:"ملجأ وقرية وزيارات",i:"🤝",c:"#B23A2E"},
+  lit:{n:"ليتورجية وتسبحة",i:"🕯️",c:"#6B46A8"},
+  agape:{n:"خدمة أغابي (أكل)",i:"🍲",c:"#C05621"},
+  party:{n:"حفلات ومناسبات",i:"🎉",c:"#B83280"},
+  act:{n:"أيام أنشطة",i:"⚽",c:"#2F7A4F"},
+  mat:{n:"إيفنتات المطرانية",i:"⛪",c:"#4A5568"}
+};
+const FC_CONF={fix:"متقرر",hi:"متوقع جدًا",mid:"متوقع",low:"فكرة"};
+const FC_ITEMS=[
+["2026-12",1,"trip","fix","مؤتمر الخدام","قرار اجتماع أبونا: أول أو نص ديسمبر"],
+["2026-12",2,"trip","low","رحلة دير وحضور تسبحة","اتعملت مرة (وادي النطرون ديسمبر 2025)"],
+["2026-12",3,"comp","fix","امتحان الكأس لمين، الشهر التاني (الاثنين 14)","ميعاد الأسقفية"],
+["2026-12",3,"lit","hi","أول سهرة تسبحة كيهك (السبت 12)","تسبحة كيهك اتعملت كل سنة (4 من 4)"],
+["2026-12",3,"agape","fix","أغابي في سهرة كيهك","قرار اجتماع الخدام 6 نوفمبر: أغابي كل ليلة تسبحة"],
+["2026-12",4,"lit","hi","تسبحة كيهك بدل اجتماع الخميس 24","التسبحة خدت مكان الاجتماع في 2023 و2024"],
+["2026-12",4,"mat","mid","تسبحة كيهك لشباب المطرانية (في المجدلية)","اتعملت 2022 و2023 لشباب كنايس شبرا الخيمة"],
+["2026-12",4,"agape","fix","أغابي في سهرة كيهك","قرار اجتماع الخدام"],
+["2026-12",5,"out","fix","زيارة مستشفى 57357","قرار اجتماع الخدام: آخر أسبوع في ديسمبر. زيارة خدمة في ديسمبر 3 من 4 سنين"],
+["2027-01",2,"party","fix","حفلة العيد المجمعة للخدمة كلها (الجمعة 15)","قرار: حفلة واحدة بعد العيد يوم جمعة، ساعتين ونص"],
+["2027-01",3,"lit","low","نحضر ليلة الغطاس واللقان مع بعض (الاثنين 18)","مناسبة كبيرة في الكنيسة، ومفيش امتحانات بعدها بكتير"],
+["2027-01",4,"out","mid","تجهيز القافلة: الفقرات والكراتين","القافلة بتحتاج تجهيز أسبوع أو اتنين قبلها (2023، 2024)"],
+["2027-01",4,"act","low","زيارة معرض الكتاب","اتعملت مرة (2024)، والمعرض بيبقى آخر يناير"],
+["2027-02",1,"out","fix","القافلة","قرار اجتماع الخدام: أول أسبوع في فبراير"],
+["2027-02",2,"trip","fix","مؤتمر الشتاء","قرار: الأسبوع اللي بعد القافلة. لازم نحجز المكان"],
+["2027-02",3,"comp","fix","امتحان الكأس لمين، الشهر التالت (الاثنين 15)","ميعاد الأسقفية"],
+["2027-02",4,"lit","low","صلاة بعد الاجتماع في صوم يونان (الخميس 25 فصح يونان)","مناسبة نبدأ بيها جو الصوم"],
+["2027-03",1,"act","mid","يوم أنشطة أو يوم رياضي (السبت 27 فبراير)","اتعمل في فبراير 2023 و2026، وآخر فرصة قبل الصوم"],
+["2027-03",2,"trip","mid","رحلة يوم خفيفة لدير في إجازة عيد الفطر","رحلة في الربيع 2024 و2026، والإجازة 10–12 مارس"],
+["2027-03",2,"lit","mid","قداس الجمعة مع بعض طول الصوم الكبير","اتعمل في صوم 2023"],
+["2027-03",3,"lit","mid","تسبحة بعد الاجتماع في الصوم","اتعملت في 2022 و2023"],
+["2027-03",4,"comp","low","احتفال بفرق الكأس لمين","اتعمل في مارس 2023"],
+["2027-04",1,"lit","low","صلاة قنديل عام","اتعملت في 2024"],
+["2027-04",2,"comp","low","مسابقة أسبوعية بين الفرق في الاجتماع","اتعملت في أبريل 2023"],
+["2027-04",3,"lit","mid","قداس مع بعض آخر الصوم","اتعمل في 2023"],
+["2027-04",4,"agape","mid","تجهيز أغابي البصخة: المتطوعين والخامات","الأغابي بتحتاج تجهيز قبلها"],
+["2027-04",5,"lit","hi","عشية الشعانين ودرب الصليب بدل اجتماع خميس العهد","أسبوع الآلام اتعمل فيه حاجة كل سنة (4 من 4)"],
+["2027-04",5,"agape","mid","أغابي البصخة يوم الجمعة العظيمة (30 أبريل)","اتعملت 2024 و2026، حوالي 1000 وجبة"],
+["2027-05",1,"trip","hi","رحلة شم النسيم (الاثنين 3 مايو)","رحلة العيد اتعملت 3 من 4 سنين"],
+["2027-05",1,"party","low","هدايا العيد في اجتماع الخميس 6","اتعملت في 2024"],
+["2027-05",3,"trip","mid","مؤتمر في إجازة عيد الأضحى (15–19 مايو)","مؤتمر الربيع اتعمل 2023 و2026، والإجازة قبل الامتحانات"],
+["2027-06",4,"party","hi","احتفال بانتهاء الامتحانات (الخميس 24)","اتعمل 3 من 4 سنين"],
+["2027-06",4,"act","hi","بداية الكورال والتسجيل في مهرجان الصيف","بيبدأ آخر يونيو كل سنة (4 من 4)"],
+["2027-07",1,"comp","hi","فتح التسجيل في دوري أبطال الكتاب المقدس","التسجيل بيفتح يوليو أو أغسطس (3 من 4)"],
+["2027-07",1,"lit","low","يوم روحي في الإجازة: قداس وفطار ومحاضرة (السبت 3)","اتعمل في يونيو 2025"],
+["2027-07",2,"lit","hi","نحضر نهضة الأنبا شنودة مع بعض","النهضة كل سنة (4 من 4)، ومفيش اجتماع الخميس 8"],
+["2027-07",4,"out","low","زيارة ملجأ (السبت 17)","اتعملت في يوليو 2023"],
+["2027-08",1,"trip","hi","رحلة الصيف للبحر (قبل صوم العدرا)","رحلة صيف 3 من 4 سنين، أول أغسطس"],
+["2027-08",2,"lit","hi","نحضر نهضة العدرا مع بعض","النهضة كل سنة (4 من 4)، ومفيش اجتماع الخميس 12 و19"],
+["2027-08",4,"party","low","حفلة رجوع الاجتماع بعد النهضة (الخميس 26)","اتعملت Dish party في 2026"],
+["2027-09",1,"trip","hi","مؤتمر الصيف (آخر أغسطس أو أول سبتمبر)","مؤتمر صيف 3 من 4 سنين"],
+["2027-09",3,"lit","mid","عشية عيد النيروز (السبت 11)","اتعملت 2024 و2026"],
+["2027-09",4,"act","mid","تكوين لجان الاجتماع (فوت على الجروب)","اتعمل في 2026 مرتين"],
+["2027-09",5,"party","low","عيد الصليب: يوم مميز في الاجتماع (الخميس 30)","اتعمل في 2023"],
+["2027-10",2,"party","hi","حفلة البداية: استقبال سنة أولى والتخرج","اتعملت 4 من 5 سنين، أول أكتوبر"],
+["2027-10",3,"comp","hi","فتح التسجيل في الكأس لمين","بيفتح أكتوبر كل سنة تقريبًا (4 من 5)"],
+["2027-10",3,"lit","low","فريق تسبيح قبل الاجتماع","اتعمل في أكتوبر 2022 و2023"],
+["2027-10",4,"out","mid","تجهيز قافلة القرية","التجهيز في أكتوبر (2024، 2025)"],
+["2027-11",1,"out","mid","قافلة القرية (الجمعة 5 أو السبت 6)","اتعملت أول نوفمبر 2024 و2025"],
+["2027-11",1,"comp","hi","بداية الكأس لمين","بتبدأ نوفمبر"],
+["2027-11",2,"trip","hi","رحلة الخريف (يوم سبت)","رحلة في نوفمبر 4 من 5 سنين"],
+["2027-11",3,"lit","mid","يوم روحي: قداس وزيارة كنايس","اتعمل 2023 (في المطرانية) و2025"],
+["2027-12",1,"comp","mid","امتحان الكأس لمين","امتحان كل شهر من نوفمبر لفبراير"],
+["2027-12",2,"trip","low","رحلة دير وحضور تسبحة","اتعملت مرة (ديسمبر 2025)"],
+["2027-12",3,"out","hi","زيارة خدمة: 57357 أو مركز ذوي احتياجات (السبت 11)","زيارة في ديسمبر 3 من 4 سنين"],
+["2027-12",3,"lit","hi","بداية سهرات تسبحة كيهك","كل سنة (4 من 4)"],
+["2027-12",3,"agape","mid","أغابي في سهرات كيهك","اتعملت 2025، ومتقررة 2026"],
+["2027-12",4,"mat","mid","تسبحة كيهك لشباب المطرانية","اتعملت 2022 و2023"],
+["2027-12",4,"lit","hi","تسبحة كيهك بدل اجتماع الخميس 23","حصلت 3 مرات"],
+["2027-12",5,"party","mid","حفلة العيد: نفس نظام 2027 (حفلة واحدة بعد 7 يناير)","حفلة الكريسماس أو العيد كل سنة"]
+];
+const FC_MONTHS={
+"2026-12":["صوم الميلاد، وكيهك من الخميس 10","آخر الترم، والامتحانات بتبدأ 2 يناير","","زحمة"],
+"2027-01":["عيد الميلاد 7، الغطاس 19","امتحانات 2–21، وإجازة نص السنة 23 يناير – 4 فبراير","الخميس 7 (عيد الميلاد)","زحمة"],
+"2027-02":["صوم يونان 22–24","إجازة لحد 4، الترم التاني من السبت 6، ورمضان من 8","الخميس 11 لو المؤتمر فيه","زحمة"],
+"2027-03":["الصوم الكبير من الاثنين 8","عيد الفطر 10–12 تقريبًا","","متوسط"],
+"2027-04":["الشعانين 25، أسبوع الآلام 26–30","تحرير سيناء 25","الخميس 29 (خميس العهد)","زحمة"],
+"2027-05":["عيد القيامة 2، الخماسين","شم النسيم 3، عيد الأضحى 15–19، الدراسة بتخلص 20 والامتحانات بعدها","أسبوع المؤتمر","زحمة"],
+"2027-06":["الصعود 10، العنصرة 20، صوم الرسل من 21","امتحانات لحد 20 تقريبًا","","هادي"],
+"2027-07":["صوم الرسل لحد 11، عيد الرسل 12، نهضة الأنبا شنودة","إجازة الصيف، 23 يوليو","الخميس 8 (النهضة)","متوسط"],
+"2027-08":["صوم العدرا 7–21، التجلي 19","إجازة الصيف","الخميس 12 و19 (نهضة العدرا)","متوسط"],
+"2027-09":["النيروز 12، عيد الصليب 28","الدراسة بتبدأ آخر الشهر","الأسبوع اللي بعد المؤتمر","متوسط"],
+"2027-10":["موسم عادي","6 أكتوبر","","متوسط"],
+"2027-11":["صوم الميلاد من الجمعة 26","","","زحمة"],
+"2027-12":["صوم الميلاد، وكيهك من السبت 11","امتحانات الترم الأول بتبدأ آخر الشهر أو أول يناير","","زحمة"]
+};
+function fcWeeks(ym){ // Thursdays of the month -> [{n, sat, fri, thu}]
+  const [y,m]=ym.split("-").map(Number),out=[];
+  for(let d=1;d<=31;d++){const t=new Date(y,m-1,d);if(t.getMonth()!==m-1)break;
+    if(t.getDay()===4){const s=new Date(y,m-1,d-5),f=new Date(y,m-1,d+1);out.push({n:out.length+1,sat:s,fri:f,thu:t})}}
+  return out;
+}
+
+const FC_SM=["ينا","فبر","مار","أبر","مايو","يون","يول","أغس","سبت","أكت","نوف","ديس"];
+const FCO={fix:4,hi:3,mid:2,low:1},FCS={m:"",c:""};
+function renderPlan(){
+  const months=Object.keys(FC_MONTHS),ym=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+  if(!FCS.m){const n=ym(parse(D.today));FCS.m=months.includes(n)?n:n<months[0]?months[0]:months[months.length-1]}
+  const M=FCS.m,cats=Object.keys(FC_CATS),mi=months.indexOf(M);
+  const best=(c,m)=>{const L=FC_ITEMS.filter(i=>i[0]===m&&i[2]===c);return L.length?Math.max(...L.map(i=>FCO[i[3]])):0};
+  const head=months.map(m=>{const k=+m.slice(5)-1;return `<th data-m="${m}" title="${GM[k]}" class="${m===M?"sel":""}">${FC_SM[k]}${k===11?`<small>${m.slice(2,4)}</small>`:""}</th>`}).join("");
+  const rows=cats.map(c=>`<tr class="${FCS.c&&FCS.c!==c?"dim":""}"><td class="ic" data-c="${c}" title="${esc(FC_CATS[c].n)}">${FC_CATS[c].i}</td>${months.map(m=>{const b=best(c,m);return `<td data-m="${m}" data-c="${c}" class="${m===M?"sel":""}">${b?`<span class="fc-dot o${b}" style="background:${FC_CATS[c].c};color:${FC_CATS[c].c}"></span>`:""}</td>`}).join("")}</tr>`).join("");
+  const X=FC_MONTHS[M],wk=fcWeeks(M),today=D.today,WN=["الأول","التاني","التالت","الرابع","الخامس"];
+  const dmx=d=>d.getDate()+" "+GM[d.getMonth()];
+  const nums=(X[2].match(/\d+/g)||[]).map(Number);
+  const tl=wk.map(w=>{
+    const its=FC_ITEMS.filter(i=>i[0]===M&&i[1]===w.n&&(!FCS.c||i[2]===FCS.c));
+    const no=/الخميس/.test(X[2])&&nums.includes(w.thu.getDate())&&!FCS.c;
+    const now=iso(w.sat)<=today&&today<=iso(w.fri);
+    return `<div class="fc-wh${now?" now":""}">الأسبوع ${WN[w.n-1]}<small>${dmx(w.sat)} – ${dmx(w.fri)}</small></div>`+
+      (no?`<div class="fc-c no"><div class="n">⛔ مفيش اجتماع الخميس ${w.thu.getDate()}</div></div>`:"")+
+      (its.length?its.map(i=>{const c=FC_CATS[i[2]];return `<div class="fc-c" style="border-right-color:${c.c}"><div class="r"><span class="k" style="color:${c.c}">${c.i} ${esc(c.n)}</span><span class="fc-p ${i[3]}">${FC_CONF[i[3]]}</span></div><div class="n">${esc(i[4])}</div><div class="w">📊 ${esc(i[5])}</div></div>`}).join("")
+        :no?"":`<div class="fc-c calm" style="border-right-color:var(--line)"><div class="n">${FCS.c?"مفيش حاجة من النوع ده":"اجتماع عادي"}</div></div>`);
+  }).join("");
+  $("plan").innerHTML=`<p class="fc-intro">توقع مبني على اللي اتعمل من 2022 لـ 2026، ومربوط بمواسم الكنيسة والإجازات. دوس على أي شهر.</p>
+    <div class="fc-map"><table><tr><th class="ic"></th>${head}</tr>${rows}</table>
+      <div class="fc-key"><span><i class="fc-dot o4"></i>متقرر</span><span><i class="fc-dot o3"></i>متوقع جدًا</span><span><i class="fc-dot o2"></i>متوقع</span><span><i class="fc-dot o1"></i>فكرة</span></div></div>
+    <div class="fc-cats"><button type="button" data-c="" class="${FCS.c?"":"on"}">الكل</button>${cats.map(c=>`<button type="button" data-c="${c}" class="${FCS.c===c?"on":""}">${FC_CATS[c].i} ${esc(FC_CATS[c].n)}</button>`).join("")}</div>
+    <div class="fc-mh"><button type="button" class="fc-pv" ${mi<=0?"disabled":""} aria-label="الشهر اللي فات">→</button><h2>${GM[+M.slice(5)-1]} ${M.slice(0,4)}</h2><button type="button" class="fc-nx" ${mi>=months.length-1?"disabled":""} aria-label="الشهر الجاي">←</button></div>
+    <div class="fc-band"><div><b>الكنيسة</b>${esc(X[0])}</div>${X[1]?`<div><b>الدراسة والإجازات</b>${esc(X[1])}</div>`:""}${X[2]?`<div class="no"><b>مفيش اجتماع</b>${esc(X[2])}</div>`:""}</div>
+    <div class="fc-tl">${tl}</div>`;
+  const P=$("plan"),go=(m,c)=>{if(m)FCS.m=m;if(c!==undefined)FCS.c=FCS.c===c?"":c;renderPlan()};
+  P.querySelectorAll(".fc-map th[data-m]").forEach(e=>e.onclick=()=>go(e.dataset.m));
+  P.querySelectorAll(".fc-map td[data-m]").forEach(e=>e.onclick=()=>go(e.dataset.m,e.querySelector(".fc-dot")?e.dataset.c:undefined));
+  P.querySelectorAll(".fc-map td.ic").forEach(e=>e.onclick=()=>go(null,e.dataset.c));
+  P.querySelectorAll(".fc-cats button").forEach(e=>e.onclick=()=>{FCS.c=e.dataset.c;renderPlan()});
+  P.querySelector(".fc-pv").onclick=()=>go(months[mi-1]);P.querySelector(".fc-nx").onclick=()=>go(months[mi+1]);
+}
+
 function route(){
   let h=location.hash.slice(1);
   if(h==="app")h="home";
@@ -1853,18 +2027,19 @@ function route(){
   else if(!h)h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
   if((h==="team"||h==="admin")&&D.level!==2)h="follow";
-  if(D.level===1&&!["follow","home","me","approve","att","servant"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt);$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  if(D.level===1&&!["follow","home","me","approve","att","servant","plan"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att", isP=h==="plan";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP);$("plan").hidden=!isP;$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome||((isMe||isK)&&!D.level));$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":"خطة السنة";
-  renderNav(mt?h:isHome?"home":isFollow||isAt?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":isP?"توقع السنة":"خطة السنة";
+  renderNav(mt?h:isHome?"home":isFollow||isAt||isP?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
   if(isA)renderAdmin();
   if(isAt)renderAtt();
+  if(isP)renderPlan();
   if(isMe)renderMe();
   meBtn();if(isMe)$("meBtn").hidden=true;
   if(isAp)renderApprove();
@@ -1875,7 +2050,7 @@ function route(){
   if(isFollow)renderFollow();
   if(m)renderMonth(m[1]);
   if(mt){meetMonth=null;renderMeet(+mt[1]-1)}
-  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt);   // ملاحظة الزحمة لخطة السنة بس
+  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP);   // ملاحظة الزحمة لخطة السنة بس
   window.scrollTo(0,0);
 }
 
