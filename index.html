@@ -838,9 +838,9 @@ function renderHome(){
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
   // آخر اجتماع لكل اجتماع أسبوعي (لو مكانش ملغي) + الإيفنتات اللي خلصت = اللي الشباب يقيّموه
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
-  // مفاجأة +25: لحد 20 نوفمبر مش بتظهر في الاجتماعات خالص (كارت "مفاجأة" لوحده فوق الإيفنتات)، والأحد القديم باهت ومكتوب ملغي
+  // مفاجأة +25: لحد 27 نوفمبر مش بتظهر في الاجتماعات خالص (كارت "مفاجأة" لوحده فوق الإيفنتات)، والأحد القديم باهت ومكتوب ملغي
   // reveal = ساعة كشف المفاجأة (بتوقيت الموبايل). قبلها عداد للكشف، بعدها هدية تتفتح وتظهر كل التفاصيل للكل. لينك الإعلان: الموقع/#plus25
-  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-20",reveal:"2026-11-14T20:00:00",old:"اجتماع الأحد",oldDay:0,
+  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-27",reveal:"2026-11-14T20:00:00",old:"اجتماع الأحد",oldDay:0,
     prog:[["🙏","صلاة"],["✝️","كلمة أبونا"],["🥤","سناكس وقعدة حلوة"]]}};
   const spOut=sp=>Date.now()>=new Date(sp.reveal).getTime();
   const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
