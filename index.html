@@ -841,7 +841,7 @@ const VOICE25={target:"صوت شباب +25",
   spirit:["🔥 ماشي كويس","🌤️ طالع نازل","🌫️ تايه شوية","🧊 بعيد ومحتاج حد"]};
 /* ===== تصويت +25 "نعمل إيه الشهر الجاي؟": بيظهر بعد كشف المفاجأة. الأصوات في تاب "التصويت" (صوت واحد للحساب) ===== */
 // "توقّع المفاجأة": تصويت في التشويق لحد ساعة الكشف. أول اختيار في السيرفر هو الإجابة الصح (اجتماع +25)، وبعد الكشف كارت +25 بيقول كام واحد توقعها صح
-const POLL_WIN={until:"2026-11-14T20:00:00"};
+const POLL_WIN={until:"2026-11-15T20:00:00"};
 const plS=o=>esc(o);
 const pollMine=id=>{try{return JSON.parse(lsGet("gsyf_poll_"+id)||"null")}catch(e){return null}};
 const pollRight=()=>{const P=D.poll;return P&&P.voters?{n:P.counts[0],t:P.voters}:null};
@@ -854,7 +854,7 @@ function pollCard(locked,pend){if(!pollOn())return "";const P=D.poll,mine=pollMi
     :`<div class="pl-res">${P.opts.map((o,i)=>({o,i,n:pc(i)})).sort((a,b)=>b.n-a.n).slice(0,3).map(x=>`<div class="pl-r${mine&&mine.includes(x.o)?" me":""}"><i style="width:${x.n}%"></i><span>${plS(x.o)}${mine&&mine.includes(x.o)?" ✓":""}</span><b>${x.n}%</b></div>`).join("")}</div>`;
   const foot=`<div class="pl-ft"><span>${P.voters?`🔥 ${P.voters} توقعوا`:""}</span>${locked?`<button type="button" class="pl-reg">${pend?"⏳ طلبك بيتراجع":"سجّل وتوقّع"}</button>`:mine&&!edit?`<button type="button" class="pl-ed">غيّر توقعي</button>`:""}</div>
     `;
-  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🎁 توقّع المفاجأة</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار لحد توقعين، والإجابة بتتكشف السبت ٨ بالليل 🎁":"شوف الناس توقعت إيه… الإجابة السبت ٨ بالليل 👀"}</p>${body}${foot}</div></section>`}
+  return `<section class="y-poll" id="vote"><div class="pl-in"><span class="pl-tag">🎁 توقّع المفاجأة</span><h2>${esc(P.q)}</h2><p class="pl-sub">${voteMode?"اختار لحد توقعين، والإجابة بتتكشف الأحد ٨ بالليل 🎁":"شوف الناس توقعت إيه… الإجابة الأحد ٨ بالليل 👀"}</p>${body}${foot}</div></section>`}
 function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!sec)return;const P=D.poll;
   const go=sec.querySelector(".pl-go"),sel=()=>[...sec.querySelectorAll(".pl-o.on")].map(b=>P.opts[+b.dataset.i]);
   if(go)go.disabled=!sel().length;
@@ -873,7 +873,7 @@ function renderHome(){
   const lastMeets=D.weekly.map((w,i)=>{let d=parse(t);if(!(d.getDay()===w.day&&new Date().getHours()>=20))d=addDays(d,-1);for(let k=0;k<7&&d.getDay()!==w.day;k++)d=addDays(d,-1);const k=iso(d),p=prog(w,k);return p.status==="ملغي"?null:{row:"m"+i,title:w.title,date:k,meet:1}}).filter(Boolean);
   // مفاجأة +25: لحد 27 نوفمبر مش بتظهر في الاجتماعات خالص (كارت "مفاجأة" لوحده فوق الإيفنتات)، والأحد القديم باهت ومكتوب ملغي
   // reveal = ساعة كشف المفاجأة (بتوقيت الموبايل). قبلها عداد للكشف، بعدها هدية تتفتح وتظهر كل التفاصيل للكل. لينك الإعلان: الموقع/#plus25
-  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-27",reveal:"2026-11-14T20:00:00",old:"اجتماع الأحد",oldDay:0,
+  const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-27",reveal:"2026-11-15T20:00:00",old:"اجتماع الأحد",oldDay:0,
     prog:[["🙏","صلاة"],["✝️","كلمة أبونا"],["🥤","سناكس وقعدة حلوة"]]}};
   const spOut=sp=>Date.now()>=new Date(sp.reveal).getTime();
   const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
@@ -974,7 +974,7 @@ function renderHome(){
   renderReg();cdTick();
   const bi=[];
   if(feat&&!fDone)bi.push({id:"rt:"+feat.title+feat.date,e:"⭐",t:"قيّم "+feat.title,s:"دقيقتين ومن غير اسم",go:".y-feat"});
-  if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"توقّع المفاجأة: "+D.poll.q,s:"الإجابة السبت ٨ بالليل",go:".y-poll"});
+  if(pollOn())bi.push({id:"poll:"+D.poll.id,e:"🗳",t:"توقّع المفاجأة: "+D.poll.q,s:"الإجابة الأحد ٨ بالليل",go:".y-poll"});
   if(spT)bi.push(spRev?{id:"spr:"+spT,e:"🎁",t:"المفاجأة اتكشفت! افتح الهدية",s:spWhen,go:".y-surp"}:{id:"sp:"+spT,e:"🎁",t:"فيه مفاجأة جاية!",s:"هتتكشف قريب على الموقع",go:".y-surp"});
   if(alex)bi.push({id:"alex:2026-11-21",e:"🌊",t:locked?"فيه رحلة جاية!":"رحلة إسكندرية السبت ٢١ نوفمبر",s:locked?"سجّل عشان تشوف التفاصيل":"٣٠٠ جنيه · احجز مكانك",go:".y-alex"});
   if(kas)bi.push({id:"kas:2026",e:"🏆",t:"الكأس لمين \u2066"+"2026-27"+"\u2069: سجّل في الفريق",s:"آخر ميعاد الأربعاء ٤ نوفمبر",go:".y-kas"});
