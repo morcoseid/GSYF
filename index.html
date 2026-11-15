@@ -900,6 +900,8 @@ const setMyBk=L=>{window._bkFA=0;const s=JSON.stringify(L||[]),ch=s!==JSON.strin
 const BK_ST={"مستني الدفع":["⏳","اتحجز، مستني الدفع"],"مؤكد":["✅","حجزك متأكد"],"محجوز":["✅","إنت محجوز"]};
 // الدفع: الشاب بيقول "دفعت" بدوسة، والخادم المسؤول هو اللي بيأكد (هو اللي بيضمن). مفيش أرقام عمليات ولا سكرينات
 const bkClaim=m=>(m.sAmount?m.sAmount+" ج":"")+(m.sMethod?(m.sAmount?" · ":"")+m.sMethod:"")+(m.img?" 📎":"");
+// "أنا جاي" في الاجتماعات (زي +25) للمشاركة بس، مش حجز: مبيظهرش في الحجز ولا إدارة الرحلات
+const isRsvp=t=>{t=t||"";const e=(D&&D.events||[]).find(x=>x.title===t);return /\+25/.test(t)||!!(e&&e.type==="اجتماع")};
 const bkPayTxt=m=>m.wait?"⏳ قائمة الانتظار رقم "+m.wait:m.paid||m.status==="مؤكد"?"✅ مؤكد، الخادم استلم الفلوس"+(m.amount?` (${m.amount} ج${m.method?" · "+m.method:""})`:""):m.said==="دفعت"?"🙋 قلت إنك دفعت"+(bkClaim(m)?" ("+bkClaim(m)+")":"")+"، مستني الخادم يأكد":m.said==="مستلمناش"?"⚠️ الخادم لسه مستلمش فلوسك":m.status==="مستني الدفع"?"⏳ مستني الدفع":"✓ محجوز";
 function bkSlot(e){
   const m=MYBK.find(b=>b.event===e.title&&b.date===e.date);
@@ -908,7 +910,7 @@ function bkSlot(e){
   if(m){const s=BK_ST[m.status]||["✅",m.status],wait=m.status==="مستني الدفع",mf=faceStack(bkFaces(e),e.booked);
     const say=wait?(m.said==="دفعت"?`<span class="bk-say">🙋 قلت إنك دفعت${bkClaim(m)?` <b>${esc(bkClaim(m))}</b>`:""}. الحجز هيتأكد ✅ أول ما الخادم يتأكد إنه استلم.</span>`:m.said==="مستلمناش"?`<span class="bk-warn">⚠️ الخادم بيقول لسه مستلمش فلوسك. لو دفعت كلّمه على واتساب.</span>`:`<span class="small">${e.price?"💰 "+esc(e.price)+" · ":""}لما تدفع دوس «دفعت» والخادم هيأكد</span>`):"";
     return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${mf?`<div class="fstk-row">${mf}<span>حاجزين معاك</span></div>`:""}${say}${m.status!=="مؤكد"?`<div class="btns">${wait?(m.said==="دفعت"?`<button type="button" class="small bk-say1">عدّل</button><button type="button" class="small bk-say0">لأ، لسه مدفعتش</button>`:`<button type="button" class="primary small bk-say1">دفعت ✓</button>`):""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
-  if(!e.booking)return "";
+  if(!e.booking||isRsvp(e.title))return "";
   const left=e.cap?e.cap-(e.booked||0):null,fc=faceStack(bkFaces(e),e.booked);
   if(left!==null&&left<=0)return `<p class="small" style="margin:6px 0 0">الأماكن الـ ${e.cap} اتحجزت 😔 تقدر تدخل قائمة الانتظار، ولو حد اعتذر هتطلع مكانه بالترتيب.</p><div class="btns"><button type="button" class="primary bk">ادخل قائمة الانتظار</button></div>`;
   return `<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>${fc?`<div class="fstk-row">${fc}<span>حاجزين</span></div>`:""}${left!==null&&left<=15?`<span class="small muted">فاضل ${left} ${left<=10?"أماكن":"مكان"} بس</span>`:""}`;
@@ -1065,7 +1067,7 @@ function renderHome(){
   const evList=soon.filter(e=>!(spE&&e.row===spE.row));
   const evCard=e=>`<article class="y-card"${axE&&e.row===axE.row?' id="alex"':""}>${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.end&&e.end!==e.date?" لحد "+dm(e.end):""}${e.time?" · "+esc(tm(e.time)):""}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span>${bkSlot(e)}</div></article>`;
   // الحجز المفتوح بيظهر فوق القفل: اللي مش مسجل بيسجّل ويحجز في خطوة واحدة، والحساب الجديد (لسه مستني موافقة) بيحجز على طول
-  const bkOpen=D.events.filter(e=>pub(e)&&e.booking&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3),canBk=pend&&!!YT();
+  const bkOpen=D.events.filter(e=>pub(e)&&e.booking&&!isRsvp(e.title)&&(e.end||e.date)>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3),canBk=pend&&!!YT();
   const bkTeaser=locked&&bkOpen.length?`<section class="y-sec" id="bkOpen"><h2 class="y-h">الحجز مفتوح 🎟️</h2><div class="y-cards">${bkOpen.map(e=>canBk?evCard(e):`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${esc(e.type)}</span><b>${esc(e.title)}</b><span class="meta">${dl(e.date)}${e.place?" · "+esc(e.place):""}${e.price?" · "+esc(e.price):""}</span><div class="btns"><button type="button" class="primary bk-reg">${pend?"ادخل واحجز":"سجّل واحجز مكانك"}</button>${pend?"":`<button type="button" class="bk-in">عندي حساب</button>`}</div></div></article>`).join("")}</div></section>`:"";
   // التقييم: بيظهر بس اللي لسه متقيمش
   const rateLeft=rate.filter(e=>!lsGet("rt_"+e.row+e.title+e.date));
@@ -1352,7 +1354,7 @@ function renderMe(){
   if(!sv&&!tok){box.innerHTML=`<section class="panel"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">البروفايل لكل واحد بحسابه. اخرج وادخل برقم موبايلك والرقم السري.</p><div class="btns"><button type="button" class="me-out">خروج</button></div></section>`;box.querySelector(".me-out").onclick=logout;return}
   const role=sv?srvTitle(sv.role,sv.group):p&&p.servant?srvTitle(p.servant,p.group):gen,st=p?p.status:lsGet("gsyf_reg_st")||"";
   const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
-  const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.status==="ملغي"?"اتلغى":bkPayTxt(b)}</div></div></div>`;
+  const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.status==="ملغي"?"اتلغى":isRsvp(b.event)?"✋ قلت إنك جاي":bkPayTxt(b)}</div></div></div>`;
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[sv.role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
@@ -1402,7 +1404,7 @@ const bkStat=b=>b.paid?["c-ok","✅ دفع"]:b.said==="دفعت"?["c-claim","�
 function renderTrips(){
   const T=$("trips"),ed=bkEdit(),t=D.today,own=!can("bookings")&&!ed&&D.bkOwn,bk={};
   (D.bookings||[]).forEach(b=>{(bk[b.event+"|"+b.date]=bk[b.event+"|"+b.date]||[]).push(b)});
-  const evs=D.events.filter(e=>e.booking||bk[e.title+"|"+e.date]).filter(e=>!own||own.includes(e.title+"|"+e.date)).filter(e=>(e.end||e.date)>=iso(addDays(parse(t),-7))).sort((a,b)=>a.date.localeCompare(b.date));
+  const evs=D.events.filter(e=>!isRsvp(e.title)&&(e.booking||bk[e.title+"|"+e.date])).filter(e=>!own||own.includes(e.title+"|"+e.date)).filter(e=>(e.end||e.date)>=iso(addDays(parse(t),-7))).sort((a,b)=>a.date.localeCompare(b.date));
   if(!evs.some(e=>e.row===TRIP.ev))TRIP.ev=evs.length?evs[0].row:0;
   const e=evs.find(x=>x.row===TRIP.ev);
   const head=`${tripsOnly()&&D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">مسؤول الرحلات</span></p>`:""}${ed?"":`<p class="note" style="margin:0">👀 إنت بتشوف بس. تأكيد الدفع والإلغاء لمسؤول الرحلات.</p>`}
