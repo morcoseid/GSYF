@@ -1194,7 +1194,7 @@ const REG_CHECK={
   name:v=>{v=v.trim().replace(/\s+/g," ");if(!/^[ء-ي٠-٩ ]+$/.test(v))return "اكتب اسمك بالعربي";const w=v.split(" ").filter(x=>x.length>=2);return w.length<3?"اكتب اسمك ثلاثي على الأقل (اسمك واسم الأب والجد)":""},
   birth:v=>{if(!v)return "اختار تاريخ ميلادك";const y=+v.slice(0,4),now=new Date().getFullYear();return y<now-60||y>now-12?"تاريخ الميلاد مش مظبوط":""},
   phone:v=>/^01[0125]\d{8}$/.test(normPhone(v))?"":"اكتب رقم موبايل مصري صح: 11 رقم ويبدأ بـ 010 أو 011 أو 012 أو 015",
-  email:v=>!v.trim()||/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim())?"":"الإيميل مش مظبوط، أو سيبه فاضي",
+  email:v=>/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim())?"":"الإيميل مش مظبوط",
   email2:(v,f)=>v.trim().toLowerCase()===f.elements.email.value.trim().toLowerCase()?"":"الإيميلين مش زي بعض"
 };
 // شاب ولا بنت: لازم يختار (دوسة واحدة)
@@ -1207,12 +1207,14 @@ function regForm(box){
     <div class="fld g-fld"><span>أنا</span>${gPick("")}<em></em></div>
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
-    <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه بعد كده</span><input name="pin" type="text" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="off" placeholder="مثال: 1234"><small class="hint">احفظه، هتدخل بيه برقم موبايلك.</small><em></em></label>
-    <label class="fld"><span>الإيميل (اختياري)</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
+    <label class="fld"><span>الإيميل</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
+    <label class="fld"><span>أكّد الإيميل</span><input name="email2" type="email" dir="ltr" autocomplete="off" placeholder="اكتبه تاني"><em></em></label>
+    <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه حسابك</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
+    <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
     <button type="submit" class="primary rg-send">${window._afterReg?"سجّل واحجز مكانك":"سجّل"}</button><p class="msg small"></p>
     <p class="small muted" style="margin:0">بياناتك بتوصل لخدام الخدمة بس.</p></form>`;
   const f=box.querySelector("form");
-  const RC={name:REG_CHECK.name,birth:REG_CHECK.birth,phone:REG_CHECK.phone,pin:PIN_CK.pin,email:REG_CHECK.email};
+  const RC=Object.assign({},REG_CHECK,PIN_CK);
   const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
   Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
   f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
@@ -1418,8 +1420,7 @@ function renderTrips(){
   T.innerHTML=head+`<section class="panel tr-panel"><div class="tr-h"><div><h3 style="margin:0">${esc(e.title)}</h3><span class="muted small">${dl(e.date)}${pr?" · "+pr+" ج للفرد":""}${e.booking?"":" · الحجز مقفول"}</span></div></div>
     <div class="tr-tiles">${tile(L.length+(e.cap?`<small>/${e.cap}</small>`:""),"حاجزين","","all")}${pr?tile(claim.length,"مستنيين تأكيدك",claim.length?"hot":"","claim")+tile(wait.length,"لسه مدفعوش","","wait")+tile(paid.length,"دفعوا","ok","paid"):""}</div>
     ${pr?`<div class="tr-money"><div><span>المحصّل</span><b class="num">${got} ج</b></div><div><span>💵 كاش</span><b class="num">${cash}</b></div><div><span>📱 إنستاباي</span><b class="num">${insta}</b></div><div><span>المتبقي</span><b class="num">${Math.max(0,L.length*pr-got)}</b></div></div>`:""}
-    <div class="tr-tools"><input type="search" class="tr-q" placeholder="دوّر باسم أو رقم" value="${esc(TRIP.q)}">${ed?`<button type="button" class="small primary tr-add">➕ ضيف حد</button>`:""}<button type="button" class="small bk-copy" data-ev="${e.row}">📋 انسخ القايمة</button></div>
-    <div class="tr-addf" hidden></div>
+    <div class="tr-tools"><input type="search" class="tr-q" placeholder="دوّر باسم أو رقم" value="${esc(TRIP.q)}"><button type="button" class="small bk-copy" data-ev="${e.row}">📋 انسخ القايمة</button></div>
     <div class="tr-list">${show.map(row).join("")||`<p class="empty">${L.length?"مفيش حد هنا.":"لسه مفيش حد حجز."}</p>`}</div>
     ${X.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتلغى (${X.length})</summary>${X.map(b=>`<div class="row"><div class="t small muted"><s>${esc(dn(b))}</s> · ${esc(b.phone)}</div></div>`).join("")}</details>`:""}</section>`;
   bindTrips(T,e);
@@ -1448,9 +1449,6 @@ function bindTrips(T,e){
   T.querySelectorAll(".pay-undo").forEach(x=>x.onclick=()=>{const b=bkOf(x);if(!confirm("تشيل تأكيد الدفع بتاع "+dn(b)+"؟"))return;paySet(b,{value:false},x)});
   T.querySelectorAll(".bk-del").forEach(x=>x.onclick=()=>{const b=bkOf(x);if(!confirm("إلغاء حجز "+dn(b)+"؟"))return;x.disabled=true;
     callApi("bookCancel",{row:b.row},()=>{b.status="ملغي";renderTrips()},fail(x))});
-  const ad=T.querySelector(".tr-add");if(ad)ad.onclick=()=>{const box=T.querySelector(".tr-addf");box.hidden=!box.hidden;if(box.hidden)return;
-    box.innerHTML=`<p class="small muted" style="margin:0">لو حد كلمك أو دفعلك ومحجزش من الموقع. لو ليه حساب على الموقع الحجز هيظهر عنده.</p><div class="pay-f"><input class="ta-n" placeholder="الاسم" style="width:auto;flex:1"><input class="ta-p" type="tel" dir="ltr" placeholder="01xxxxxxxxx" style="width:130px"><button type="button" class="small primary ta-s">ضيف</button></div>`;
-    box.querySelector(".ta-s").onclick=ev=>{const b=ev.target;b.disabled=true;callApi("bookAdd",{row:e.row,title:e.title,name:box.querySelector(".ta-n").value,phone:normPhone(box.querySelector(".ta-p").value)},()=>{TRIP.f="all";load()},fail(b))}};
   T.querySelectorAll(".bk-copy").forEach(x=>x.onclick=()=>{const L=(D.bookings||[]).filter(b=>b.event===e.title&&b.date===e.date&&b.status!=="ملغي");
     const txt=e.title+" ("+e.date+")\n"+L.map((b,i)=>(i+1)+". "+dn(b)+" "+b.phone+(pr?(b.paid?" ✓ دفع "+(b.amount||pr)+(b.method?" "+b.method:""):b.said==="دفعت"?" (بيقول دفع، لسه متأكدش)":" (لسه مدفعش)"):"")).join("\n");
     const done=()=>{x.textContent="اتنسخ ✓"};if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>prompt("انسخ:",txt));else prompt("انسخ:",txt)});
