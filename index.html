@@ -980,6 +980,21 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
   // وبعد ما يتوقع: صور اللي توقعوا (مرة واحدة)
   if(!locked&&(!pollMine(P.id)||!window._plFaces)&&!window._plAsk&&lsGet("gsyf_reg")){window._plAsk=1;callApi("pollMine",{email:lsGet("gsyf_reg")||"",tok:YT()},r=>{if(r.faces)window._plFaces=r.faces;if(r.mine&&r.mine.length)lsSet("gsyf_poll_"+P.id,JSON.stringify(r.mine));if(r.faces||(r.mine&&r.mine.length))renderHome()},()=>{})}
 }
+// لينك الربط (MORCOS 15 نوفمبر): اللي اتحجزلهم بالاسم بس (شيت كيرلس) بياخدوا لينك خاص ?c=كود. بيفتحه، يسجل أو يدخل، والحجز بيتربط بحسابه في نفس مكانه
+(()=>{try{const u=new URL(location.href),c=(u.searchParams.get("c")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase();if(c){lsSet("gsyf_claim",c);u.searchParams.delete("c");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
+function claimCard(){
+  const code=lsGet("gsyf_claim")||"",C=window._clm;
+  if(!code&&!(C&&C.just))return "";
+  if(code&&!C&&!window._clmA){window._clmA=1;callApi("bkCode",{code},r=>{window._clm=r;renderHome()},m=>{window._clm={err:m};renderHome()});return ""}
+  if(!C)return "";
+  if(!C.err&&!C.first)C.err="اللينك ده مش شغال. كلّم مسؤول الرحلة على واتساب";
+  if(C.err){lsSet("gsyf_claim","");return `<section class="y-news"><span class="y-tag">لينك الرحلة</span><div>${esc(C.err)}</div></section>`}
+  if(code&&YT()&&!window._clmB){window._clmB=1;callApi("bkClaim",{code,tok:YT(),email:lsGet("gsyf_reg")||""},r=>{lsSet("gsyf_claim","");setMyBk(r.mine);window._clm=Object.assign(r,{just:1});renderHome()},m=>{lsSet("gsyf_claim","");window._clm={err:m};renderHome()})}
+  const pl=C.wait?`رقم ${C.wait} في قائمة الانتظار`:`مكان رقم ${C.seat} في الأتوبيس`;
+  if(C.just){window._clm.just=0;return `<section class="y-kas y-alex" id="claimCard"><div class="kh"><span class="tr">✅</span><div><b>تمام يا ${esc(C.first)}، حجزك اتربط بحسابك</b><small>${esc(C.event)} · ${pl}${C.paid?" · دفعك متسجل":""}</small></div></div></section>`}
+  return `<section class="y-kas y-alex" id="claimCard"><div class="kh"><span class="tr">🎟️</span><div><b>أهلاً ${esc(C.first)} 👋</b><small>ليك ${pl} في ${esc(C.event)} (${dl(C.date)})${C.paid?"، ودفعك متسجل ✅":""}</small></div></div>
+    <div class="kb"><p class="small" style="margin:0 0 8px">${YT()?"بنربط حجزك بحسابك…":"سجّل حسابك في دقيقة (أو ادخل لو عندك حساب)، ومكانك هيتربط بيك على طول وتتابعه من هنا."}</p>${YT()?"":`<div class="btns"><button type="button" class="primary kgo cl-reg">سجّل دلوقتي</button><button type="button" class="kgo cl-in">عندي حساب</button></div>`}</div></section>`;
+}
 function renderHome(){
   // الشباب يشوفوا إيفنتات الشهر الجاري بس (الشهر الجاي بيظهر أول يوم فيه)
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t&&e.date.slice(0,7)<=t.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
@@ -1074,6 +1089,7 @@ function renderHome(){
   // "تسجيلك" مش بيظهر للي متسجل وداخل بحسابه (بياناته في بروفايلي)
   const showReg=locked||!YT();
   $("home").innerHTML=`
+    ${claimCard()}
     ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">قيّم الحفلة 🎉</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في الحفلة الجاية. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
     ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="y-news"><span class="y-tag">إعلان</span><div>${esc(n.text)}</div></div>`).join("")}
     ${locked?bkTeaser+regSec:""}
@@ -1099,6 +1115,10 @@ function renderHome(){
   (D.news||[]).filter(n=>n.show==="الكل").forEach(n=>bi.push({id:"n:"+n.text.slice(0,60),e:"📢",t:n.text.length>70?n.text.slice(0,70)+"…":n.text,s:"إعلان",go:".y-news"}));
   if(!locked)soon.filter(e=>!(spE&&e.row===spE.row)).slice(0,5).forEach(e=>bi.push({id:"e:"+e.row+e.title+e.date,e:"📅",t:e.title,s:dl(e.date),go:'.y-card .ev[data-row="'+e.row+'"]'}));
   renderBell(bi);
+  const clGo=fn=>{const x=$("regSec"),bx=$("regBox");if(!bx)return;fn(bx);if(x)x.scrollIntoView({behavior:"smooth",block:"start"})};
+  const clR=$("home").querySelector(".cl-reg"),clI=$("home").querySelector(".cl-in");
+  if(clR)clR.onclick=()=>clGo(regForm);
+  if(clI)clI.onclick=()=>clGo(b=>yLoginForm(b,{done:()=>renderHome(),note:"ادخل برقم موبايلك والرقم السري، وحجزك هيتربط بيك على طول"}));
   const axr=$("home").querySelector(".ax-reg");if(axr)axr.onclick=()=>{const x=$("regSec");if(!x)return;x.scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   // "سجّل واحجز": التسجيل وبعده الحجز على طول. "عندي حساب": الدخول وبعده الحجز
   const bkGo=(b,fn)=>{window._afterReg=+b.closest("[data-row]").dataset.row;const x=$("regSec");fn($("regBox"));if(x)x.scrollIntoView({behavior:"smooth",block:"start"})};
