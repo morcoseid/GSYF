@@ -430,6 +430,9 @@ body.youth #me{padding-top:56px}
 .tr-meta{font-size:.85rem}.tr-line{font-size:.9rem}
 .tr-chip{font-size:.75rem;padding:2px 9px;border-radius:999px;white-space:nowrap}
 .c-ok{background:var(--calm-soft);color:var(--calm)}.c-claim{background:var(--mid-soft);color:var(--mid);font-weight:700}.c-wait{background:var(--line);color:var(--muted)}.c-no{background:var(--busy-soft);color:var(--busy)}
+.tr-req{border-color:var(--mid);background:var(--mid-soft)}.tr-req>summary b{color:var(--mid)}
+.tr-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.tr-pick .pt small{opacity:.7;font-weight:400}
+.bk-bus{display:block;font-weight:700;margin-top:2px}
 .tr-img img{max-width:100%;max-height:70vh;border-radius:8px;margin-top:4px;display:block}
 @media (max-width:420px){.tr-tiles,.tr-money{grid-template-columns:repeat(2,1fr)}}
 #ratings{--rp-y:#B8862B;--rp-s:#7A1A12}
@@ -907,14 +910,14 @@ const BK_ST={"مستني الدفع":["⏳","اتحجز، مستني الدفع"
 const bkClaim=m=>(m.sAmount?m.sAmount+" ج":"")+(m.sMethod?(m.sAmount?" · ":"")+m.sMethod:"")+(m.img?" 📎":"");
 // "أنا جاي" في الاجتماعات (زي +25) للمشاركة بس، مش حجز: مبيظهرش في الحجز ولا إدارة الرحلات
 const isRsvp=t=>{t=t||"";const e=(D&&D.events||[]).find(x=>x.title===t);return /\+25/.test(t)||!!(e&&e.type==="اجتماع")};
-const bkPayTxt=m=>m.wait?"⏳ قائمة الانتظار رقم "+m.wait:m.paid||m.status==="مؤكد"?"✅ مؤكد، الخادم استلم الفلوس"+(m.amount?` (${m.amount} ج${m.method?" · "+m.method:""})`:""):m.said==="دفعت"?"🙋 قلت إنك دفعت"+(bkClaim(m)?" ("+bkClaim(m)+")":"")+"، مستني الخادم يأكد":m.said==="مستلمناش"?"⚠️ الخادم لسه مستلمش فلوسك":m.status==="مستني الدفع"?"⏳ مستني الدفع":"✓ محجوز";
+const bkPayTxt=m=>m.wait?"⏳ قائمة الانتظار رقم "+m.wait:(m.req?"📨 طلبك وصل، مستني مسؤول الرحلة يأكد مكانك · ":m.bus?"🚌 أوتوبيس "+m.bus+" · ":"")+(m.paid||m.status==="مؤكد"?"✅ مؤكد، الخادم استلم الفلوس"+(m.amount?` (${m.amount} ج${m.method?" · "+m.method:""})`:""):m.said==="دفعت"?"🙋 قلت إنك دفعت"+(bkClaim(m)?" ("+bkClaim(m)+")":"")+"، مستني الخادم يأكد":m.said==="مستلمناش"?"⚠️ الخادم لسه مستلمش فلوسك":m.status==="مستني الدفع"?"⏳ مستني الدفع":"✓ محجوز");
 function bkSlot(e){
   const m=MYBK.find(b=>b.event===e.title&&b.date===e.date);
   // قائمة الانتظار: الرقم بيتحسب من السيرفر كل مرة، ولو حد اعتذر بيطلع لوحده
   if(m&&m.wait)return `<div class="bk-box bk-wl" data-bk="${m.row}"><b>⏳ إنت في قائمة الانتظار رقم <span class="num">${m.wait}</span></b><span class="small">الأماكن الـ ${e.cap} اتحجزت. لو حد اعتذر هتطلع مكانه بالترتيب، وهيظهرلك هنا إنك اتحجزت وتدفع ساعتها.</span><div class="btns"><button type="button" class="small bk-x">اطلع من قائمة الانتظار</button></div></div>`;
-  if(m){const s=BK_ST[m.status]||["✅",m.status],wait=m.status==="مستني الدفع",mf=faceStack(bkFaces(e),e.booked);
+  if(m){const s=m.req?["📨","طلبك وصل لمسؤول الرحلة"]:BK_ST[m.status]||["✅",m.status],wait=m.status==="مستني الدفع",mf=faceStack(bkFaces(e),e.booked);
     const say=wait?(m.said==="دفعت"?`<span class="bk-say">🙋 قلت إنك دفعت${bkClaim(m)?` <b>${esc(bkClaim(m))}</b>`:""}. الحجز هيتأكد ✅ أول ما الخادم يتأكد إنه استلم.</span>`:m.said==="مستلمناش"?`<span class="bk-warn">⚠️ الخادم بيقول لسه مستلمش فلوسك. لو دفعت كلّمه على واتساب.</span>`:`<span class="small">${e.price?"💰 "+esc(e.price)+" · ":""}لما تدفع دوس «دفعت» والخادم هيأكد</span>`):"";
-    return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${mf?`<div class="fstk-row">${mf}<span>حاجزين معاك</span></div>`:""}${say}${m.status!=="مؤكد"?`<div class="btns">${wait?(m.said==="دفعت"?`<button type="button" class="small bk-say1">عدّل</button><button type="button" class="small bk-say0">لأ، لسه مدفعتش</button>`:`<button type="button" class="primary small bk-say1">دفعت ✓</button>`):""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
+    return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${m.req?`<span class="small">هيأكد مكانك ويحدد الأوتوبيس قريب، وهيظهرلك هنا.</span>`:m.bus?`<span class="bk-bus">🚌 مكانك في أوتوبيس ${esc(m.bus)}</span>`:""}${mf?`<div class="fstk-row">${mf}<span>حاجزين معاك</span></div>`:""}${say}${m.status!=="مؤكد"?`<div class="btns">${wait?(m.said==="دفعت"?`<button type="button" class="small bk-say1">عدّل</button><button type="button" class="small bk-say0">لأ، لسه مدفعتش</button>`:`<button type="button" class="primary small bk-say1">دفعت ✓</button>`):""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
   if(!e.booking||isRsvp(e.title))return "";
   const left=e.cap?e.cap-(e.booked||0):null,fc=faceStack(bkFaces(e),e.booked);
   if(left!==null&&left<=0)return `<p class="small" style="margin:6px 0 0">الأماكن الـ ${e.cap} اتحجزت 😔 تقدر تدخل قائمة الانتظار، ولو حد اعتذر هتطلع مكانه بالترتيب.</p><div class="btns"><button type="button" class="primary bk">ادخل قائمة الانتظار</button></div>`;
@@ -995,7 +998,7 @@ function claimCard(){
   if(!C.err&&!C.first)C.err="اللينك ده مش شغال. كلّم مسؤول الرحلة على واتساب";
   if(C.err){lsSet("gsyf_claim","");return `<section class="y-news"><span class="y-tag">لينك الرحلة</span><div>${esc(C.err)}</div></section>`}
   if(code&&YT()&&!window._clmB){window._clmB=1;callApi("bkClaim",{code,tok:YT(),email:lsGet("gsyf_reg")||""},r=>{lsSet("gsyf_claim","");setMyBk(r.mine);window._clm=Object.assign(r,{just:1});renderHome()},m=>{lsSet("gsyf_claim","");window._clm={err:m};renderHome()})}
-  const pl=C.wait?`رقم ${C.wait} في قائمة الانتظار`:`مكان رقم ${C.seat} في الأتوبيس`;
+  const pl=C.wait?`رقم ${C.wait} في قائمة الانتظار`:C.bus?`مكان في أوتوبيس ${C.bus}`:`مكان (مسؤول الرحلة هيحدد الأوتوبيس)`;
   if(C.just){window._clm.just=0;return `<section class="y-kas y-alex" id="claimCard"><div class="kh"><span class="tr">✅</span><div><b>تمام يا ${esc(C.first)}، حجزك اتربط بحسابك</b><small>${esc(C.event)} · ${pl}${C.paid?" · دفعك متسجل":""}</small></div></div></section>`}
   return `<section class="y-kas y-alex" id="claimCard"><div class="kh"><span class="tr">🎟️</span><div><b>أهلاً ${esc(C.first)} 👋</b><small>ليك ${pl} في ${esc(C.event)} (${dl(C.date)})${C.paid?"، ودفعك متسجل ✅":""}</small></div></div>
     <div class="kb"><p class="small" style="margin:0 0 8px">${YT()?"بنربط حجزك بحسابك…":"سجّل حسابك في دقيقة (أو ادخل لو عندك حساب)، ومكانك هيتربط بيك على طول وتتابعه من هنا."}</p>${YT()?"":`<div class="btns"><button type="button" class="primary kgo cl-reg">سجّل دلوقتي</button><button type="button" class="kgo cl-in">عندي حساب</button></div>`}</div></section>`;
@@ -1425,6 +1428,10 @@ const money=p=>{const m=toEn(p||"").match(/\d+/);return m?+m[0]:0};
 const bkEdit=()=>!!(D&&D.bkEdit),tripsOnly=()=>!!(D&&D.me&&D.me.group==="الرحلات");
 const bkSee=()=>!!D&&(can("bookings")||bkEdit()||!!D.bkOwn);
 const TRIP={ev:0,f:"all",q:"",rm:false};
+// طلبات الحجز اللي لسه متوزعتش على أوتوبيس (في الرحلات اللي ليها أوتوبيسات)
+const tripReqs=()=>(D.bookings||[]).filter(b=>b.status!=="ملغي"&&!b.bus&&D.events.some(e=>e.title===b.event&&e.date===b.date&&(e.buses||[]).length&&!isRsvp(e.title)));
+// مسؤول الرحلات: الصفحة بتجيب الطلبات الجديدة لوحدها كل دقيقة (لو مش بيكتب حاجة)
+setInterval(()=>{if(document.visibilityState==="visible"&&D&&bkEdit()&&location.hash==="#trips"&&!document.querySelector("#trips .pay-f:not([hidden]),#trips .bk-add-f:not([hidden])")&&document.activeElement!==document.querySelector("#trips .tr-q")&&Date.now()-lastLoad>55000){lastLoad=Date.now();load()}},60000);
 // فكّرهم بالدفع (MORCOS 16 نوفمبر): رسالة ثابتة للولاد وواحدة للبنات، ولكل واحد لسه مدفعش زرار واتساب بالرسالة جاهزة
 const TRIP_PAY="كيرلس حمدي (01223937203)";   // مسؤول الرحلات، اللي بيستلم الإنستاباي
 const rmKey=e=>"gsyf_rm_"+e.row+"_"+e.date;
@@ -1451,32 +1458,42 @@ function renderTrips(){
   // الترتيب بوقت الحجز بالظبط (ولو نفس الدقيقة: اللي اتسجل في الشيت الأول). أول "عدد الأماكن" مؤكدين والباقي قائمة انتظار (MORCOS 15 نوفمبر)
   const byTime=(x,y)=>String(x.at).localeCompare(String(y.at))||x.row-y.row;
   const A=(bk[e.title+"|"+e.date]||[]).slice().sort(byTime),L=A.filter(b=>b.status!=="ملغي"),X=A.filter(b=>b.status==="ملغي"),pr=money(e.price);
-  const cap=e.cap||0;L.forEach((b,i)=>{b._n=i+1;b._w=cap&&i>=cap?i-cap+1:0});const LS=L.filter(b=>!b._w);   // الدفع بيتحسب للي ليهم مكان بس
-  const paid=LS.filter(b=>b.paid),claim=LS.filter(b=>!b.paid&&b.said==="دفعت"),wait=LS.filter(b=>!b.paid&&b.said!=="دفعت");
+  // الأوتوبيسات (MORCOS 18 نوفمبر): كل حجز جديد "طلب" لحد ما مسؤول الرحلات يحطه في أوتوبيس 1 أو 2 أو قائمة الانتظار
+  const cap=e.cap||0,BS=e.buses||[],bm=BS.length>0;
+  L.forEach(b=>{b._q=bm&&!b.bus;b._w=0;b._n=0});
+  const RQ=L.filter(b=>b._q),WL=L.filter(b=>bm&&b.bus==="انتظار"),BUS=BS.map((c,i)=>L.filter(b=>b.bus===String(i+1)));
+  BUS.forEach(G=>G.forEach((b,i)=>b._n=i+1));WL.forEach((b,i)=>b._w=i+1);if(!bm)L.forEach((b,i)=>b._n=i+1);
+  const LS=bm?[].concat(...BUS):L,LP=LS.concat(RQ);   // الفلوس المتبقية بتتحسب للي ليهم مكان في أوتوبيس، والدفع بيبان للطلبات كمان
+  const paid=LP.filter(b=>b.paid),claim=LP.filter(b=>!b.paid&&b.said==="دفعت"),wait=LS.filter(b=>!b.paid&&b.said!=="دفعت");
   const amt=b=>b.method==="معفي"?0:b.amount||pr,sum=L2=>L2.reduce((a,b)=>a+amt(b),0),got=sum(paid),cash=sum(paid.filter(b=>b.method==="كاش")),insta=sum(paid.filter(b=>b.method==="إنستاباي"));
   const q=normAr(TRIP.q);
-  const show=L.filter(b=>TRIP.f==="all"||(TRIP.f==="claim"&&!b._w&&!b.paid&&b.said==="دفعت")||(TRIP.f==="wait"&&!b._w&&!b.paid&&b.said!=="دفعت")||(TRIP.f==="paid"&&!b._w&&b.paid)).filter(b=>!q||normAr(dn(b)).includes(q)||String(b.phone).includes(TRIP.q));
-  const sec=(t,info,BL)=>{const S=show.filter(b=>BL.includes(b));if(!BL.length||(!S.length&&(q||TRIP.f!=="all")))return "";
-    return `<details class="tr-bus" open><summary><b>${t}</b><span class="muted small">${info}</span></summary>${S.map(row).join("")||`<p class="empty">مفيش حد هنا.</p>`}</details>`};
-  const seat=L.filter(b=>!b._w),wl=L.filter(b=>b._w),sp=seat.filter(b=>b.paid);
+  const show=L.filter(b=>TRIP.f==="all"||(TRIP.f==="req"&&b._q)||(TRIP.f==="claim"&&!b._w&&!b.paid&&b.said==="دفعت")||(TRIP.f==="wait"&&!b._w&&!b._q&&!b.paid&&b.said!=="دفعت")||(TRIP.f==="paid"&&!b._w&&b.paid)).filter(b=>!q||normAr(dn(b)).includes(q)||String(b.phone).includes(TRIP.q));
+  const sec=(t,info,BL,cl)=>{const S=show.filter(b=>BL.includes(b));if(!BL.length||(!S.length&&(q||TRIP.f!=="all")))return "";
+    return `<details class="tr-bus${cl?" "+cl:""}" open><summary><b>${t}</b><span class="muted small">${info}</span></summary>${S.map(row).join("")||`<p class="empty">مفيش حد هنا.</p>`}</details>`};
+  const seat=LS,wl=WL,sp=seat.filter(b=>b.paid);
   const tile=(n,l,c,f)=>`<button type="button" class="tr-tile${c?" "+c:""}${f&&TRIP.f===f?" on":""}"${f?` data-f="${f}"`:""}><b class="num">${n}</b><span>${l}</span></button>`;
   const row=b=>{const st=bkStat(b);
     const line=b.paid&&b.method==="معفي"?`🎁 معفي من الدفع`:b.paid?`✅ استلم <b>${amt(b)} ج</b>${b.method?" · "+esc(b.method):""}${b.by?` <span class="muted">(${esc(b.by.replace(/^مستلمش: /,"").split(" · ")[0])})</span>`:""}${pr&&b.amount&&b.amount<pr?` · <b class="err">باقي ${pr-b.amount} ج</b>`:""}`
       :b.said==="دفعت"?`🙋 بيقول دفع${b.sAmount?` <b>${b.sAmount} ج</b>`:""}${b.sMethod?" · "+esc(b.sMethod):""}`:b.said==="مستلمناش"?`✗ اتقاله إنك مستلمتش`:"";
-    return `<div class="tr-row" data-row="${b.row}"><div class="tr-top"><b><span class="tr-n num">${b._w?"انتظار "+b._w:b._n}</span>${esc(dn(b))}</b><span class="tr-chip ${st[0]}">${st[1]}</span></div>
+    return `<div class="tr-row" data-row="${b.row}"><div class="tr-top"><b><span class="tr-n num">${b._q?"طلب جديد":b._w?"انتظار "+b._w:b._n}</span>${esc(dn(b))}</b><span class="tr-chip ${st[0]}">${st[1]}</span></div>
       <div class="tr-meta"><a class="num" dir="ltr" href="https://wa.me/2${esc(b.phone)}" target="_blank" rel="noopener">${esc(b.phone)}</a> · <span class="muted">حجز ${esc(String(b.at).slice(5,16))}</span></div>
       ${line?`<div class="tr-line">${line}</div>`:""}${b.img?`<button type="button" class="small bk-img" data-row="${b.row}">📎 صورة التحويل</button><div class="tr-img" hidden></div>`:""}${b.proof?`<div class="why">💳 ${esc(b.proof)}</div>`:""}${b.notes?`<div class="why">${esc(b.notes)}</div>`:""}
-      ${ed?`<div class="btns">${pr||b.paid?(b.paid?`<button type="button" class="small pay-ok" data-row="${b.row}">عدّل المبلغ</button><button type="button" class="small pay-undo" data-row="${b.row}">تراجع</button>`:`<button type="button" class="small primary pay-ok" data-row="${b.row}">✓ استلمت</button>${b.said==="دفعت"?`<button type="button" class="small pay-no" data-row="${b.row}">✗ مستلمتش</button>`:""}`):""}<button type="button" class="small bk-del" data-row="${b.row}">إلغاء الحجز</button></div>`:""}</div>`};
+      ${ed&&bm?`<div class="tr-pick"${b._q?"":" hidden"}><span class="small">${b._q?"حطه في:":"انقله لـ:"}</span>${BS.map((c,i)=>{const k=String(i+1),n=BUS[i].length;return `<button type="button" class="pt bus-set" data-row="${b.row}" data-bus="${k}" aria-pressed="${b.bus===k}">🚌 ${k}<small class="num"> ${n}/${c}</small></button>`}).join("")}<button type="button" class="pt bus-set" data-row="${b.row}" data-bus="انتظار" aria-pressed="${b.bus==="انتظار"}">⏳ انتظار</button></div>`:""}
+      ${ed?`<div class="btns">${pr||b.paid?(b.paid?`<button type="button" class="small pay-ok" data-row="${b.row}">عدّل المبلغ</button><button type="button" class="small pay-undo" data-row="${b.row}">تراجع</button>`:`<button type="button" class="small primary pay-ok" data-row="${b.row}">✓ استلمت</button>${b.said==="دفعت"?`<button type="button" class="small pay-no" data-row="${b.row}">✗ مستلمتش</button>`:""}`):""}${bm&&!b._q?`<button type="button" class="small bus-mv">🚌 نقل</button>`:""}<button type="button" class="small bk-del" data-row="${b.row}">إلغاء الحجز</button></div>`:""}</div>`};
   T.innerHTML=head+`<section class="panel tr-panel"><div class="tr-h"><div><h3 style="margin:0">${esc(e.title)}</h3><span class="muted small">${dl(e.date)}${pr?" · "+pr+" ج للفرد":""}${e.booking?"":" · الحجز مقفول"}</span></div></div>
-    <div class="tr-tiles">${tile(seat.length+(cap?`<small>/${cap}</small>`:""),wl.length?`حاجزين + ${wl.length} انتظار`:"حاجزين","","all")}${pr?tile(claim.length,"مستنيين تأكيدك",claim.length?"hot":"","claim")+tile(wait.length,"لسه مدفعوش","","wait")+tile(paid.length,"دفعوا","ok","paid"):""}</div>
+    <div class="tr-tiles">${bm?tile(RQ.length,"طلبات جديدة",RQ.length?"hot":"","req"):""}${tile(seat.length+(cap?`<small>/${cap}</small>`:""),(bm?"في الأوتوبيس":"حاجزين")+(wl.length?` + ${wl.length} انتظار`:""),"","all")}${pr?tile(claim.length,"مستنيين تأكيدك",claim.length?"hot":"","claim")+tile(wait.length,"لسه مدفعوش","","wait")+tile(paid.length,"دفعوا","ok","paid"):""}</div>
     ${pr?`<div class="tr-money"><div><span>المحصّل</span><b class="num">${got} ج</b></div><div><span>💵 كاش</span><b class="num">${cash}</b></div><div><span>📱 إنستاباي</span><b class="num">${insta}</b></div><div><span>المتبقي</span><b class="num">${Math.max(0,seat.filter(b=>!(b.paid&&b.method==="معفي")).length*pr-sum(sp))}</b></div></div>`:""}
     <div class="tr-tools"><input type="search" class="tr-q" placeholder="دوّر باسم أو رقم" value="${esc(TRIP.q)}"><button type="button" class="small bk-copy" data-ev="${e.row}">📋 انسخ القايمة</button>${pr&&wait.length?`<button type="button" class="small rm-go" aria-pressed="${TRIP.rm}">📲 فكّرهم بالدفع (${wait.length})</button>`:""}${ed?`<button type="button" class="small primary bk-add">➕ ضيف حد</button>`:""}</div>
     ${ed?`<div class="bk-add-f pay-f" hidden><input type="text" class="ba-n" placeholder="الاسم (الأول واسم الأب)" aria-label="الاسم"><input type="tel" class="ba-p" inputmode="numeric" dir="ltr" placeholder="01xxxxxxxxx" aria-label="الموبايل"><button type="button" class="small primary ba-save">حجز</button><button type="button" class="small ba-cx">رجوع</button><p class="small muted" style="margin:4px 0 0;flex-basis:100%">للي كلّمك مباشرة. بيتحط آخر القايمة، ولو سجّل على الموقع بنفس الرقم الحجز بيتربط بحسابه لوحده.</p></div>`:""}
     ${TRIP.rm&&pr?rmPanel(e,LS):""}
-    <div class="tr-list">${L.length?(sec(cap?"✅ الحاجزين":"الحاجزين",`${seat.length}${cap?" من "+cap:""}${pr?` · دفعوا ${sp.length} · ${sum(sp)} ج`:""}${cap?(seat.length<cap?` · فاضل ${cap-seat.length}`:" · كامل ✓"):""}`,seat)+sec("⏳ قائمة الانتظار",`${wl.length} ${wl.length===1?"مستني":"مستنيين"} مكان`,wl))||`<p class="empty">مفيش حد هنا.</p>`:`<p class="empty">لسه مفيش حد حجز.</p>`}</div>
+    <div class="tr-list">${L.length?(bm?sec(`📨 طلبات جديدة (${RQ.length})`,ed?"اختار لكل واحد أوتوبيس أو انتظار":"مستنية مسؤول الرحلات",RQ,"tr-req")+BUS.map((G,i)=>{const c=BS[i],gp=G.filter(b=>b.paid);return sec(`🚌 أوتوبيس ${i+1}`,`${G.length} من ${c}${pr?` · دفعوا ${gp.length} · ${sum(gp)} ج`:""}${G.length<c?` · فاضل ${c-G.length}`:G.length===c?" · اتملى ✓":` · ⚠️ زيادة ${G.length-c}`}`,G)}).join("")+sec("⏳ قائمة الانتظار",`${wl.length} ${wl.length===1?"مستني":"مستنيين"} مكان`,wl)
+      :sec("الحاجزين",`${seat.length}${pr?` · دفعوا ${sp.length} · ${sum(sp)} ج`:""}`,seat))||`<p class="empty">مفيش حد هنا.</p>`:`<p class="empty">لسه مفيش حد حجز.</p>`}</div>
     ${X.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتلغى (${X.length})</summary>${X.map(b=>`<div class="row"><div class="t small muted"><s>${esc(dn(b))}</s> · ${esc(b.phone)}</div></div>`).join("")}</details>`:""}</section>`;
   bindTrips(T,e);
+  if(ed)tripBell(RQ,e);
 }
+// تنبيه مسؤول الرحلات: كل طلب حجز جديد بيظهر في الجرس وعلى أيقونة التطبيق، ودوسة عليه بتوديه للطلب
+function tripBell(RQ,e){renderBell(RQ.map(b=>({id:"rq"+b.row,e:"📨",t:dn(b)+" طالب يحجز",s:e.title+(b.paid?" · دفع":b.said==="دفعت"?" · بيقول دفع"+(b.sAmount?" "+b.sAmount+" ج":"")+(b.sMethod?" "+b.sMethod:""):" · لسه مدفعش"),go:`.tr-row[data-row="${b.row}"]`})))}
 function bindTrips(T,e){
   const bkOf=x=>(D.bookings||[]).find(y=>y.row===+x.dataset.row),fail=b=>m=>{b.disabled=false;alert(m)};
   T.querySelectorAll(".tr-ev").forEach(b=>b.onclick=()=>{TRIP.ev=+b.dataset.ev;TRIP.f="all";renderTrips()});
@@ -1499,6 +1516,12 @@ function bindTrips(T,e){
       paySet(b,{value:true,amount:am,method:way},ev.target)}});
   T.querySelectorAll(".pay-no").forEach(x=>x.onclick=()=>{const b=bkOf(x);if(!confirm("متأكد إنك مستلمتش فلوس من "+dn(b)+"؟ هيظهرله إنك لسه مستلمتش"))return;paySet(b,{value:false,reject:true},x)});
   T.querySelectorAll(".pay-undo").forEach(x=>x.onclick=()=>{const b=bkOf(x);if(!confirm("تشيل تأكيد الدفع بتاع "+dn(b)+"؟"))return;paySet(b,{value:false},x)});
+  // توزيع على الأوتوبيس: لو الأوتوبيس اتملى بيطلع تحذير الأول
+  T.querySelectorAll(".bus-mv").forEach(x=>x.onclick=()=>{const p=x.closest(".tr-row").querySelector(".tr-pick");p.hidden=!p.hidden});
+  T.querySelectorAll(".bus-set").forEach(x=>x.onclick=()=>{const b=bkOf(x),k=x.dataset.bus;if(b.bus===k)return;
+    if(k!=="انتظار"){const c=(e.buses||[])[+k-1]||0,n=(D.bookings||[]).filter(y=>y!==b&&y.event===e.title&&y.date===e.date&&y.status!=="ملغي"&&y.bus===k).length;
+      if(c&&n>=c&&!confirm(`⚠️ أوتوبيس ${k} اتملى خلاص (${n} من ${c}).\nتحط ${dn(b)} فيه برضه؟`))return}
+    x.disabled=true;callApi("bkBus",{row:b.row,bus:k},()=>{b.bus=k;renderTrips()},fail(x))});
   T.querySelectorAll(".bk-del").forEach(x=>x.onclick=()=>{const b=bkOf(x);if(!confirm("إلغاء حجز "+dn(b)+"؟"))return;x.disabled=true;
     callApi("bookCancel",{row:b.row},()=>{b.status="ملغي";renderTrips()},fail(x))});
   // ضيف حد كلّم مسؤول الرحلات مباشرة: اسم + موبايل، وبيتحط آخر القايمة
@@ -1512,7 +1535,8 @@ function bindTrips(T,e){
   T.querySelectorAll(".rm-wa").forEach(x=>x.addEventListener("click",()=>{const rw=+x.closest(".rm-r").dataset.row,s=rmDone(e);if(!s.includes(rw)){s.push(rw);lsSet(rmKey(e)+"_sent",JSON.stringify(s))}setTimeout(renderTrips,300)}));
   const rc=T.querySelector(".rm-clr");if(rc)rc.onclick=()=>{lsSet(rmKey(e)+"_sent","[]");renderTrips()};
   T.querySelectorAll(".bk-copy").forEach(x=>x.onclick=()=>{const L=(D.bookings||[]).filter(b=>b.event===e.title&&b.date===e.date&&b.status!=="ملغي").sort((x,y)=>String(x.at).localeCompare(String(y.at))||x.row-y.row);
-    const txt=e.title+" ("+e.date+")\n"+L.map((b,i)=>(e.cap&&i===e.cap?"\n⏳ قائمة الانتظار\n":"")+(e.cap&&i>=e.cap?"انتظار "+(i-e.cap+1):i+1)+". "+dn(b)+" "+b.phone+(pr?(b.paid&&b.method==="معفي"?" (معفي)":b.paid?" ✓ دفع "+(b.amount||pr)+(b.method?" "+b.method:""):b.said==="دفعت"?" (بيقول دفع، لسه متأكدش)":" (لسه مدفعش)"):"")).join("\n");
+    const BS=e.buses||[],grp=BS.length?BS.map((c,i)=>["🚌 أوتوبيس "+(i+1),L.filter(b=>b.bus===String(i+1))]).concat([["⏳ قائمة الانتظار",L.filter(b=>b.bus==="انتظار")],["📨 طلبات لسه متوزعتش",L.filter(b=>!b.bus)]]):[["",L]];
+    const txt=e.title+" ("+e.date+")"+grp.filter(g=>g[1].length).map(([h,G])=>(h?"\n\n"+h+" ("+G.length+")":"")+"\n"+G.map((b,i)=>(i+1)+". "+dn(b)+" "+b.phone+(pr?(b.paid&&b.method==="معفي"?" (معفي)":b.paid?" ✓ دفع "+(b.amount||pr)+(b.method?" "+b.method:""):b.said==="دفعت"?" (بيقول دفع، لسه متأكدش)":" (لسه مدفعش)"):"")).join("\n")).join("");
     const done=()=>{x.textContent="اتنسخ ✓"};if(navigator.clipboard)navigator.clipboard.writeText(txt).then(done,()=>prompt("انسخ:",txt));else prompt("انسخ:",txt)});
 }
 // ===== التقييم الشهري للخدمة: سطر لكل شهر + مقارنة بالشهر اللي قبله =====
@@ -1978,7 +2002,8 @@ function renderNav(cur){
   // الخادم: 3 تابات بس. الأمين: تاب رابع "الإدارة" جواه الطلبات والخدام والتقييمات وخطة السنة والبرامج
   const nw=(D.regs||[]).filter(r=>r.status==="مستني"||r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
   const c=ADM_PAGES.includes(cur)||(lead&&cur==="trips")||/^(meet|m)-/.test(cur)?"admin":cur;
-  const items=tripsOnly()?[["trips","إدارة الرحلات"],["me","بروفايلي"]]:[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:bkSee()?[["trips","الرحلات"]]:[]),["home","الشباب"],["me","بروفايلي"]];
+  const rq=bkEdit()?tripReqs().length:0;
+  const items=tripsOnly()?[["trips","إدارة الرحلات"+(rq?` (${rq})`:"")],["me","بروفايلي"]]:[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:bkSee()?[["trips","الرحلات"+(rq?` (${rq})`:"")]]:[]),["home","الشباب"],["me","بروفايلي"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===c?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
 const ADM_PAGES=["admin","approve","team","ratings","year"];
