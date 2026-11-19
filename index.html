@@ -208,6 +208,11 @@ body.youth .chips label:has(input:checked){border-color:var(--gold);background:v
 .y-meet .tz li{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .y-meet .tz li:nth-child(n+4){display:none}
 .y-meet .tz li::before{content:"✦ ";color:var(--goldhi)}
+.y-meet .poster-btn.mp{align-self:flex-start;position:relative;margin-top:4px;background:rgba(228,196,126,.15);color:var(--goldhi);border:1px solid rgba(228,196,126,.5);border-radius:999px;padding:4px 14px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.poster-ov{position:fixed;inset:0;z-index:9999;background:rgba(10,3,3,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+.poster-ov img{max-width:100%;max-height:calc(100vh - 90px);border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.5)}
+.poster-ov .pv-act{display:flex;gap:10px}
+.poster-ov .pv-act a,.poster-ov .pv-act button{background:#E4C47E;color:#1a0706;border:0;border-radius:999px;padding:8px 20px;font:inherit;font-weight:700;text-decoration:none;cursor:pointer}
 .mc .mc-l{display:block;font-weight:700;margin:12px 0 4px}
 .mc .mc-in{width:100%;box-sizing:border-box;font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:inherit}
 .mc .mc-ch{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
@@ -818,9 +823,13 @@ function weekSyn(d){
   return `<details class="syn"><summary>سنكسار الأسبوع (${parts.length} أيام): ${esc(first)}…</summary><p>${parts.join("\n\n")}</p></details>`;
 }
 function weekSeason(d,c){return (c.s==="الميلاد"&&d.getMonth()<=2&&iso(d)>=d.getFullYear()+"-01-20")?"الغطاس":(c.s||"")}
+// بوستر الاجتماع: اكتب مسار الصورة (posters/....jpg أو لينك https) في خانة "ملاحظات" في تاب البرنامج، فيظهر زرار البوستر على كارت الاجتماع
+const POSTER_RE=/(https:\/\/\S+\.(?:jpe?g|png|webp)|posters\/[\w.\-]+\.(?:jpe?g|png|webp))/i;
+const posterOf=p=>{const m=String(p&&p.notes||"").match(POSTER_RE);return m?m[1]:""};
+const notesTxt=p=>String(p&&p.notes||"").replace(POSTER_RE,"").trim();
 function progBlock(p){
   return `<div class="blk"><span class="lbl">البرنامج</span>${p.topic?`<div><b>${esc(p.topic)}</b></div>`:`<div class="todo">الموضوع لسه متكتبش</div>`}
-    ${p.speaker?`<div>${esc(p.speaker)}</div>`:""}${p.place?`<div class="muted">المكان: ${esc(p.place)}</div>`:""}${p.notes?`<div class="muted">${esc(p.notes)}</div>`:""}</div>`;
+    ${p.speaker?`<div>${esc(p.speaker)}</div>`:""}${p.place?`<div class="muted">المكان: ${esc(p.place)}</div>`:""}${notesTxt(p)?`<div class="muted">${esc(notesTxt(p))}</div>`:""}${posterOf(p)?`<button type="button" class="small poster-btn" data-src="${esc(posterOf(p))}">🖼️ البوستر</button>`:""}</div>`;
 }
 function renderMeet(idx){
   const w=D.weekly[idx];if(!w){location.hash="year";return}
@@ -1624,7 +1633,7 @@ function meetCard(w,d,p,cls){
   const head=`<div class="day">${WD[d.getDay()]}</div><div class="date num">${d.getDate()} ${GM[d.getMonth()]}</div><div class="nm">${esc(w.short&&w.short!==w.title?w.short:w.title)}</div>${w.time&&cls!=="pale"?`<span class="tm num">${esc(tm(w.time))}</span>`:""}`;
   const out=p.status==="برا الكنيسة"?`<div class="tp">📍 برا الكنيسة${p.place?": "+esc(p.place):""}</div>`:"";
   const body=cls==="pale"?`<div class="tp"><span class="cx">ملغي</span></div>`:off?`<div class="tp">مفيش اجتماع الأسبوع ده</div>`:has?"":out;
-  return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}${has?" has":""}"><svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg>${has?`<div class="mh">${head}</div><div class="mc2"><div class="mtr">${p.icon?`<span class="mi">${esc(p.icon)}</span>`:""}<b class="mtt">${esc(p.topic)}</b></div>${tz.length?`<ul class="tz">${tz.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}${out}</div>`:head+body}</article>`}
+  return `<article class="y-meet${off?" off":""}${cls?" "+cls:""}${has?" has":""}"><svg class="ico" viewBox="0 0 320 250" aria-hidden="true"><use href="#wing"/></svg>${has?`<div class="mh">${head}</div><div class="mc2"><div class="mtr">${p.icon?`<span class="mi">${esc(p.icon)}</span>`:""}<b class="mtt">${esc(p.topic)}</b></div>${tz.length?`<ul class="tz">${tz.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}${posterOf(p)?`<button type="button" class="poster-btn mp" data-src="${esc(posterOf(p))}">🖼️ شوف البوستر</button>`:""}${out}</div>`:head+body}</article>`}
 // مين يكتب لأنهي اجتماع: الأمين لكل الاجتماعات، والخادم للاجتماع اللي في مجموعته بس
 function mcCan(w){if(!D||!D.level)return false;if(D.level===2)return true;const g=D.me&&D.me.group;if(!g||g===OTHER)return false;
   return g==="الاتنين"||(g==="جامعيين"?/جامعيين/:/الربع قرن|\+25/).test(w.title)}
@@ -2347,6 +2356,11 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState!==
 setInterval(()=>{if(document.visibilityState==="visible"&&D&&!D.level&&!PREVIEW_DATA&&(lsGet("gsyf_reg_st")!=="مقبول"||lsGet("gsyf_srv")==="مستني"))yCheck()},30000);
 function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}yOut();KEY="";location.hash="";load("")}
 load();
+// عارض بوستر الاجتماع (ملء الشاشة + تحميل)
+document.addEventListener("click",ev=>{const b=ev.target.closest&&ev.target.closest(".poster-btn");if(!b)return;ev.preventDefault();ev.stopPropagation();
+  const src=b.dataset.src,ov=document.createElement("div");ov.className="poster-ov";
+  ov.innerHTML=`<img alt="بوستر الاجتماع" src="${esc(src)}"><div class="pv-act"><a href="${esc(src)}" download>⬇️ حمّل</a><button type="button">✕ قفل</button></div>`;
+  ov.addEventListener("click",x=>{if(x.target===ov||x.target.tagName==="BUTTON")ov.remove()});document.body.appendChild(ov)},true);
 </script>
 </body>
 </html>
