@@ -371,6 +371,12 @@ body.youth #me{padding-top:56px}
 .fstk>.me{border-color:var(--goldhi)}
 .ev .fstk>span:not(.me){border-color:#fff}
 .fstk>.more{display:flex;align-items:center;justify-content:center;background:var(--goldhi);color:var(--ink);font-size:.72rem;font-weight:700}
+.sp-fw{align-self:stretch}
+.fgrid-h{font-weight:700;margin:12px 0 6px}
+.fgrid{display:grid;width:100%;box-sizing:border-box;align-self:stretch;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:10px;max-height:236px;overflow-y:auto;padding:10px;border-radius:14px;background:rgba(0,0,0,.18);-webkit-overflow-scrolling:touch;pointer-events:auto;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.fgrid>span{aspect-ratio:1;width:100%;border-radius:50%;border:2px solid rgba(255,255,255,.7);background:#4a2c1c url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='15' r='7' fill='%23e4c47e' fill-opacity='.75'/%3E%3Cpath d='M6 38c1-9 7-13 14-13s13 4 14 13z' fill='%23e4c47e' fill-opacity='.75'/%3E%3C/svg%3E") center/cover no-repeat;box-shadow:0 2px 6px rgba(0,0,0,.35);animation:fsp .45s cubic-bezier(.2,.8,.3,1.4) both}
+.fgrid>.me{border-color:var(--goldhi);border-width:3px}
+.fgrid>.more{display:flex;align-items:center;justify-content:center;background:var(--goldhi);color:var(--ink);font-weight:700}
 .fstk-row{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.85rem;opacity:.9}
 .fstk-row.sp-cnt{justify-content:center}
 @keyframes fsp{from{opacity:0;transform:scale(.4) translateY(6px)}}
@@ -919,10 +925,12 @@ let MYBK=[];try{MYBK=JSON.parse(lsGet("gsyf_bk")||"[]")||[]}catch(e){MYBK=[]}
 // صور التفاعل (مكوّن واحد للتوقع والحجوزات): لحد ٦ صور ورا بعض + "+N"، من غير أسامي
 const faceStack=(L,total)=>{if(!L||!L.length)return "";const more=Math.max(0,(total||0)-L.length);
   return `<div class="fstk" aria-hidden="true">${L.map((f,j)=>`<span class="${f.me?"me":""}" style="${f.p?`background-image:url('${f.p}');`:""}animation-delay:${j*70}ms"></span>`).join("")}${more?`<span class="more" style="animation-delay:${L.length*70}ms"><bdi dir="ltr">+${more}</bdi></span>`:""}</div>`};
+// شباك صور «أنا جاي» في كارت +25 (MORCOS 20 نوفمبر): صور كبيرة جنب بعض، من غير أسامي، وبيتعمله سكرول لو كتير
+const faceGrid=(L,total)=>{const more=Math.max(0,(total||0)-L.length);return `<div class="fgrid-h">🙋 ${total} قالوا جايين</div><div class="fgrid" aria-hidden="true">${L.map((f,j)=>`<span class="${f.me?"me":""}" style="${f.p?`background-image:url('${f.p}');`:""}animation-delay:${Math.min(j,20)*40}ms"></span>`).join("")}${more?`<span class="more"><bdi dir="ltr">+${more}</bdi></span>`:""}</div>`};
 const bkKey=e=>e.title+"|"+e.date,bkFaces=e=>(window._bkF||{})[bkKey(e)];
 // بنجيب صور اللي حاجزين مرة واحدة للمسجلين بس (بعد أي حجز/إلغاء بتتجاب تاني)
 function bkFacesLoad(evs){const em=lsGet("gsyf_reg");if(!em||window._bkFA)return;const ks=[...new Set(evs.filter(e=>e&&(e.booked||0)>0).map(bkKey))].slice(0,12);if(!ks.length)return;
-  window._bkFA=1;callApi("bkFaces",{email:em,tok:YT(),keys:ks},r=>{window._bkF=r.faces||{};if(Object.values(window._bkF).some(x=>x&&x.length))renderHome()},()=>{})}
+  window._bkFA=1;const big=(evs.find(e=>e&&/\+25/.test(e.title)&&(e.booked||0)>0)||null);callApi("bkFaces",{email:em,tok:YT(),keys:ks,big:big?bkKey(big):""},r=>{window._bkF=r.faces||{};if(Object.values(window._bkF).some(x=>x&&x.length))renderHome()},()=>{})}
 const setMyBk=L=>{window._bkFA=0;const s=JSON.stringify(L||[]),ch=s!==JSON.stringify(MYBK);MYBK=L||[];lsSet("gsyf_bk",s);return ch};
 const BK_ST={"مستني الدفع":["⏳","اتحجز، مستني الدفع"],"مؤكد":["✅","حجزك متأكد"],"محجوز":["✅","إنت محجوز"]};
 // الدفع: الشاب بيقول "دفعت" بدوسة، والخادم المسؤول هو اللي بيأكد (هو اللي بيضمن). مفيش أرقام عمليات ولا سكرينات
@@ -1100,7 +1108,7 @@ function renderHome(){
   // "أنا جاي": حجز ببلاش على سطر أول اجتماع في شيت الإيفنتات (يظهر لـ الكل + الحجز مفتوح). العدد بيبان للكل
   const spE=spT&&D.events.find(e=>/\+25/.test(e.title)&&e.date===SURPRISE[spT].until);
   const spMine=spE&&MYBK.find(b=>b.event===spE.title&&b.date===spE.date&&b.status!=="ملغي");
-  const spN=spE?(spE.booked||0):0,spFc=spE?faceStack(bkFaces(spE),spN):"",spCnt=spFc?`<div class="fstk-row sp-cnt">${spFc}<span>قالوا جايين</span></div>`:spN>=3?`<p class="sp-cnt">🙋 ${spN} قالوا جايين لحد دلوقتي</p>`:"";
+  const spN=spE?(spE.booked||0):0,spFL=spE?bkFaces(spE):null,spFc=spFL&&spFL.length?faceGrid(spFL,spN):"",spCnt=spFc?`<div class="sp-cnt sp-fw">${spFc}</div>`:spN>=3?`<p class="sp-cnt">🙋 ${spN} قالوا جايين لحد دلوقتي</p>`:"";
   const spRsvp=!spE||!spE.booking?"":spMine?`<div class="sp-rsvp" data-bk="${spMine.row}"><b>${isGirl()?"✅ إنتي جاية! مستنيينك 💛":"✅ إنت جاي! مستنيينك 💛"}</b><button type="button" class="sp-no">مش هقدر آجي</button></div>${spCnt}`
     :locked?`<div class="sp-rsvp"><button type="button" class="sp-go sp-reg">${pend?"⏳ طلبك بيتراجع، وبعدها تقدر تقول أنا جاي":"سجّل وقول أنا جاي ✋"}</button></div>${spCnt}`
     :`<div class="sp-rsvp"><button type="button" class="sp-go sp-yes" data-row="${spE.row}">${isGirl()?"أنا جاية ✋":"أنا جاي ✋"}</button></div>${spCnt}`;
@@ -1683,7 +1691,7 @@ function renderFollow(){
    api.whatsapp.com بدل wa.me: wa.me ساعات بيبوّظ الإيموجيز (بتظهر علامات استفهام) */
 let INV_WHO="";
 function invMsg(name,g){const b=g==="بنت",f=String(name||"").trim().split(/\s+/)[0];
-  return `يا ${f} 🔥\n\n${b?"استعدي يا بطلة":"استعد يا بطل"}، فيه حاجة كبيرة جاية! 🎉\n\nبدأنا *اجتماع جديد* خالص اسمه *اجتماع شباب الربع قرن +25*\n\n📅 أول لقاء: الجمعة ٢٧ نوفمبر\n⏰ الساعة ٦ المغرب\n📍 في الكنيسة\n\n🙏 صلاة من القلب\n💬 كلمة من أبونا\n☕ وسهرة حلوة مع بعض\n\nالاجتماع ده معمول عشانكم، ومن غيرك الليلة مش هتكمل! ${b?"💖":"💪"}\n\nأحب أسمع منك 😊 ولو عندك مشكلة في الميعاد ${b?"قوليلي":"قولّي"}.\n\n${b?"هستناكي":"هستناك"}! 🔥`}
+  return `يا ${f} 🔥\n\n${b?"استعدي يا بطلة":"استعد يا بطل"}، فيه حاجة كبيرة جاية! 🎉\n\nبدأنا *اجتماع جديد* خالص اسمه *اجتماع شباب الربع قرن +25*\n\n📅 أول لقاء: الجمعة ٢٧ نوفمبر\n⏰ الساعة ٦ المغرب\n📍 في الكنيسة\n\n🙏 صلاة من القلب\n💬 كلمة من أبونا\n☕ وسهرة حلوة مع بعض\n\nالاجتماع ده معمول عشانكم، ومن غيرك الليلة مش هتكمل! ${b?"💖":"💪"}\n\n👇 ${b?"ادخلي ودوسي":"ادخل ودوس"} «${b?"أنا جاية":"أنا جاي"}» وشوف مين من صحابك جاي:\nhttps://morcoseid.github.io/GSYF/#plus25\n\nأحب أسمع منك 😊 ولو عندك مشكلة في الميعاد ${b?"قوليلي":"قولّي"}.\n\n${b?"هستناكي":"هستناك"}! 🔥`}
 const invWa=(r,w)=>`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(invMsg(r.name,r.g))}`;
 const n2=s=>String(s||"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/\s+/g," ").trim().split(" ").slice(0,2).join(" ");
 function invPanel(){const I=D.inv;if(!I||!I.rows||!I.rows.length)return "";
