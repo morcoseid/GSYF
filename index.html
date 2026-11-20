@@ -451,6 +451,8 @@ body.youth #me{padding-top:56px}
 .tr-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.tr-pick .pt small{opacity:.7;font-weight:400}
 .bk-bus{display:block;font-weight:700;margin-top:2px}
 .bk-grp{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#25D366;color:#fff;border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700;font-size:.9rem}.bk-grp.off{background:var(--line);color:var(--muted)}
+.in-r .in-nb{background:none;border:1px solid var(--line);border-radius:999px;padding:4px 8px;cursor:pointer;font-size:.85rem;opacity:.6}.in-r .in-nb.has{opacity:1;border-color:#25D366}
+.in-nt{flex-basis:100%;font-size:.82rem;color:var(--muted);margin-top:-2px}.in-ne{flex-basis:100%;min-width:0;max-width:100%;display:flex;gap:6px}.in-ne[hidden]{display:none}.in-ne .in-ns{flex:none}.in-ni{flex:1;min-width:0;width:auto!important;padding:6px 10px;border:1px solid var(--line);border-radius:10px;font:inherit}
 .in-ch .chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.85rem;background:var(--surface);cursor:pointer;font-family:inherit}.in-ch .chip.on{background:#25D366;color:#fff;border-color:#25D366}
 .iv-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.iv-bar i{display:block;height:100%;background:#25D366;border-radius:99px}
 .iv-lk{display:flex;gap:6px;flex-wrap:wrap}.iv-lk input{flex:1;min-width:200px}
@@ -1698,7 +1700,7 @@ function invPanel(){const I=D.inv;if(!I||!I.rows||!I.rows.length)return "";
   const srvs=[...new Set(I.rows.map(r=>r.srv))],who=I.all?(INV_WHO&&srvs.includes(INV_WHO)?INV_WHO:(srvs.find(x=>n2(x)===I.me)||srvs[0])):"";
   const L=I.all?I.rows.filter(r=>r.srv===who):I.rows,sent=L.filter(r=>r.sent).length,pc=L.length?Math.round(sent*100/L.length):0;
   const tot=I.rows.length,totS=I.rows.filter(r=>r.sent).length;
-  const row=r=>{const w=waNum(r.phone);return `<div class="rm-r${r.sent?" done":""}" data-row="${r.row}"><b>${esc(r.name)}</b>${!w?`<span class="err small">⚠️ مفيش رقم</span>`:`<span>${r.sent?`<button type="button" class="iv-un in-un" title="${esc(r.sent)}">↩︎ شيل العلامة</button> `:""}<a class="rm-wa in-wa" href="${invWa(r,w)}" target="_blank" rel="noopener">${r.sent?"✓ اتبعتت":"ابعت الدعوة ↗"}</a></span>`}</div>`};
+  const row=r=>{const w=waNum(r.phone);return `<div class="rm-r in-r${r.sent?" done":""}" data-row="${r.row}"><b>${esc(r.name)}</b><span>${!w?`<span class="err small">⚠️ مفيش رقم</span> `:r.sent?`<button type="button" class="iv-un in-un" title="${esc(r.sent)}">↩︎ شيل العلامة</button> `:""}<button type="button" class="in-nb${r.note?" has":""}" title="كومنت" aria-label="كومنت">💬</button>${w?` <a class="rm-wa in-wa" href="${invWa(r,w)}" target="_blank" rel="noopener">${r.sent?"✓ اتبعتت":"ابعت الدعوة ↗"}</a>`:""}</span>${r.note?`<div class="in-nt">💬 ${esc(r.note)}</div>`:""}<div class="in-ne" hidden><input type="text" maxlength="300" class="in-ni" value="${esc(r.note||"")}" placeholder="مثلاً: رد وقال جاي، الرقم غلط، مسافر…"><button type="button" class="small primary in-ns">حفظ</button></div></div>`};
   return `<section class="panel inv" id="inv"><h3>📨 دعوات اجتماع +25 · الجمعة ٢٧ نوفمبر</h3>
     ${I.all?`<div class="chips in-ch">${srvs.map(x=>{const R=I.rows.filter(r=>r.srv===x);return `<button type="button" class="chip${x===who?" on":""}" data-s="${esc(x)}">${esc(x.split(" ").slice(0,2).join(" "))} ${R.filter(r=>r.sent).length}/${R.length}</button>`}).join("")}</div><p class="small muted" style="margin:4px 0">الكل: اتبعت ${totS} من ${tot}</p>`:""}
     <div><b>اتبعت لـ <span class="num">${sent}</span> من <span class="num">${L.length}</span></b>${L.length&&sent===L.length?" 🎉":""}<div class="iv-bar" style="margin-top:6px"><i style="width:${pc}%"></i></div></div>
@@ -1712,6 +1714,9 @@ function invBind(F){const I=D.inv;if(!I)return;
     callApi("invMark",{row:r.row,undo:!!undo},()=>{},m=>{r.sent=old;renderFollow();alert(m)})};
   F.querySelectorAll(".in-wa").forEach(x=>x.addEventListener("click",()=>{const r=I.rows.find(z=>z.row===+x.closest(".rm-r").dataset.row);if(r&&!r.sent)mark(x);setTimeout(renderFollow,300)}));
   F.querySelectorAll(".in-un").forEach(x=>x.onclick=()=>{mark(x,true);renderFollow()});
+  F.querySelectorAll(".in-nb").forEach(x=>x.onclick=()=>{const e=x.closest(".rm-r").querySelector(".in-ne");e.hidden=!e.hidden;if(!e.hidden)e.querySelector("input").focus()});
+  F.querySelectorAll(".in-ns").forEach(x=>x.onclick=()=>{const rw=x.closest(".rm-r"),r=I.rows.find(z=>z.row===+rw.dataset.row),v=rw.querySelector(".in-ni").value.trim(),old=r.note;
+    x.disabled=true;x.textContent="…";r.note=v;callApi("invNote",{row:r.row,note:v},()=>renderFollow(),m=>{r.note=old;x.disabled=false;x.textContent="حفظ";alert(m)})});
 }
 
 /* ================= إعلان الاجتماع الأسبوعي (خدام الاجتماع بيكتبوه من "شغلي") =================
