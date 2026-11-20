@@ -129,6 +129,17 @@ details.syn p{white-space:pre-line;margin:6px 0 0;font-size:.86rem}
 .adm{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .adm-i{display:flex;flex-direction:column;gap:4px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--fg);text-decoration:none}
 .adm-i .ic{font-size:1.5rem}.adm-i small{color:var(--muted)}.adm-i small.hot{color:var(--accent);font-weight:700}
+.pr-ev{padding:10px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}.pr-ev:first-of-type{border-top:0}
+.pr-h{display:flex;justify-content:space-between;gap:8px;align-items:baseline;flex-wrap:wrap}
+.pp-row{display:flex;flex-wrap:wrap;gap:6px}.pp{font:inherit;font-size:.84rem;padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}
+.pp.ok{background:#E8F3EA;border-color:#9BC8A3;color:#1E5B2A}.pp.bad{border-color:var(--busy);color:var(--busy);font-weight:600}
+.link{font:inherit;font-size:.82rem;background:none;border:0;color:var(--gold);cursor:pointer;padding:0 4px;text-decoration:underline}
+.own-f{display:flex;flex-wrap:wrap;gap:8px;align-items:end;padding:8px;border:1px dashed var(--line);border-radius:10px;margin-top:4px}.own-f label{display:flex;flex-direction:column;font-size:.82rem;gap:2px}.own-f select{font:inherit;padding:4px}
+.say-k{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.say-k button{font:inherit;font-size:.88rem;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer}.say-k button.on{background:var(--navy);color:var(--goldhi);border-color:var(--navy)}
+.say-t{width:100%;box-sizing:border-box;font:inherit;padding:8px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px}.say-my{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.wk-top{display:flex;flex-direction:column;gap:10px}.wk-nav{display:flex;gap:10px;align-items:center;justify-content:space-between}.wk-nav button{font:inherit;background:none;border:1px solid var(--line);border-radius:999px;padding:4px 12px;cursor:pointer;color:var(--fg)}
+.wk ul{margin:4px 0 0;padding-inline-start:18px;display:flex;flex-direction:column;gap:6px}.wk.hot h3{color:var(--busy)}
+.gd{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.gd p{margin:4px 0 0;font-size:.92rem}.gd-n{flex:none;width:28px;height:28px;border-radius:50%;background:var(--navy);color:var(--goldhi);display:grid;place-items:center;font-weight:700}
 .fold-p{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .fold-p>summary{cursor:pointer;padding:12px 14px;font-weight:700;list-style-position:inside}
 .fold-p>section{border:0;margin:0;background:none}.fold-p>section>h3:first-child{display:none}
@@ -648,6 +659,8 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   <div id="me" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="team" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="admin" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="week" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="guide" hidden style="display:flex;flex-direction:column;gap:12px"></div>
   <div id="ratings" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="att" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="plan" hidden style="display:flex;flex-direction:column;gap:12px"></div>
@@ -1616,7 +1629,7 @@ function renderFollow(){
   const recent=D.events.filter(e=>e.type!=="ديدلاين"&&e.status!=="اتلغى"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=30).sort((a,b)=>b.date.localeCompare(a.date));
   const tgt=e=>e.title+" ("+e.date+")";
   const notes=[],closedN=[];ev.forEach(r=>{if(r.target===VOICE25.target)return;const L=r.closed?closedN:notes;const idx=r.kind==="إيفنت-شباب"?[2]:r.kind==="إيفنت-خدام"?[3]:[4];idx.forEach(i=>{if(r.a[i])L.push({r,txt:r.a[i],lbl:r.kind==="إيفنت-شباب"?"يتحسن":r.kind==="إيفنت-خدام"?"مشكلة":"اقتراح"})})});
-  const mine=D.me?open.filter(e=>isMine(e.owner,D.me.name)):[];
+  const in30p=iso(addDays(parse(t),30)),mine=D.me?open.filter(e=>isMine(e.owner,D.me.name)&&!(prepEv(e)&&e.date<=in30p)):[];   // اللي في «عليّا» مش بيتكرر هنا
   const allTasks=`<section class="panel"><h3>${D.me?"كل التاسكات المفتوحة":"مفتوح ومحتاج يتقفل"} (${late.length+now.length})</h3>
       ${late.length+now.length?late.concat(now).map(taskRow).join(""):`<p class="empty">مفيش حاجة مفتوحة الشهر ده.</p>`}
       ${later.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">بعد كده (${later.length})</summary>${later.map(taskRow).join("")}</details>`:""}
@@ -1627,11 +1640,14 @@ function renderFollow(){
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
+    ${thuNote()}
+    ${prepPanel(fold)}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
     <a class="fc-go" href="#plan">📅 توقع أنشطة السنة الجاية</a>
     ${mcPanel()}
     ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
-    ${D.me?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
+    ${D.me&&(mine.length||!D.events.some(e=>prepEv(e)&&e.date<=in30p&&mineEv(e)))?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
+    ${sayPanel()}
     ${srvMeetPanel()}
     ${v25Panel(ev)}
     ${pollPanel()}
@@ -1646,7 +1662,7 @@ function renderFollow(){
     ${can("evals")&&notes.length+closedN.length?fold("nt","📝 الملاحظات ("+notes.length+" مفتوحة)",`<section class="panel"><h3>الملاحظات (${notes.length} مفتوحة · ${closedN.length} اتقفلت)</h3>${notes.length?notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-open">مفتوحة</span> ${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">✓ اتقفلت</button></div></div></div>`).join(""):`<p class="empty">كل الملاحظات اتقفلت 👌</p>`}${closedN.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتقفل (${closedN.length})</summary>${closedN.slice().reverse().map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-closed">اتقفلت</span> <span class="muted">${esc(n.txt)}</span><div class="why">${esc(n.r.target)}</div></div></div>`).join("")}</details>`:""}</section>`):""}
     ${!monthNow&&D.level===2?fold("mo","📊 تقييم الخدمة الشهري",monthPanel(ev)):""}
     ${can("ai")?fold("ai","✨ اسأل المساعد",aiPanel(),AI.log.length):""}
-    <p class="small muted">${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
+    <p class="small muted"><a href="#guide">❓ إزاي أستخدم الموقع</a> · ${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
   const F=$("follow"),fail=b=>m=>{b.disabled=false;b.textContent=m};
   openEv.forEach(r=>{const d=F.querySelector(`details[data-ev="${r}"]`);if(d)d.open=true});
   F.querySelectorAll(".dn").forEach(b=>b.onclick=()=>{const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row);b.disabled=true;b.textContent="…";
@@ -1657,7 +1673,7 @@ function renderFollow(){
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
-  aiBind();mcBind();
+  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
 
@@ -2046,6 +2062,195 @@ function renderTeam(){
     callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin")u.noPin=true;done()},
       m=>{b.disabled=false;alert(m)})});
 }
+/* ================= متابعة الخدمة وتقرير أبونا (نوفمبر 2026) =================
+   كل إيفنت عام ليه مسؤول + احتياطي، وخطوات تجهيز بمواعيد: الإعلان قبلها بـ 10 أيام، البانر بـ 7، والترويج كل يومين.
+   الخادم بيعلّم من «شغلي» وقت ما يعمل الحاجة. «قول للأمناء» للحاجات اللي برا الموقع والمشاكل والقرارات.
+   الأمين بيفتح «تقرير الأسبوع» من الإدارة: بيطلع لوحده، ويتبعت لأبونا واتساب في دوسة. */
+const PREP=[["ann","📣","الإعلان",10],["ban","🖼","البانر",7]];
+const first2=n=>String(n||"").split(/[،,]/)[0].trim().split(/\s+/).slice(0,2).join(" ");
+const mName=w=>{const n=w.short||w.title.replace("اجتماع ","");return /^\d+$/.test(n)?"+"+n:n};
+const prepEv=e=>e.show==="الكل"&&e.type!=="ديدلاين"&&e.status!=="تم"&&e.status!=="اتلغى"&&(e.end||e.date)>=D.today;
+const noOwner=e=>!e.owner||/لسه|متحدد/.test(e.owner);
+const mineEv=e=>D.me&&(isMine(e.owner,D.me.name)||isMine(e.backup||"",D.me.name));
+function prepSt(e){
+  const L=PREP.map(([k,ic,l,n])=>{const due=iso(addDays(parse(e.date),-n)),v=e[k]||"";return {k,ic,l,v,due,done:!!v,late:!v&&D.today>=due}});
+  const pr=e.promo||[],last=pr.length?pr[pr.length-1].slice(0,10):"",from=(e.ann||"").slice(0,10)||L[0].due;
+  const today=last===D.today,late=e.date>D.today&&D.today>=from&&(!last||daysAgo(last)>2);
+  L.push({k:"promo",ic:"🔁",l:"ترويج",n:pr.length,today,late,done:today,last});
+  return L;
+}
+const prepLate=e=>prepSt(e).filter(s=>s.late);
+// سطر الإيفنت بزراير التجهيز (أي خادم يقدر يعلّم، والأمين بس بيغيّر المسؤول)
+function prepRow(e,opt){
+  const left=-daysAgo(e.date),S=prepSt(e);
+  const chip=s=>s.k==="promo"
+    ?`<button type="button" class="pp${s.today?" ok":s.late?" bad":""}" data-k="promo" title="${esc(s.last?"آخر مرة "+s.last:"")}">${s.ic} ${s.today?"✓ نزل النهارده":"نزلت ترويج النهارده"}${s.n?` · ${s.n}`:""}</button>`
+    :`<button type="button" class="pp${s.done?" ok":s.late?" bad":""}" data-k="${s.k}" title="${esc(s.v)}">${s.ic} ${s.l} ${s.done?"✓":s.late?"· متأخر":"· لحد "+dm(s.due)}</button>`;
+  return `<div class="pr-ev" data-row="${e.row}"><div class="pr-h"><b>${esc(e.title)}</b><span class="small muted">${dm(e.date)} · ${left===0?"النهارده":left===1?"بكرة":"فاضل "+left+" يوم"}</span></div>
+    <div class="why">${noOwner(e)?`<span class="late">مفيش مسؤول لسه</span>`:`👤 ${esc(e.owner)}${e.backup?` · الاحتياطي: ${esc(e.backup)}`:` · <span class="late">مفيش احتياطي</span>`}`}${D.level===2&&!(opt&&opt.noOwn)?` <button type="button" class="link own">تغيير</button>`:""}</div>
+    <div class="pp-row">${S.map(chip).join("")}</div></div>`;
+}
+function prepBind(root,re){
+  root.querySelectorAll(".pr-ev .pp").forEach(b=>b.onclick=()=>{
+    const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row),k=b.dataset.k,s=prepSt(e).find(x=>x.k===k),undo=s.done;
+    if(undo&&!confirm(k==="promo"?"تشيل ترويج النهارده؟":"ترجّع "+s.l+" لسه متعملش؟"))return;
+    b.disabled=true;b.textContent="…";
+    callApi("prep",{row,title:e.title,step:k,undo},r=>{if(k==="promo"){e.promo=String(r.val||"").split("،").map(x=>x.trim()).filter(Boolean)}else e[k]=r.val||"";re()},m=>{b.disabled=false;b.textContent=m});
+  });
+  root.querySelectorAll(".pr-ev .own").forEach(b=>b.onclick=()=>{
+    const box=b.closest(".pr-ev"),e=D.events.find(x=>x.row===+box.dataset.row);
+    ownForm(box,e.owner,e.backup,(o,k,ok,f)=>callApi("evOwner",{row:e.row,title:e.title,owner:o,backup:k},()=>{e.owner=o||"لسه متحددش";e.backup=k;ok()},f),re);
+  });
+}
+// اختيار المسؤول والاحتياطي من الخدام المقبولين
+function srvNames(){const u=(D.users||[]).filter(x=>x.status==="مقبول");return u.map(x=>({v:first2(x.name),l:x.nick&&x.nick!==first2(x.name)?x.nick+" ("+first2(x.name)+")":first2(x.name)})).sort((a,b)=>a.l.localeCompare(b.l,"ar"))}
+function ownForm(box,o,k,save,re){
+  if(box.querySelector(".own-f"))return;
+  const N=srvNames(),opt=cur=>`<option value="">—</option>${N.map(n=>`<option value="${esc(n.v)}"${normAr(cur||"").includes(normAr(n.v))?" selected":""}>${esc(n.l)}</option>`).join("")}`;
+  const f=document.createElement("div");f.className="own-f";
+  f.innerHTML=`<label>المسؤول <select class="o1">${opt(o)}</select></label><label>الاحتياطي <select class="o2">${opt(k)}</select></label><div class="btns"><button type="button" class="primary sv">حفظ</button><button type="button" class="cx">إلغاء</button></div><p class="err"></p>`;
+  box.appendChild(f);
+  f.querySelector(".cx").onclick=()=>f.remove();
+  f.querySelector(".sv").onclick=()=>{const a=f.querySelector(".o1").value,b=f.querySelector(".o2").value,bt=f.querySelector(".sv");
+    if(a&&a===b){f.querySelector(".err").textContent="الاحتياطي لازم يكون حد تاني";return}
+    bt.disabled=true;bt.textContent="…";save(a,b,re,m=>{bt.disabled=false;bt.textContent="حفظ";f.querySelector(".err").textContent=m})};
+}
+// «شغلي»: اللي عليّا + تجهيز الإيفنتات الجاية
+function prepPanel(fold){
+  const in30=iso(addDays(parse(D.today),30)),L=D.events.filter(e=>prepEv(e)&&e.date<=in30).sort((a,b)=>a.date.localeCompare(b.date));
+  const mine=L.filter(mineEv),rest=L.filter(e=>!mineEv(e));
+  const mm=myMeets();
+  let h="";
+  if(mine.length||mm.length)h+=`<section class="panel prep"><h3>📌 عليّا (${mine.length+mm.length})</h3>
+    ${mm.map(x=>`<div class="pr-ev"><div class="pr-h"><b>${esc(x.w.title)}</b><span class="small muted">${WD[parse(x.d).getDay()]} ${dm(x.d)}</span></div><div class="why">${x.p.topic?`✓ الإعلان مكتوب: ${esc(x.p.topic)}`:`<span class="late">لسه الإعلان متكتبش</span> · اكتبه من «إعلان الاجتماع الجاي» فوق`} · ${isMine(x.p.owner||"",D.me.name)?"إنت المسؤول":"إنت الاحتياطي"}</div></div>`).join("")}
+    ${mine.map(e=>prepRow(e)).join("")}<p class="small muted" style="margin:6px 0 0">دوس على الخطوة أول ما تخلصها. الإعلان قبلها بـ 10 أيام، البانر بـ 7، والترويج كل يومين.</p></section>`;
+  if(rest.length)h+=fold("prep","📣 تجهيز الإيفنتات الجاية ("+rest.length+")",`<section class="panel prep"><h3>تجهيز الإيفنتات</h3>${rest.map(e=>prepRow(e)).join("")}</section>`,!mine.length&&!mm.length&&D.level===2);
+  return h;
+}
+function myMeets(){                      // الاجتماعات اللي الخادم مسؤول أو احتياطي فيها في الأسبوع الجاي
+  if(!D.me)return [];const out=[];
+  for(let i=0;i<8;i++){const d=iso(addDays(parse(D.today),i)),dw=parse(d).getDay();
+    D.weekly.forEach(w=>{if(w.day!==dw)return;const p=((D.programs||{})[w.title]||{})[d]||{};
+      if(p.status==="ملغي"||p.status==="اتأجل")return;
+      if(isMine(p.owner||"",D.me.name)||isMine(p.backup||"",D.me.name))out.push({w,d,p})})}
+  return out;
+}
+// «قول للأمناء»: عملت حاجة برا الموقع / مشكلة / محتاج قرار
+const SAY_K=[["عملت","✅","عملت حاجة"],["مشكلة","⚠️","مشكلة"],["محتاج قرار","❓","محتاج قرار"]];
+const SAY={k:""};
+function sayPanel(){
+  const my=(D.says||[]).filter(s=>s.mine).slice(0,3);
+  return `<section class="panel say"><h3>💬 قول للأمناء</h3><p class="small muted" style="margin:0 0 6px">عملت حاجة مش على الموقع؟ فيه مشكلة؟ محتاج قرار؟ اكتبها هنا وقت ما تحصل، وهتوصل للأمين وتدخل تقرير الأسبوع.</p>
+    <div class="say-k">${SAY_K.map(([k,ic,l])=>`<button type="button" data-k="${esc(k)}"${SAY.k===k?' class="on"':""}>${ic} ${l}</button>`).join("")}</div>
+    <textarea class="say-t" rows="2" maxlength="400" placeholder="${SAY.k==="عملت"?"مثلا: زرت 3 من الدفعة الجديدة":SAY.k==="مشكلة"?"مثلا: البانر مش هيلحق قبل الخميس":SAY.k?"مثلا: نعمل الحفلة 8 ولا 15 يناير؟":"اختار النوع الأول"}"${SAY.k?"":" disabled"}></textarea>
+    <div class="btns"><button type="button" class="primary say-go"${SAY.k?"":" disabled"}>ابعت</button></div><p class="err say-e"></p>
+    ${my.length?`<div class="say-my">${my.map(s=>`<div class="why">${SAY_K.find(x=>x[0]===s.kind)?.[1]||""} ${esc(s.text)} · <b>${s.kind==="عملت"?"اتسجل ✓":s.status==="اتقفلت"?"اتقفلت ✓":"مستني الأمين"}</b>${s.reply?`<div>↩︎ ${esc(s.reply)}</div>`:""}</div>`).join("")}</div>`:""}
+  </section>`;
+}
+function sayBind(root,re){
+  const P=root.querySelector(".say");if(!P)return;
+  P.querySelectorAll(".say-k button").forEach(b=>b.onclick=()=>{const t=P.querySelector(".say-t").value;SAY.k=b.dataset.k;re();const nt=root.querySelector(".say .say-t");if(nt){nt.value=t;nt.focus()}});
+  P.querySelector(".say-go").onclick=()=>{const t=P.querySelector(".say-t").value.trim(),b=P.querySelector(".say-go"),er=P.querySelector(".say-e");
+    if(t.length<3){er.textContent="اكتب الكلام";return}
+    b.disabled=true;b.textContent="…";
+    callApi("say",{kind:SAY.k,text:t},()=>{(D.says=D.says||[]).unshift({row:0,at:D.today,by:D.me?D.me.name:"",kind:SAY.k,text:t,status:SAY.k==="عملت"?"اتسجل":"مفتوح",mine:true});SAY.k="";re()},m=>{b.disabled=false;b.textContent="ابعت";er.textContent=m})};
+}
+// تذكير الخميس والجمعة للخادم اللي عليه حاجات
+function thuNote(){
+  const dw=parse(D.today).getDay();if(dw!==4&&dw!==5||!D.me)return "";
+  const n=D.events.filter(e=>prepEv(e)&&mineEv(e)&&prepLate(e).length).length;
+  return `<p class="note" style="margin:0">🗓 ${dw===4?"بكرة الجمعة":"النهارده الجمعة"}: يوم المتابعة. ${n?`عليك ${n} إيفنت فيه خطوة متأخرة تحت. `:""}علّم اللي عملته، واكتب أي حاجة تانية في «قول للأمناء».</p>`;
+}
+
+/* ===== تقرير الأسبوع لأبونا (للأمناء) ===== */
+const WK={off:0};
+const attKey=w=>/جامع/.test(w.title)?"جامعيين":"+25";
+function weekData(){
+  const to=iso(addDays(parse(D.today),WK.off)),from=iso(addDays(parse(to),-6)),ahead=iso(addDays(parse(to),14));
+  const inR=d=>d&&d>=from&&d<=to,R={from,to,done:[],next:[],dec:[],prob:[]};
+  // الاجتماعات
+  for(let d=from;d<=ahead;d=iso(addDays(parse(d),1))){const dw=parse(d).getDay();
+    D.weekly.forEach(w=>{if(w.day!==dw)return;const p=((D.programs||{})[w.title]||{})[d]||{},nm=mName(w),off=p.status==="ملغي"||p.status==="اتأجل",n=(D.attCounts||{})[d+"|"+attKey(w)]||0;
+      if(d<=to){if(d>D.today)return;
+        if(off)R.prob.push({t:`اجتماع ${nm} ${WD[dw]} ${dm(d)} ${p.status==="ملغي"?"اتلغى":"اتأجل"}${p.notes?": "+p.notes:""}`,meet:{w,d,p}});
+        else R.done.push({t:`اجتماع ${nm} ${WD[dw]} ${dm(d)}${p.topic?`: «${p.topic}»`:""}${n?` · حضور ${n}`:" · الغياب متسجلش"}`,meet:{w,d,p}});}
+      else R.next.push({d,t:`اجتماع ${nm} ${WD[dw]} ${dm(d)}${off?" ("+p.status+")":p.topic?`: «${p.topic}»`:" · الموضوع لسه"}${p.owner?" · "+p.owner:""}`,meet:{w,d,p}});
+    })}
+  // الإيفنتات
+  D.events.forEach(e=>{
+    if(e.status!=="اتلغى"&&e.type!=="ديدلاين"&&e.date<=to&&(e.end||e.date)>=from&&e.date<=D.today)R.done.push({t:`${e.title} (${dm(e.date)})${e.booked?` · ${e.booked} حاجز`:""}`});
+    else if(e.type==="ديدلاين"&&e.status==="تم"&&inR(e.date))R.done.push({t:`اتسلّم: ${e.title}`});
+    else if(e.closedAt&&inR(e.closedAt.slice(0,10)))R.done.push({t:`خلص: ${e.title} (${e.closedAt.split("·")[1]?.trim()||""})`});
+    [["ann","اتعلن عن"],["ban","البانر جاهز لـ"]].forEach(([k,l])=>{if(e[k]&&inR(e[k].slice(0,10)))R.done.push({t:`${l} ${e.title} (${e[k].split("·")[1]?.trim()||""})`})});
+    const pw=(e.promo||[]).filter(x=>inR(x.slice(0,10))).length;if(pw)R.done.push({t:`ترويج ${e.title}: ${pw} مرة`});
+    const dupMeet=e.type==="اجتماع"&&D.weekly.some(w=>w.day===parse(e.date).getDay());   // نفس الاجتماع الأسبوعي: مش بيتكرر
+    if(!dupMeet&&e.status!=="تم"&&e.status!=="اتلغى"&&e.date>to&&e.date<=ahead)R.next.push({d:e.date,t:`${e.title} ${dm(e.date)} · ${noOwner(e)?"مفيش مسؤول":e.owner}${prepEv(e)?" · "+prepSt(e).filter(s=>s.k!=="promo").map(s=>s.l+(s.done?" ✓":" ✗")).join(" "):""}`,ev:e});
+    if(prepEv(e)&&e.date<=iso(addDays(parse(D.today),30))){
+      if(noOwner(e))R.dec.push({t:`مين مسؤول عن «${e.title}» (${dm(e.date)})؟`,ev:e});
+      const lt=prepLate(e);if(lt.length&&e.date>=D.today)R.prob.push({t:`${e.title}: متأخر ${lt.map(s=>s.l).join(" و")}${noOwner(e)?"":" ("+first2(e.owner)+")"}`,ev:e});
+    }
+    if(e.type!=="ديدلاين"?false:e.status!=="تم"&&e.status!=="اتلغى"&&e.date<D.today&&e.date>=iso(addDays(parse(D.today),-21)))R.prob.push({t:`ديدلاين عدّى ولسه: ${e.title} (${dm(e.date)})`});
+  });
+  // التسجيلات الجديدة
+  const nr=(D.regs||[]).filter(r=>inR(String(r.at).slice(0,10))&&r.status!=="مرفوض").length;if(nr)R.done.push({t:`${nr} شاب جديد عمل حساب على الموقع`});
+  // «قول للأمناء»
+  (D.says||[]).forEach(s=>{const d=String(s.at).slice(0,10);
+    if(s.kind==="عملت"){if(inR(d))R.done.push({t:`${first2(s.by)}: ${s.text}`,say:s})}
+    else if(s.status!=="اتقفلت")(s.kind==="مشكلة"?R.prob:R.dec).push({t:`${first2(s.by)}: ${s.text}`,say:s});
+    else if(inR(String(s.closedAt).slice(0,10)))R.done.push({t:`اتحل: ${s.text}${s.reply?" ← "+s.reply:""}`,say:s});
+  });
+  R.next.sort((a,b)=>a.d.localeCompare(b.d));
+  return R;
+}
+function weekText(R){
+  const sec=(h,L,em)=>`\n${h}\n`+(L.length?L.map(x=>"• "+x.t).join("\n"):em);
+  return `تقرير خدمة الشباب 🙏\nمن ${dm(R.from)} لـ ${dm(R.to)}\n`+sec("✅ اللي اتعمل",R.done,"• مفيش حاجة متسجلة")+sec("📅 الجاي (أسبوعين)",R.next,"• مفيش")+sec("❓ محتاج قرار",R.dec,"• مفيش")+sec("⚠️ مشاكل",R.prob,"• مفيش 👌");
+}
+function remindText(){                 // رسالة تذكير الخدام (الخميس): مين عليه إيه
+  const in14=iso(addDays(parse(D.today),14)),L=D.events.filter(e=>prepEv(e)&&e.date<=in14);
+  const lines=L.map(e=>{const lt=prepSt(e).filter(s=>s.k!=="promo"&&!s.done).map(s=>s.l);const p=prepSt(e).find(s=>s.k==="promo");
+    const need=[...lt,...(p.late?["ترويج"]:[])];return need.length?`• ${e.title} (${dm(e.date)}): ${need.join(" و")} · ${noOwner(e)?"محتاج مسؤول":first2(e.owner)+(e.backup?" / "+first2(e.backup):"")}`:""}).filter(Boolean);
+  const mt=[];for(let i=0;i<8;i++){const d=iso(addDays(parse(D.today),i)),dw=parse(d).getDay();D.weekly.forEach(w=>{if(w.day!==dw)return;const p=((D.programs||{})[w.title]||{})[d]||{};if(p.status!=="ملغي"&&p.status!=="اتأجل"&&!p.topic)mt.push(`• إعلان اجتماع ${mName(w)} ${WD[dw]} ${dm(d)} لسه متكتبش`)})}
+  return `سلام يا خدام 🙏\nبكرة الجمعة يوم المتابعة. ادخلوا على الموقع ← شغلي، وعلّموا اللي عملتوه، واكتبوا أي حاجة تانية في «قول للأمناء».\n`+(lines.length+mt.length?`\nالمطلوب الأسبوع ده:\n${[...mt,...lines].join("\n")}\n`:"\nكله تمام الأسبوع ده 👌\n")+`\n${location.origin}${location.pathname}#follow`;
+}
+function renderWeek(){
+  const R=weekData(),W=$("week"),txt=weekText(R);
+  const li=(x,i,sec)=>`<li data-i="${i}" data-s="${sec}">${esc(x.t)}${x.say&&x.say.status!=="اتقفلت"&&x.say.kind!=="عملت"?` <button type="button" class="link sclose">✓ اتحل</button>`:""}${x.ev&&D.level===2&&(sec==="dec"||sec==="next")?` <button type="button" class="link eown">👤 مسؤول</button>`:""}${x.meet&&x.meet.d>=D.today?` <button type="button" class="link mown">👤 مسؤول</button>`:""}${x.meet&&x.meet.d<=D.today&&x.meet.d>=R.from?` <button type="button" class="link moff">${x.meet.p.status==="ملغي"||x.meet.p.status==="اتأجل"?"↩︎ اتعمل":"اتلغى؟"}</button>`:""}</li>`;
+  const box=(h,L,sec,em,cls)=>`<section class="panel wk ${cls||""}"><h3>${h} (${L.length})</h3>${L.length?`<ul>${L.map((x,i)=>li(x,i,sec)).join("")}</ul>`:`<p class="empty">${em}</p>`}</section>`;
+  W.innerHTML=`<div class="wk-top"><div class="wk-nav"><button type="button" class="wk-pv">‹ اللي قبله</button><b>${dm(R.from)} – ${dm(R.to)}</b>${WK.off<0?`<button type="button" class="wk-nx">اللي بعده ›</button>`:""}</div>
+    <div class="btns"><a class="primary btn" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(txt)}">📲 ابعته لأبونا واتساب</a><button type="button" class="wk-cp">📋 انسخ</button><a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(remindText())}">🔔 تذكير الخدام</a></div></div>
+    ${box("✅ اللي اتعمل",R.done,"done","مفيش حاجة متسجلة الأسبوع ده.")}
+    ${box("❓ محتاج قرار",R.dec,"dec","مفيش قرارات مستنية 👌","hot")}
+    ${box("⚠️ مشاكل",R.prob,"prob","مفيش مشاكل 👌","hot")}
+    ${box("📅 الجاي (أسبوعين)",R.next,"next","مفيش حاجة في الأسبوعين الجايين.")}
+    <p class="small muted">التقرير بيتعمل لوحده من اللي الخدام بيعلّموه على الموقع. اللي مش متعلّم مش هيظهر.</p>`;
+  const pick=b=>{const l=b.closest("li");return R[l.dataset.s][+l.dataset.i]};
+  W.querySelector(".wk-pv").onclick=()=>{WK.off-=7;renderWeek()};
+  const nx=W.querySelector(".wk-nx");if(nx)nx.onclick=()=>{WK.off=Math.min(0,WK.off+7);renderWeek()};
+  W.querySelector(".wk-cp").onclick=e=>{const b=e.target,ok=()=>{b.textContent="اتنسخ ✓"};if(navigator.clipboard)navigator.clipboard.writeText(txt).then(ok,()=>prompt("انسخ:",txt));else prompt("انسخ:",txt)};
+  W.querySelectorAll(".sclose").forEach(b=>b.onclick=()=>{const s=pick(b).say,rp=prompt("رد قصير يوصل للخادم (اختياري):","");if(rp===null)return;b.disabled=true;
+    callApi("sayClose",{row:s.row,text:s.text,reply:rp},()=>{s.status="اتقفلت";s.reply=rp;s.closedAt=D.today;renderWeek()},m=>{b.disabled=false;alert(m)})});
+  W.querySelectorAll(".eown").forEach(b=>b.onclick=()=>{const e=pick(b).ev;ownForm(b.closest("li"),e.owner,e.backup,(o,k,ok,f)=>callApi("evOwner",{row:e.row,title:e.title,owner:o,backup:k},()=>{e.owner=o||"لسه متحددش";e.backup=k;ok()},f),renderWeek)});
+  W.querySelectorAll(".mown").forEach(b=>b.onclick=()=>{const m=pick(b).meet;ownForm(b.closest("li"),m.p.owner,m.p.backup,(o,k,ok,f)=>callApi("meetSet",{meet:m.w.title,date:m.d,owner:o,backup:k},()=>{setProg(m,{owner:o,backup:k});ok()},f),renderWeek)});
+  W.querySelectorAll(".moff").forEach(b=>b.onclick=()=>{const m=pick(b).meet,off=m.p.status==="ملغي"||m.p.status==="اتأجل";
+    const why=off?"":prompt("الاجتماع اتلغى ليه؟ (هيظهر في التقرير)","");if(!off&&!why)return;b.disabled=true;
+    callApi("meetSet",{meet:m.w.title,date:m.d,status:off?"عادي":"ملغي",why},()=>{setProg(m,off?{status:"عادي"}:{status:"ملغي",notes:why});renderWeek()},x=>{b.disabled=false;alert(x)})});
+}
+function setProg(m,o){const P=(D.programs=D.programs||{}),T=(P[m.w.title]=P[m.w.title]||{});T[m.d]=Object.assign(T[m.d]||{},o);m.p=T[m.d]}
+
+/* ===== دليل الخادم: شاشة واحدة ===== */
+function renderGuide(){
+  const S=[["📌","عليّا","أول حاجة في «شغلي». فيها الإيفنتات والاجتماعات اللي إنت مسؤول أو احتياطي فيها. دوس على الخطوة أول ما تخلصها."],
+    ["📣","الإعلان والبانر والترويج","الإعلان قبل الإيفنت بـ 10 أيام، البانر قبلها بـ 7، والترويج كل يومين. لو اتأخرت الخطوة بتبقى حمرا."],
+    ["✍️","إعلان الاجتماع","لو إنت خادم اجتماع: اكتب عنوان وتشويقة الاجتماع الجاي قبلها بـ 3 أيام، فيظهر للشباب في الرئيسية."],
+    ["📋","الغياب","يوم الاجتماع: «خد الغياب برقم التليفون». كل شاب بيكتب رقمه أو إنت تكتبه، في ثواني."],
+    ["💬","قول للأمناء","عملت حاجة برا الموقع؟ فيه مشكلة؟ محتاج قرار؟ اكتبها وقت ما تحصل. الأمين بيرد عليك هنا."]];
+  $("guide").innerHTML=`<section class="panel"><h3>إزاي أستخدم الموقع كخادم؟</h3><p class="small muted" style="margin:0">5 حاجات بس. كل اللي بتعلّمه بيطلع لوحده في تقرير الأسبوع لأبونا، فمحدش هيكلّمك يسألك عملت إيه.</p></section>
+    ${S.map(([ic,h,t],i)=>`<div class="gd"><span class="gd-n">${i+1}</span><div><b>${ic} ${h}</b><p>${t}</p></div></div>`).join("")}
+    <p class="note" style="margin:0">🗓 الخميس بيوصلك تذكير، والجمعة يوم المتابعة: افتح «شغلي» وعلّم اللي عملته.</p>
+    <a class="btn primary" href="#follow" style="text-align:center">يلا على شغلي</a>`;
+}
+
 function renderNav(cur){
   if(!D.level){$("views").hidden=true;return}
   // الخادم: 3 تابات بس. الأمين: تاب رابع "الإدارة" جواه الطلبات والخدام والتقييمات وخطة السنة والبرامج
@@ -2055,13 +2260,14 @@ function renderNav(cur){
   const items=tripsOnly()?[["trips","إدارة الرحلات"+(rq?` (${rq})`:"")],["me","بروفايلي"]]:[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:bkSee()?[["trips","الرحلات"+(rq?` (${rq})`:"")]]:[]),["home","الشباب"],["me","بروفايلي"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===c?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
-const ADM_PAGES=["admin","approve","team","ratings","year"];
+const ADM_PAGES=["admin","approve","team","ratings","year","week"];
 // صفحة الإدارة (للأمناء): زراير كبيرة للصفحات اللي مش محتاجها كل يوم
 function renderAdmin(){
   const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nf=(D.regs||[]).filter(r=>r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
-  const L=[["trips","🚌","إدارة الرحلات",""],...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
+  const R0=weekData(),hot=R0.dec.length+R0.prob.length;
+  const L=[["week","📊","تقرير الأسبوع لأبونا",hot?hot+" محتاج تتابعه":"جاهز"],["trips","🚌","إدارة الرحلات",""],...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
-  $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
+  $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني|محتاج/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
 }
 
@@ -2310,18 +2516,20 @@ function route(){
   if(D.level&&tripsOnly()&&!["trips","me"].includes(h))h="trips";   // مسؤول الرحلات: صفحة الرحلات وبروفايله بس، من غير أي حاجة تانية
   if(h==="trips"&&D.level&&!bkSee())h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
-  if((h==="team"||h==="admin")&&D.level!==2)h="follow";
-  if(D.level===1&&!["follow","home","me","approve","att","servant","plan","trips"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att", isP=h==="plan", isTr=h==="trips";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr);$("trips").hidden=!isTr;$("plan").hidden=!isP;$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  if((h==="team"||h==="admin"||h==="week")&&D.level!==2)h="follow";
+  if(D.level===1&&!["follow","home","me","approve","att","servant","plan","trips","guide"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att", isP=h==="plan", isTr=h==="trips", isW=h==="week", isG=h==="guide";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isW||isG);$("week").hidden=!isW;$("guide").hidden=!isG;$("trips").hidden=!isTr;$("plan").hidden=!isP;$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome||((isMe||isK)&&!D.level));$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isG;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isTr?"إدارة الرحلات":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":isP?"توقع السنة":"خطة السنة";
-  renderNav(isTr?"trips":mt?h:isHome?"home":isFollow||isAt||isP?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isTr?"إدارة الرحلات":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":isP?"توقع السنة":isW?"تقرير الأسبوع":isG?"دليل الخادم":"خطة السنة";
+  renderNav(isTr?"trips":isW?"week":mt?h:isHome?"home":isFollow||isAt||isP||isG?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
   if(isA)renderAdmin();
+  if(isW)renderWeek();
+  if(isG)renderGuide();
   if(isAt)renderAtt();
   if(isP)renderPlan();
   if(isMe)renderMe();
@@ -2335,7 +2543,7 @@ function route(){
   if(isTr)renderTrips();
   if(m)renderMonth(m[1]);
   if(mt){meetMonth=null;renderMeet(+mt[1]-1)}
-  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr);   // ملاحظة الزحمة لخطة السنة بس
+  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isW||isG);   // ملاحظة الزحمة لخطة السنة بس
   window.scrollTo(0,0);
 }
 
