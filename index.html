@@ -900,6 +900,7 @@ function renderBell(items){const b=$("bell"),pn=$("bellPanel");if(!b)return;
 }
 document.addEventListener("click",e=>{const pn=$("bellPanel");if(pn&&!pn.hidden&&!e.target.closest("#bell,#bellPanel"))pn.hidden=true});
 /* ================= الحجز (الشاب بيحجز بحسابه المسجل) ================= */
+let BK_SYNC=false;   // اتجاب حجز الشاب من السيرفر في الفتحة دي؟
 let MYBK=[];try{MYBK=JSON.parse(lsGet("gsyf_bk")||"[]")||[]}catch(e){MYBK=[]}
 // صور التفاعل (مكوّن واحد للتوقع والحجوزات): لحد ٦ صور ورا بعض + "+N"، من غير أسامي
 const faceStack=(L,total)=>{if(!L||!L.length)return "";const more=Math.max(0,(total||0)-L.length);
@@ -926,10 +927,14 @@ function bkSlot(e){
     return `<div class="bk-box" data-bk="${m.row}"><b>${s[0]} ${esc(s[1])}</b>${m.req?`<span class="small">هيأكد مكانك ويحدد الأوتوبيس قريب، وهيظهرلك هنا.</span>`:m.bus?`<span class="bk-bus">🚌 مكانك في أوتوبيس ${esc(m.bus)}</span>`:""}${grpBtn(m)}${mf?`<div class="fstk-row">${mf}<span>حاجزين معاك</span></div>`:""}${say}${m.status!=="مؤكد"?`<div class="btns">${wait?(m.said==="دفعت"?`<button type="button" class="small bk-say1">عدّل</button><button type="button" class="small bk-say0">لأ، لسه مدفعتش</button>`:`<button type="button" class="primary small bk-say1">دفعت ✓</button>`):""}<button type="button" class="small bk-x">إلغاء الحجز</button></div>`:""}</div>`}
   if(!e.booking||isRsvp(e.title))return "";
   const left=e.cap?e.cap-(e.booked||0):null,fc=faceStack(bkFaces(e),e.booked);
-  if(left!==null&&left<=0)return `<p class="small" style="margin:6px 0 0">الأماكن الـ ${e.cap} اتحجزت 😔 تقدر تدخل قائمة الانتظار، ولو حد اعتذر هتطلع مكانه بالترتيب.</p><div class="btns"><button type="button" class="primary bk">ادخل قائمة الانتظار</button></div>`;
+  // الرحلة اتملت: لو داخل بحسابك ولسه بنجيب حجزك من السيرفر، استنى. ولو مش داخل، ممكن تكون حاجز من موبايل تاني (MORCOS 20 نوفمبر: ناس فكروا نفسهم في الانتظار)
+  const inAcc=!!lsGet("gsyf_reg");
+  if(left!==null&&left<=0&&inAcc&&!BK_SYNC)return `<p class="small muted" style="margin:6px 0 0">⏳ بنشوف حجزك…</p>`;
+  if(left!==null&&left<=0)return `${inAcc?"":`<div class="bk-box"><b>حاجز في الرحلة؟</b><span class="small">ادخل بحسابك (رقم موبايلك والرقم السري) عشان تشوف مكانك في الأوتوبيس وتدخل جروب الرحلة.</span><div class="btns"><button type="button" class="primary small bk-in">ادخل بحسابك</button></div></div>`}<p class="small" style="margin:8px 0 0">${inAcc?"إنت مش حاجز في الرحلة دي. ":""}الأماكن الـ ${e.cap} اتحجزت 😔 تقدر تدخل قائمة الانتظار، ولو حد اعتذر هتطلع مكانه بالترتيب.</p><div class="btns"><button type="button" class="${inAcc?"primary ":""}small bk">ادخل قائمة الانتظار</button></div>`;
   return `<div class="btns"><button type="button" class="primary bk">احجز مكانك</button></div>${fc?`<div class="fstk-row">${fc}<span>حاجزين</span></div>`:""}${left!==null&&left<=15?`<span class="small muted">فاضل ${left} ${left<=10?"أماكن":"مكان"} بس</span>`:""}`;
 }
 function bkBind(root){
+  root.querySelectorAll(".bk-in").forEach(b=>b.onclick=()=>{const x=$("regSec"),bx=$("regBox");if(bx){const c=bx.querySelector(".rg-chk");if(c)c.click()}if(x)x.scrollIntoView({behavior:"smooth",block:"start"})});
   const em=lsGet("gsyf_reg")||"",evOf=b=>D.events.find(e=>e.row===+b.closest("[data-row]").dataset.row);
   root.querySelectorAll(".bk").forEach(b=>b.onclick=()=>{const box=b.closest("[data-row]"),e=evOf(b);
     // دوسة واحدة: الاسم والموبايل بيتاخدوا من حساب الشاب (التسجيل) ويتسجلوا مع الحجز. مفيش فورم
@@ -1269,15 +1274,16 @@ function regForm(box){
       e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
 function renderReg(){
-  const box=$("regBox");if(!box)return;const em=lsGet("gsyf_reg");
+  const box=$("regBox");if(!box){BK_SYNC=true;return}const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
     box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(realEm(em))}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()&&!lsGet("gsyf_ynick")&&!lsGet("gsyf_nick_skip")?`<p class="small" style="margin:0">💡 الناس بتعرفك باسم تاني غير اسمك الرسمي؟ <a href="#me">ضيفه من بروفايلك</a></p>`:""}${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
     box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
     const pb=box.querySelector(".rg-pin");if(pb)pb.onclick=()=>yLoginForm(box);
     callApi("regStatus",{email:em,tok:YT()},r=>{if(r.key&&!D.level){load(r.key,true);return}const was=regOk();lsSet("gsyf_reg_st",r.status||"");
       if(!r.status){lsSet("gsyf_reg","");renderHome();return}
-      if(setMyBk(r.mine)||was!==regOk()){renderHome();return}
-      const st=REG_ST[r.status];if(st){box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1]}},()=>{});
+      const first=!BK_SYNC;BK_SYNC=true;
+      if(setMyBk(r.mine)||was!==regOk()||first){renderHome();return}
+      const st=REG_ST[r.status];if(st){box.querySelector(".rg-ic").textContent=st[0];box.querySelector(".rg-msg").textContent=st[1]}},()=>{if(!BK_SYNC){BK_SYNC=true;renderHome()}});
     return}
   box.innerHTML=`<p class="rg-pitch">إنت مننا! سجّل بياناتك وكل حاجة تتفتح لك: مواعيد الاجتماعات، الرحلات والإيفنتات، الحجز، ورأيك في كل حاجة.</p><div class="btns"><button type="button" class="primary rg-new">سجّل دلوقتي</button><button type="button" class="rg-chk">عندي حساب؟ ادخل</button></div>`;
   box.querySelector(".rg-new").onclick=()=>regForm(box);
