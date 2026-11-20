@@ -452,8 +452,8 @@ body.youth #me{padding-top:56px}
 .bk-bus{display:block;font-weight:700;margin-top:2px}
 .st-box{margin-top:8px;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--card,#fff)}
 .st-big{font-size:1.15rem;font-weight:800;display:block}.st-big .num{color:var(--accent,#7a1f2b)}
-.st-bus{direction:rtl;display:grid;grid-template-columns:1fr 1fr .55fr 1fr 1fr;gap:4px;max-width:260px;margin:8px auto 4px;padding:8px;border:2px solid var(--line);border-radius:18px 18px 10px 10px}
-.st-front{grid-column:1/-1;display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);padding:0 2px 4px;border-bottom:1px dashed var(--line);margin-bottom:2px}
+.st-bus{direction:ltr;display:grid;grid-template-columns:1fr 1fr .8fr 1fr 1fr;grid-auto-rows:minmax(0,auto);gap:4px;max-width:260px;margin:8px auto 4px;padding:8px;border:2px solid var(--line);border-radius:18px 18px 10px 10px}
+.st-lbl{display:flex;align-items:center;justify-content:center;font-size:.68rem;color:var(--muted);text-align:center;line-height:1.1}.st-front{grid-column:1/-1;display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);padding:0 2px 4px;border-bottom:1px dashed var(--line);margin-bottom:2px}
 .st-s{aspect-ratio:1;border-radius:6px;border:1px solid var(--line);background:var(--bg,#f6f1ea);font-size:.68rem;display:flex;align-items:center;justify-content:center;padding:0;color:var(--muted);font-family:inherit}
 .st-s.on{background:#c9a227;border-color:#a8861b;color:#fff;font-weight:800;box-shadow:0 0 0 2px rgba(201,162,39,.35)}
 .st-s.tk{background:#e7dccf;color:#5b4a3a}.st-s.pk{background:#7a1f2b;color:#fff}
@@ -955,10 +955,15 @@ const isRsvp=t=>{t=t||"";const e=(D&&D.events||[]).find(x=>x.title===t);return /
 const grpBtn=m=>m.group?`<a class="bk-grp" href="${esc(m.group)}" target="_blank" rel="noopener">👥 ادخل جروب الرحلة</a>`:m.grpLock?`<span class="bk-grp off">👥 كمّل الدفع عشان تدخل جروب الرحلة</span>`:"";
 // الكراسي (MORCOS 21 نوفمبر): كل واحد بيشوف أوتوبيس كام وكرسي كام ورسمة الأوتوبيس، ويقدر يبدل مع حد لو الاتنين وافقوا
 const stCap=m=>{const e=(D.events||[]).find(x=>x.title===m.event&&x.date===m.date);return (e&&(e.buses||[])[+m.bus-1])||50};
-function stMap(cap,cell){let h=`<div class="st-bus"><div class="st-front"><span>🚪 الباب</span><span>قدّام</span><span>🧑‍✈️ السواق</span></div>`;
-  const rows=Math.ceil(cap/4);
-  for(let r=0;r<rows;r++){for(let c=0;c<5;c++){if(c===2){h+=`<span class="st-gap"></span>`;continue}const n=r*4+(c<2?c:c-1)+1;h+=n<=cap?cell(n):`<span class="st-gap"></span>`}}
-  return h+`</div>`}
+// شكل أتوبيس الـ 50 (MORCOS 21 نوفمبر، زي الصورة): السواق شمال قدام، باب قدام يمين، باب في النص يمين، كنبة 5 ورا.
+// الترقيم: كل صف يمين (1،2) وبعده شمال (3،4)… صفين جنب الباب اللي في النص شمال بس، الكنبة 45-49، وكرسي 50 جنب الباب اللي قدام
+const ST_LAY=(()=>{const L=[];let n=1;const R=(r,c)=>L.push({n:n++,r,c});
+  for(let r=1;r<=12;r++){if(r<6||r>7){R(r,5);R(r,4)}R(r,2);R(r,1)}
+  [1,2,3,4,5].forEach(c=>R(13,c));L.push({n:n++,r:0,c:5},{n:n++,r:0,c:4});return L})();
+function stMap(cap,cell){let h=`<div class="st-bus"><span class="st-lbl" style="grid-row:1;grid-column:1/3">🧑‍✈️ السواق</span><span class="st-lbl" style="grid-row:7/9;grid-column:4/6">🚪 باب</span>`;
+  const by={};ST_LAY.forEach(x=>by[x.n]=x);
+  for(let n=1;n<=cap;n++){const x=by[n];if(!x)break;h+=cell(n).replace(/^<(\w+)/,`<$1 style="grid-row:${x.r+1};grid-column:${x.c}"`)}
+  return h+(cap<51?`<span class="st-lbl" style="grid-row:1;grid-column:4">🚪 باب</span>`:"")+`</div>`}
 const stMine=m=>m.seat?stMap(stCap(m),n=>`<span class="st-s${n===m.seat?" on":""}">${n}</span>`):"";
 function seatBox(m){if(!m||!m.seat||!m.bus||m.status==="ملغي")return "";
   const fut=!m.date||m.date>=D.today,o=m.swapOut,inc=(m.swapIn||[]);
