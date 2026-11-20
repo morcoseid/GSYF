@@ -445,6 +445,7 @@ body.youth #me{padding-top:56px}
 .tr-pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.tr-pick .pt small{opacity:.7;font-weight:400}
 .bk-bus{display:block;font-weight:700;margin-top:2px}
 .bk-grp{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:#25D366;color:#fff;border-radius:999px;padding:8px 16px;text-decoration:none;font-weight:700;font-size:.9rem}.bk-grp.off{background:var(--line);color:var(--muted)}
+.in-ch .chip{border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:.85rem;background:var(--surface);cursor:pointer;font-family:inherit}.in-ch .chip.on{background:#25D366;color:#fff;border-color:#25D366}
 .iv-bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden}.iv-bar i{display:block;height:100%;background:#25D366;border-radius:99px}
 .iv-lk{display:flex;gap:6px;flex-wrap:wrap}.iv-lk input{flex:1;min-width:200px}
 .rm-r .iv-un{background:none;border:0;color:var(--muted);font-size:.8rem;cursor:pointer;padding:4px}
@@ -1642,6 +1643,7 @@ function renderFollow(){
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
     ${thuNote()}
     ${prepPanel(fold)}
+    ${invPanel()}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
     <a class="fc-go" href="#plan">📅 توقع أنشطة السنة الجاية</a>
     ${mcPanel()}
@@ -1673,8 +1675,35 @@ function renderFollow(){
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
-  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);
+  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
+}
+
+/* ================= دعوات +25 (MORCOS 20 نوفمبر): كل خادم +25 يلاقي الأسماء اللي عليه، وقدام كل اسم زرار يفتح واتساب بالدعوة جاهزة =================
+   api.whatsapp.com بدل wa.me: wa.me ساعات بيبوّظ الإيموجيز (بتظهر علامات استفهام) */
+let INV_WHO="";
+function invMsg(name,g){const b=g==="بنت",f=String(name||"").trim().split(/\s+/)[0];
+  return `يا ${f} 🔥\n\n${b?"استعدي يا بطلة":"استعد يا بطل"}، فيه حاجة كبيرة جاية! 🎉\n\nبدأنا *اجتماع جديد* خالص اسمه *اجتماع شباب الربع قرن +25*\n\n📅 أول لقاء: الجمعة ٢٧ نوفمبر\n⏰ الساعة ٦ المغرب\n📍 في الكنيسة\n\n🙏 صلاة من القلب\n💬 كلمة من أبونا\n☕ وسهرة حلوة مع بعض\n\nالاجتماع ده معمول عشانكم، ومن غيرك الليلة مش هتكمل! ${b?"💖":"💪"}\n\nأحب أسمع منك 😊 ولو عندك مشكلة في الميعاد ${b?"قوليلي":"قولّي"}.\n\n${b?"هستناكي":"هستناك"}! 🔥`}
+const invWa=(r,w)=>`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(invMsg(r.name,r.g))}`;
+const n2=s=>String(s||"").replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/\s+/g," ").trim().split(" ").slice(0,2).join(" ");
+function invPanel(){const I=D.inv;if(!I||!I.rows||!I.rows.length)return "";
+  const srvs=[...new Set(I.rows.map(r=>r.srv))],who=I.all?(INV_WHO&&srvs.includes(INV_WHO)?INV_WHO:(srvs.find(x=>n2(x)===I.me)||srvs[0])):"";
+  const L=I.all?I.rows.filter(r=>r.srv===who):I.rows,sent=L.filter(r=>r.sent).length,pc=L.length?Math.round(sent*100/L.length):0;
+  const tot=I.rows.length,totS=I.rows.filter(r=>r.sent).length;
+  const row=r=>{const w=waNum(r.phone);return `<div class="rm-r${r.sent?" done":""}" data-row="${r.row}"><b>${esc(r.name)}</b>${!w?`<span class="err small">⚠️ مفيش رقم</span>`:`<span>${r.sent?`<button type="button" class="iv-un in-un" title="${esc(r.sent)}">↩︎ شيل العلامة</button> `:""}<a class="rm-wa in-wa" href="${invWa(r,w)}" target="_blank" rel="noopener">${r.sent?"✓ اتبعتت":"ابعت الدعوة ↗"}</a></span>`}</div>`};
+  return `<section class="panel inv" id="inv"><h3>📨 دعوات اجتماع +25 · الجمعة ٢٧ نوفمبر</h3>
+    ${I.all?`<div class="chips in-ch">${srvs.map(x=>{const R=I.rows.filter(r=>r.srv===x);return `<button type="button" class="chip${x===who?" on":""}" data-s="${esc(x)}">${esc(x.split(" ").slice(0,2).join(" "))} ${R.filter(r=>r.sent).length}/${R.length}</button>`}).join("")}</div><p class="small muted" style="margin:4px 0">الكل: اتبعت ${totS} من ${tot}</p>`:""}
+    <div><b>اتبعت لـ <span class="num">${sent}</span> من <span class="num">${L.length}</span></b>${L.length&&sent===L.length?" 🎉":""}<div class="iv-bar" style="margin-top:6px"><i style="width:${pc}%"></i></div></div>
+    <p class="small" style="margin:6px 0">دوس "ابعت الدعوة"، الشات هيفتح والرسالة جاهزة باسمه، ابعت وارجع للي بعده. الأسماء مترتبة بالسن، الأكبر الأول.</p>
+    <details><summary class="small" style="cursor:pointer">👀 شوف الرسالة</summary><p class="small" style="white-space:pre-wrap;background:var(--bg2,#f6f6f6);padding:8px;border-radius:8px">${esc(invMsg(L[0]?L[0].name:"مينا",L[0]?L[0].g:"شاب"))}</p></details>
+    ${L.map(row).join("")}</section>`}
+function invBind(F){const I=D.inv;if(!I)return;
+  F.querySelectorAll(".in-ch .chip").forEach(b=>b.onclick=()=>{INV_WHO=b.dataset.s;renderFollow()});
+  const mark=(x,undo)=>{const r=I.rows.find(z=>z.row===+x.closest(".rm-r").dataset.row);if(!r)return;const old=r.sent;
+    r.sent=undo?"":(D.me?D.me.name.split(" ").slice(0,2).join(" "):"أمين")+" · دلوقتي";
+    callApi("invMark",{row:r.row,undo:!!undo},()=>{},m=>{r.sent=old;renderFollow();alert(m)})};
+  F.querySelectorAll(".in-wa").forEach(x=>x.addEventListener("click",()=>{const r=I.rows.find(z=>z.row===+x.closest(".rm-r").dataset.row);if(r&&!r.sent)mark(x);setTimeout(renderFollow,300)}));
+  F.querySelectorAll(".in-un").forEach(x=>x.onclick=()=>{mark(x,true);renderFollow()});
 }
 
 /* ================= إعلان الاجتماع الأسبوعي (خدام الاجتماع بيكتبوه من "شغلي") =================
