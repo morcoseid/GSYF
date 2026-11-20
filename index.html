@@ -1273,8 +1273,16 @@ function regForm(box){
         renderHome();setTimeout(()=>{const x=$("regSec");if(x)x.scrollIntoView({block:"center"})},50)},
       e=>{btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
+// الأعضاء المقبولين مبيظهرلهمش قسم التسجيل، فكان حجزهم مبيتحدثش من السيرفر وبيفضل القديم على الموبايل (زي "مستني الدفع" أو "انتظار" بعد ما اتأكد).
+// دلوقتي بيتجاب كل مرة الصفحة تفتح (ومرة كل دقيقة بالكتير) (MORCOS 20 نوفمبر)
+let bkSyncAt=0;
+function syncMine(){const em=lsGet("gsyf_reg");if(!em){BK_SYNC=true;return}if(Date.now()-bkSyncAt<60000&&BK_SYNC)return;bkSyncAt=Date.now();
+  callApi("regStatus",{email:em,tok:YT()},r=>{if(r.key&&!D.level){load(r.key,true);return}const first=!BK_SYNC;BK_SYNC=true;
+    if(r.status!==undefined&&r.status)lsSet("gsyf_reg_st",r.status);
+    if((setMyBk(r.mine)||first)&&!$("home").hidden)renderHome()},()=>{if(!BK_SYNC){BK_SYNC=true;if(!$("home").hidden)renderHome()}})}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&D&&lsGet("gsyf_reg")){bkSyncAt=0;syncMine()}});
 function renderReg(){
-  const box=$("regBox");if(!box){BK_SYNC=true;return}const em=lsGet("gsyf_reg");
+  const box=$("regBox");if(!box){syncMine();return}const em=lsGet("gsyf_reg");
   if(em){const st0=REG_ST[lsGet("gsyf_reg_st")]||["…","بنشوف…"];
     box.innerHTML=`<div class="rg-st"><span class="rg-ic">${st0[0]}</span><div><b>حالة طلبك</b><div class="muted small" dir="ltr">${esc(realEm(em))}</div><div class="rg-msg">${st0[1]}</div></div></div>${lsGet("gsyf_reg_st")!=="مقبول"?`<p class="small" style="margin:0">للمتابعة تواصل معانا على واتساب الخدمة:</p>${WA_BTN()}`:""}<div class="btns">${YT()?`<a class="btn primary" href="#me">👤 بروفايلي</a>`:`<button type="button" class="primary small rg-pin">ادخل بحسابك</button>`}<button type="button" class="rg-out small">خروج</button></div>${YT()&&!lsGet("gsyf_ynick")&&!lsGet("gsyf_nick_skip")?`<p class="small" style="margin:0">💡 الناس بتعرفك باسم تاني غير اسمك الرسمي؟ <a href="#me">ضيفه من بروفايلك</a></p>`:""}${YT()?"":`<p class="small muted" style="margin:0">ادخل برقم موبايلك واختار رقم سري، ويبقى ليك بروفايل محدش يدخله غيرك.</p>`}`;
     box.querySelector(".rg-out").onclick=()=>{yOut();renderHome()};
