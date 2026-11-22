@@ -1500,7 +1500,7 @@ function renderMe(){
   const role=sv?srvTitle(sv.role,sv.group):p&&p.servant?srvTitle(p.servant,p.group):gen,st=p?p.status:lsGet("gsyf_reg_st")||"";
   const today=D.today,bk=(p&&p.bookings)||[],up=bk.filter(b=>!b.date||b.date>=today),past=bk.filter(b=>b.date&&b.date<today);
   const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.status==="ملغي"?"اتلغى":isRsvp(b.event)?"✋ قلت إنك جاي":bkPayTxt(b)}</div>${b.status==="ملغي"?"":seatBox(b)+grpBtn(b)}</div></div>`;
-  const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[sv.role==="أمين"||!!(sv.perms||{})[k],PERM_L[k]])):[])];
+  const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[["أمين مساعد","أمين","أمين عام"].includes(sv.role)||!!(sv.perms||{})[k],PERM_L[k]])):[])];
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
     ${meAsk(p)}<section class="panel me-data"></section>`
@@ -2183,7 +2183,9 @@ function srvRegForm(box){
 const OTHER="خدمة تانية";
 const GRP=[["جامعيين","جامعيين"],["الربع قرن","الربع قرن +25"],["الاتنين","الاتنين"],[OTHER,"خدمة تانية"],["الرحلات","🚌 مسؤول الرحلات"]];
 const grpL=g=>(GRP.find(x=>x[0]===g)||[,""])[1];
-const srvTitle=(role,g)=>(role==="أمين"?"أمين":"خادم")+(g==="الاتنين"?" جامعيين و+25":g&&g!==OTHER?" "+grpL(g):"");
+// الأدوار (MORCOS 23 نوفمبر): أمين عام / أمين (اجتماعه) / أمين مساعد / خادم
+const ROLES=["خادم","أمين مساعد","أمين","أمين عام"],isLead=r=>ROLES.indexOf(r)>0,myRank=()=>D.me?(D.me.rank||0):(D.level===2?3:0);
+const srvTitle=(role,g)=>role==="أمين عام"?role:(ROLES.includes(role)?role:"خادم")+(g==="الاتنين"?" جامعيين و+25":g&&g!==OTHER?" "+grpL(g):"");
 const grpHint=`<p class="small muted tm-hint">"خدمة تانية" للي بيخدم برا الاجتماعين (زي المسرح): بياخد كل حاجة الخادم بياخدها، بس مش بيكتب إعلان اجتماع. "مسؤول الرحلات": بيشوف صفحة إدارة الرحلات بس، وهو الوحيد اللي بيأكد الدفع والإلغاء.</p>`;
 const grpChips=(cur,cls)=>GRP.map(([v,l])=>`<button type="button" class="pt ${cls}" data-g="${v}" aria-pressed="${cur===v}">${esc(l)}</button>`).join("");
 // صفحة الأمناء: الموافقة على الخدام (بالمجموعة والدور في خطوة واحدة) وفتح/قفل الصلاحيات
@@ -2192,19 +2194,21 @@ function renderTeam(){
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
   const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
     <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips("","pg")}</div></div>${grpHint}
-    <div class="tm-pick"><span>الدور:</span><div class="tm-perms"><button type="button" class="pt pr" data-r="خادم" aria-pressed="true">خادم</button><button type="button" class="pt pr" data-r="أمين" aria-pressed="false">أمين (كل حاجة)</button></div></div>
-    <div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار بيخدم فين الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div></article>`;
-  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}${u.role==="أمين"?' <span class="tm-badge">أمين</span>':""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
-    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.group,"ug")}</div></div>
-    <div class="tm-pick"><span>يقدر يشوف:</span><div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${u.role==="أمين"||!!u.perms[k]}"${u.role==="أمين"?" disabled":""}>${esc(l)}</button>`).join("")}<button type="button" class="pt us" data-f="role" data-v="${u.role==="أمين"?"خادم":"أمين"}" aria-pressed="${u.role==="أمين"}">أمين (كل حاجة)</button></div></div>
-    <div class="tm-more">${wa(u)}${u.noPin?'<span class="err">الرقم السري اتمسح، مستني يسجل تاني</span>':`<a href="#" class="us" data-f="resetPin">امسح الرقم السري</a>`}<a href="#" class="us" data-f="status" data-v="موقوف">إيقاف</a></div></article>`;
-  const ord=(a,b)=>(a.role==="أمين"?0:1)-(b.role==="أمين"?0:1)||a.name.localeCompare(b.name,"ar");
-  const sec=(t,L,hot)=>L.length?`<section class="panel tm-sec${hot?" tm-hot":""}"><h3>${t} <span class="muted">(${L.length}${L.some(u=>u.role==="أمين")?" · منهم "+L.filter(u=>u.role==="أمين").length+" أمين":""})</span></h3>${hot?`<p class="small" style="margin:0">اختار لكل واحد هو خادم في أنهي اجتماع، أو "خدمة تانية" لو مش في اجتماع.</p>`:""}</section>${L.sort(ord).map(card).join("")}`:"";
+    <div class="tm-pick"${myRank()<3?" hidden":""}><span>الدور:</span><div class="tm-perms">${ROLES.map(r=>`<button type="button" class="pt pr" data-r="${r}" aria-pressed="${r==="خادم"}">${r}</button>`).join("")}</div></div>
+    ${myRank()>=2?`<div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار بيخدم فين الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div>`:`<p class="small muted" style="margin:0">القبول للأمين.</p>`}</article>`;
+  const rk=myRank(),canU=u=>rk>=3||(rk>=2&&!isLead(u.role));
+  const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}${isLead(u.role)?` <span class="tm-badge">${esc(u.role)}</span>`:""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
+    ${canU(u)?`<div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.group,"ug")}</div></div>`:""}
+    ${rk>=3?`<div class="tm-pick"><span>الدور:</span><div class="tm-perms">${ROLES.map(r=>`<button type="button" class="pt us" data-f="role" data-v="${r}" aria-pressed="${u.role===r}">${r}</button>`).join("")}</div></div>
+    <div class="tm-pick"><span>يقدر يشوف:</span><div class="tm-perms">${P.map(([k,l])=>`<button type="button" class="pt us" data-f="${k}" aria-pressed="${isLead(u.role)||!!u.perms[k]}"${isLead(u.role)?" disabled":""}>${esc(l)}</button>`).join("")}</div></div>`:""}
+    <div class="tm-more">${wa(u)}${u.noPin?'<span class="err">الرقم السري اتمسح، مستني يسجل تاني</span>':`<a href="#" class="us" data-f="resetPin">امسح الرقم السري</a>`}${canU(u)?`<a href="#" class="us" data-f="status" data-v="موقوف">إيقاف</a>`:""}</div></article>`;
+  const ord=(a,b)=>(ROLES.indexOf(b.role)-ROLES.indexOf(a.role))||a.name.localeCompare(b.name,"ar");
+  const sec=(t,L,hot)=>L.length?`<section class="panel tm-sec${hot?" tm-hot":""}"><h3>${t} <span class="muted">(${L.length}${L.some(u=>isLead(u.role))?" · منهم "+L.filter(u=>isLead(u.role)).length+" أمين":""})</span></h3>${hot?`<p class="small" style="margin:0">اختار لكل واحد هو خادم في أنهي اجتماع، أو "خدمة تانية" لو مش في اجتماع.</p>`:""}</section>${L.sort(ord).map(card).join("")}`:"";
   const nog=on.filter(u=>!u.group);
   $("team").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> خادم مستني موافقة</span><button type="button" id="tmRef">↻ تحديث</button></div>
     ${welcPanel(["srv","spin"])}
     ${wait.map(pend).join("")}
-    <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">${GRP.map(([g,l])=>`${esc(l)}: <b>${on.filter(u=>u.group===g).length}</b>`).join(" · ")}${nog.length?` · من غير مجموعة: <b>${nog.length}</b>`:""}<br>الأمين بيشوف كل حاجة. الخادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول"، وأي صلاحية تفتحها له.</p></section>
+    <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">${GRP.map(([g,l])=>`${esc(l)}: <b>${on.filter(u=>u.group===g).length}</b>`).join(" · ")}${nog.length?` · من غير مجموعة: <b>${nog.length}</b>`:""}<br>${rk>=3?"الأمين العام بيشوف الكل. الأمين بيقبل ويوقف خدام اجتماعه بس، والمساعد بيشوف بس. الخادم بيشوف شغله هو بس، وأي صلاحية تفتحها له.":"إنت شايف خدام اجتماعك بس. الأدوار والصلاحيات للأمين العام."}</p></section>
     ${sec("⚠️ لسه من غير مجموعة",nog,1)}
     ${GRP.map(([g,l])=>sec(g==="الاتنين"?"خدام الاجتماعين":g===OTHER?"خدام خدمات تانية (من غير اجتماع)":"خدام "+l,on.filter(u=>u.group===g))).join("")}
     ${on.length?"":`<p class="empty">لسه مفيش خدام. ابعت لينك الخدام أو افتح صلاحية لحد متسجل من تحت.</p>`}
@@ -2240,7 +2244,7 @@ function renderTeam(){
   T.querySelectorAll(".us").forEach(b=>b.onclick=e=>{e.preventDefault();const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),f=b.dataset.f;
     if(f==="resetPin"&&!confirm(`تمسح الرقم السري بتاع ${u.name}؟ هيعمل رقم جديد من "عندي حساب؟ ادخل" ثم "أول مرة أدخل؟".`))return;
     if(f==="status"&&b.dataset.v==="موقوف"&&!confirm(`توقف حساب ${u.name}؟`))return;
-    if(f==="role"&&b.dataset.v==="أمين"&&!confirm(`تخلي ${u.name} أمين؟ الأمين بيشوف ويعدّل كل حاجة في الموقع.`))return;
+    if(f==="role"&&(u.role===b.dataset.v||isLead(b.dataset.v)&&!confirm(`تخلي ${u.name} ${b.dataset.v}؟`)))return;
     const isPerm=P.some(([k])=>k===f),v=isPerm?!u.perms[f]:b.dataset.v;b.disabled=true;
     callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin"){u.noPin=true;welcAdd(srvP(u),"spin")}done()},
       m=>{b.disabled=false;alert(m)})});
@@ -2307,7 +2311,7 @@ function prepPanel(fold){
   if(mine.length||mm.length)h+=`<section class="panel prep"><h3>📌 عليّا (${mine.length+mm.length})</h3>
     ${mm.map(x=>`<div class="pr-ev"><div class="pr-h"><b>${esc(x.w.title)}</b><span class="small muted">${WD[parse(x.d).getDay()]} ${dm(x.d)}</span></div><div class="why">${x.p.topic?`✓ الإعلان مكتوب: ${esc(x.p.topic)}`:`<span class="late">لسه الإعلان متكتبش</span> · اكتبه من «إعلان الاجتماع الجاي» فوق`} · ${isMine(x.p.owner||"",D.me.name)?"إنت المسؤول":"إنت الاحتياطي"}</div></div>`).join("")}
     ${mine.map(e=>prepRow(e)).join("")}<p class="small muted" style="margin:6px 0 0">دوس على الخطوة أول ما تخلصها. الإعلان قبلها بـ 10 أيام، البانر بـ 7، والترويج كل يومين.</p></section>`;
-  if(rest.length)h+=fold("prep","📣 تجهيز الإيفنتات الجاية ("+rest.length+")",`<section class="panel prep"><h3>تجهيز الإيفنتات</h3>${rest.map(e=>prepRow(e)).join("")}</section>`,!mine.length&&!mm.length&&D.level===2);
+  if(rest.length&&D.level===2)h+=fold("prep","📣 تجهيز الإيفنتات الجاية ("+rest.length+")",`<section class="panel prep"><h3>تجهيز الإيفنتات</h3>${rest.map(e=>prepRow(e)).join("")}</section>`,!mine.length&&!mm.length&&D.level===2);
   return h;
 }
 function myMeets(){                      // الاجتماعات اللي الخادم مسؤول أو احتياطي فيها في الأسبوع الجاي
