@@ -439,6 +439,7 @@ body.youth #me{padding-top:56px}
 .rm-r{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);flex-wrap:wrap}
 .rm-r.done b{color:var(--muted);text-decoration:line-through}.rm-wa{background:#25D366;color:#fff;border-radius:999px;padding:6px 14px;text-decoration:none;font-weight:700;font-size:.85rem;white-space:nowrap}
 .rm-r.done .rm-wa{background:var(--line);color:var(--muted)}
+.wl-wa.sent{background:var(--line);color:var(--muted)}.wl-box{border:2px solid #25D366}.wl-box .rm-r.done b{text-decoration:none}
 .tr-row{border-top:1px solid var(--line);padding:10px 0;display:grid;gap:4px}
 .tr-bus{border:1px solid var(--line);border-radius:12px;padding:0 10px;margin-top:10px}
 .tr-bus>summary{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 0;cursor:pointer;flex-wrap:wrap}
@@ -1499,8 +1500,8 @@ const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((
 const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return isNaN(a)?"":a};
 function regPanel(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
-  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b>${r.gender?" · "+gTag(r.gender):""} · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>`}</div></div>`;
-  return `<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
+  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b>${r.gender?" · "+gTag(r.gender):""} · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>${r.status==="مقبول"?" "+welcBtn(r,"reg"):""}`}</div></div>`;
+  return `${welcPanel(["reg"])}<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
 // اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
 function srvMeetPanel(){
@@ -1771,7 +1772,8 @@ function renderFollow(){
     openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
-    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;renderFollow()},fail(b))});
+    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,"reg");renderFollow()},fail(b))});
+  welcBind(F,renderFollow);
   aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
@@ -2023,6 +2025,32 @@ async function aiAsk(q){
 }
 
 
+/* ================= رسالة ترحيب على واتساب بعد القبول (MORCOS 22 نوفمبر) =================
+   بعد "قبول" عضو أو خادم، أو مسح الرقم السري: يظهر زرار أخضر يفتح واتساب برسالة جاهزة باسمه (اسم الشهرة أو أول اسم) ولينك الموقع.
+   api.whatsapp.com بدل wa.me عشان الإيموجيز. "اتبعت" بتتحفظ على الموبايل ده بس */
+const SITE="https://morcoseid.github.io/GSYF/";
+const WELC={k:"gsyf_welc",now:[]};
+const welcSent=()=>{try{return JSON.parse(lsGet(WELC.k)||"{}")}catch(e){return {}}};
+const welcKey=(kind,ph)=>kind+":"+normPhone(ph||"");
+const regOf=ph=>(D.regs||[]).find(r=>normPhone(r.phone)===normPhone(ph||""));
+const callName=p=>{const n=String(p.nick||"").trim();return n||String(p.name||"").trim().split(/\s+/)[0]||""};
+function welcMsg(p,kind){const b=p.gender==="بنت",n=callName(p),hi=`أهلا يا ${n} 🤍`;
+  if(kind==="pin"||kind==="spin")return `${hi}\n\nمسحنا الرقم السري القديم بتاعك ✅\n\n${b?"ادخلي":"ادخل"} الموقع برقم موبايلك و${b?"اكتبي":"اكتب"} رقم سري جديد ${b?"تفتكريه":"تفتكره"}. لو الموقع سألك على الإيميل ${b?"اكتبي":"اكتب"} اللي سجلت بيه:\n${SITE}\n\nلو حصلت أي مشكلة ${b?"قوليلي":"قولّي"} 🙏`;
+  if(kind==="srv")return `${hi}\n\nتم قبولك ${b?"خادمة":"خادم"}${p.group&&p.group!==OTHER&&p.group!=="الرحلات"?" في "+(p.group==="الاتنين"?"اجتماع جامعيين و+25":"اجتماع "+grpL(p.group)):""} على موقع الخدمة ✅\n\n${b?"ادخلي":"ادخل"} برقم موبايلك والرقم السري، وهتلاقي صفحة الخدام والحاجات اللي عليك:\n${SITE}\n\nربنا يبارك خدمتك 🙏`;
+  return `${hi}\n\nتم قبول طلبك ✅ مرحبا ${b?"بيكي":"بيك"} في موقع خدمة الشباب G.S.Y. Family 🎉\n\n${b?"ادخلي":"ادخل"} برقم موبايلك والرقم السري اللي عملته، وهتلاقي مواعيد الاجتماعات والرحلات والإيفنتات:\n${SITE}\n\n${b?"منوّرانا":"منوّرنا"} 🤍`}
+const welcUrl=(p,kind)=>{const w=waNum(p.phone);return w?`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(welcMsg(p,kind))}`:""};
+// زرار واحد: أخضر لو لسه متبعتش، رمادي "اتبعت" بعد ما يدوس
+function welcBtn(p,kind,label){const u=welcUrl(p,kind);if(!u)return `<span class="err small">⚠️ مفيش رقم موبايل</span>`;
+  const s=welcSent()[welcKey(kind,p.phone)];
+  return `<a class="rm-wa wl-wa${s?" sent":""}" href="${u}" target="_blank" rel="noopener" data-wk="${esc(welcKey(kind,p.phone))}">${s?"✓ اتبعت · ابعت تاني":label||(/pin/.test(kind)?"📲 ابعت"+(p.gender==="بنت"?"لها":"له")+" يعمل رقم جديد":"📲 ابعت"+(p.gender==="بنت"?"لها":"له")+" ترحيب")}</a>`}
+// لما حد يتقبل: يتحط فوق في الصفحة لحد ما الرسالة تتبعت
+function welcAdd(p,kind){const k=welcKey(kind,p.phone);WELC.now=WELC.now.filter(x=>x.k!==k);WELC.now.unshift({k,kind,p:Object.assign({},p)})}
+function welcPanel(kinds){const L=WELC.now.filter(x=>kinds.includes(x.kind));if(!L.length)return "";
+  const T={reg:"اتقبل",srv:"اتقبل خادم",pin:"اتمسح رقمه السري",spin:"اتمسح رقمه السري"};
+  return `<section class="panel wl-box"><h3>📲 ابعتلهم رسالة ترحيب</h3><p class="small muted" style="margin:0">الرسالة جاهزة باسمه ولينك الموقع، دوس وابعت من واتساب.</p>${L.map(x=>`<div class="rm-r${welcSent()[x.k]?" done":""}"><b>${esc(dn(x.p))} <span class="small muted">· ${T[x.kind]}</span></b>${welcBtn(x.p,x.kind)}</div>`).join("")}</section>`}
+function welcBind(box,rerender){box._wlR=rerender;if(box._wl)return;box._wl=1;
+  box.addEventListener("click",e=>{const a=e.target.closest(".wl-wa");if(!a)return;const s=welcSent();s[a.dataset.wk]=new Date().toISOString();lsSet(WELC.k,JSON.stringify(s));setTimeout(()=>box._wlR(),400)})}
+
 /* ================= موافقة سريعة على طلبات التسجيل (#approve) ================= */
 function renderApprove(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني").slice(0,15);
@@ -2034,24 +2062,26 @@ function renderApprove(){
     <div class="ap-meta">${r.gender?`<span>${gTag(r.gender)}</span>`:""}<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
     <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
+    ${welcPanel(["reg","pin"])}
     ${fg.length?`<section class="panel tm-hot"><h3>🔑 نسيوا الرقم السري (${fg.length})</h3><p class="small muted" style="margin:0">امسحه، وبعدها الشاب يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه.</p>${fg.map(pinRow).join("")}</section>`:""}
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
     <details class="panel"><summary class="small muted" style="cursor:pointer">🔑 حد نسي الرقم السري؟</summary><p class="small muted" style="margin:6px 0 0">دوّر عليه وامسح الرقم السري. بعدها يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه مرة واحدة.</p>
       <input type="search" class="pin-q" placeholder="اكتب الاسم أو الموبايل" style="margin-top:6px"><div class="pin-res"></div></details>
-    ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span></div></div>`).join("")}</details>`:""}
+    ${done.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">آخر اللي اتراجع (${done.length})</summary>${done.map(r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b> · <span class="${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>${r.status==="مقبول"?`<div style="margin-top:4px">${welcBtn(r,"reg")}</div>`:""}</div></div>`).join("")}</details>`:""}
     ${edits.length?`<details class="panel"><summary class="small muted" style="cursor:pointer">✏️ آخر تعديلات الأعضاء في بياناتهم (${edits.length})</summary>${edits.map(r=>`<div class="ed-row"><b>${esc(dn(r))}</b><div class="small muted">${esc(r.edited)}</div></div>`).join("")}</details>`:""}`;
   $("apRef").onclick=()=>{$("apRef").textContent="…";load()};
+  welcBind($("approve"),renderApprove);
   const A=$("approve"),pq=A.querySelector(".pin-q"),pres=A.querySelector(".pin-res");
   const pinBind=box=>box.querySelectorAll(".pin-rs").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.closest("[data-reg]").dataset.reg);
     if(!confirm(`تمسح الرقم السري بتاع ${dn(r)}؟ هيدخل برقم موبايله ويعمل رقم سري جديد بالإيميل اللي سجل بيه.`))return;
     b.disabled=true;b.textContent="…";
-    callApi("regResetPin",{row:r.row,email:r.email},()=>{r.pin=false;r.forgot="";b.outerHTML=`<span class="small ok">اتمسح ✓ قوله يدخل برقمه ويعمل رقم جديد</span>`;renderNav("approve")},m=>{b.disabled=false;b.textContent="امسح الرقم السري";alert(m)})});
+    callApi("regResetPin",{row:r.row,email:r.email},()=>{r.pin=false;r.forgot="";b.outerHTML=`<span class="small ok">اتمسح ✓</span> `+welcBtn(r,"pin");welcAdd(r,"pin");renderNav("approve")},m=>{b.disabled=false;b.textContent="امسح الرقم السري";alert(m)})});
   pinBind(A);
   pq.oninput=()=>{const v=normAr(toEn(pq.value)).trim();if(v.length<2){pres.innerHTML="";return}
     const L=R.filter(r=>r.status!=="مرفوض"&&(normAr(r.name).includes(v)||normAr(r.nick).includes(v)||String(r.phone).includes(v))).slice(0,8);
     pres.innerHTML=L.map(pinRow).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل.</p>`;pinBind(pres)};
   $("approve").querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row),c=b.closest(".ap-card");c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
-    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;c.classList.add(b.dataset.v==="مقبول"?"is-ok":"is-no");c.querySelector(".ap-btns").innerHTML=`<b>${b.dataset.v==="مقبول"?"اتقبل ✓":"اترفض"}</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
+    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول"){welcAdd(r,"reg");renderApprove();renderNav("approve");window.scrollTo({top:0,behavior:"smooth"});return}c.classList.add("is-no");c.querySelector(".ap-btns").innerHTML=`<b>اترفض</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
       m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent=m})});
 }
 /* ================= حسابات الخدام ================= */
@@ -2151,6 +2181,7 @@ function renderTeam(){
   const sec=(t,L,hot)=>L.length?`<section class="panel tm-sec${hot?" tm-hot":""}"><h3>${t} <span class="muted">(${L.length}${L.some(u=>u.role==="أمين")?" · منهم "+L.filter(u=>u.role==="أمين").length+" أمين":""})</span></h3>${hot?`<p class="small" style="margin:0">اختار لكل واحد هو خادم في أنهي اجتماع، أو "خدمة تانية" لو مش في اجتماع.</p>`:""}</section>${L.sort(ord).map(card).join("")}`:"";
   const nog=on.filter(u=>!u.group);
   $("team").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> خادم مستني موافقة</span><button type="button" id="tmRef">↻ تحديث</button></div>
+    ${welcPanel(["srv","spin"])}
     ${wait.map(pend).join("")}
     <section class="panel"><h3>الخدام (${on.length})</h3><p class="small muted" style="margin:0">${GRP.map(([g,l])=>`${esc(l)}: <b>${on.filter(u=>u.group===g).length}</b>`).join(" · ")}${nog.length?` · من غير مجموعة: <b>${nog.length}</b>`:""}<br>الأمين بيشوف كل حاجة. الخادم بيشوف التاسكات اللي اسمه مكتوب في عمود "المسؤول"، وأي صلاحية تفتحها له.</p></section>
     ${sec("⚠️ لسه من غير مجموعة",nog,1)}
@@ -2162,13 +2193,15 @@ function renderTeam(){
   const T=$("team");
   $("tmRef").onclick=()=>{$("tmRef").textContent="…";load()};
   const done=()=>{renderTeam();renderNav("team")};
+  const srvP=(u,g)=>Object.assign({},u,{gender:u.gender||(regOf(u.phone)||{}).gender||"",group:g||u.group||""});
+  welcBind(T,done);
   // كارت الطلب: اختار المجموعة (والدور) وبعدين قبول
   T.querySelectorAll(".ap-card .pg,.ap-card .pr").forEach(b=>b.onclick=()=>{const c=b.closest(".ap-card"),k=b.classList.contains("pg")?".pg":".pr";
     c.querySelectorAll(k).forEach(x=>x.setAttribute("aria-pressed",x===b));const g=c.querySelector('.pg[aria-pressed="true"]'),r=c.querySelector('.pr[aria-pressed="true"]'),ok=c.querySelector(".ap-acc");
     if(g){ok.disabled=false;ok.textContent="✓ قبول "+srvTitle(r.dataset.r,g.dataset.g)}});
   T.querySelectorAll(".ap-acc").forEach(b=>b.onclick=()=>{const c=b.closest(".ap-card"),u=U.find(x=>x.row===+c.dataset.row),g=c.querySelector('.pg[aria-pressed="true"]').dataset.g,r=c.querySelector('.pr[aria-pressed="true"]').dataset.r;
     c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
-    callApi("userSet",{row:u.row,phone:u.phone,field:"status",value:"مقبول",group:g,role:r},()=>{u.status="مقبول";u.group=g;u.role=r;done()},m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent="✓ قبول";alert(m)})});
+    callApi("userSet",{row:u.row,phone:u.phone,field:"status",value:"مقبول",group:g,role:r},()=>{u.status="مقبول";u.group=g;u.role=r;welcAdd(srvP(u),"srv");done();window.scrollTo({top:0,behavior:"smooth"})},m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent="✓ قبول";alert(m)})});
   // تغيير المجموعة بدوسة
   T.querySelectorAll(".ug").forEach(b=>b.onclick=()=>{const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),g=b.dataset.g;if(u.group===g)return;
     b.closest(".tm-perms").querySelectorAll("button").forEach(x=>x.disabled=true);
@@ -2181,14 +2214,14 @@ function renderTeam(){
     res.querySelectorAll(".tm-mk").forEach(b=>b.onclick=()=>{const w=b.closest(".row").querySelector(".tm-mkg");w.hidden=false;b.textContent="اختار الاجتماع ←";b.disabled=true});
     res.querySelectorAll(".mg").forEach(b=>b.onclick=()=>{const row=b.closest(".row"),r=R.find(x=>x.row===+row.dataset.reg),btn=row.querySelector(".tm-mk");
       row.querySelectorAll(".mg").forEach(x=>x.disabled=true);btn.textContent="…";
-      callApi("makeServant",{row:r.row,email:r.email,group:b.dataset.g,role:"خادم"},()=>{btn.textContent="اتفتح ✓";load()},m=>{row.querySelectorAll(".mg").forEach(x=>x.disabled=false);btn.textContent="خليه خادم";alert(m)})})};
+      callApi("makeServant",{row:r.row,email:r.email,group:b.dataset.g,role:"خادم"},()=>{btn.textContent="اتفتح ✓";welcAdd(srvP(r,b.dataset.g),"srv");load()},m=>{row.querySelectorAll(".mg").forEach(x=>x.disabled=false);btn.textContent="خليه خادم";alert(m)})})};
   q.oninput=showQ;
   T.querySelectorAll(".us").forEach(b=>b.onclick=e=>{e.preventDefault();const u=U.find(x=>x.row===+b.closest("[data-row]").dataset.row),f=b.dataset.f;
     if(f==="resetPin"&&!confirm(`تمسح الرقم السري بتاع ${u.name}؟ هيعمل رقم جديد من "عندي حساب؟ ادخل" ثم "أول مرة أدخل؟".`))return;
     if(f==="status"&&b.dataset.v==="موقوف"&&!confirm(`توقف حساب ${u.name}؟`))return;
     if(f==="role"&&b.dataset.v==="أمين"&&!confirm(`تخلي ${u.name} أمين؟ الأمين بيشوف ويعدّل كل حاجة في الموقع.`))return;
     const isPerm=P.some(([k])=>k===f),v=isPerm?!u.perms[f]:b.dataset.v;b.disabled=true;
-    callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin")u.noPin=true;done()},
+    callApi("userSet",{row:u.row,phone:u.phone,field:f,value:v},()=>{if(isPerm)u.perms[f]=v;else if(f==="status")u.status=v;else if(f==="role")u.role=v;else if(f==="resetPin"){u.noPin=true;welcAdd(srvP(u),"spin")}done()},
       m=>{b.disabled=false;alert(m)})});
 }
 /* ================= متابعة الخدمة وتقرير أبونا (نوفمبر 2026) =================
