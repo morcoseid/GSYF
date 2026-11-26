@@ -1083,15 +1083,17 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
 // لينك الربط (MORCOS 15 نوفمبر): اللي اتحجزلهم بالاسم بس (شيت كيرلس) بياخدوا لينك خاص ?c=كود. بيفتحه، يسجل أو يدخل، والحجز بيتربط بحسابه في نفس مكانه
 (()=>{try{const u=new URL(location.href),c=(u.searchParams.get("c")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase();if(c){lsSet("gsyf_claim",c);u.searchParams.delete("c");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
 // الحضور بالـ QR: الشاب بيمسح الكود من الشاشة ← ?in=كود. لو داخل بحسابه بيتسجل على طول، غير كده يدخل أو يسجل الأول
-(()=>{try{const u=new URL(location.href),c=(u.searchParams.get("in")||"").replace(/[^A-Fa-f0-9]/g,"").toUpperCase();if(c){lsSet("gsyf_in",c);u.searchParams.delete("in");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
+(()=>{try{const u=new URL(location.href),c=(u.searchParams.get("in")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,12);if(c){lsSet("gsyf_in",c);u.searchParams.delete("in");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
 function inCard(){
   const code=lsGet("gsyf_in")||"",I=window._in;
   if(!code&&!I)return "";
-  if(code&&YT()&&!window._inB){window._inB=1;callApi("attSelf",{code,tok:YT()},r=>{lsSet("gsyf_in","");window._in=r;window._inB=0;renderHome()},m=>{lsSet("gsyf_in","");window._in={err:m};window._inB=0;renderHome()})}
+  // الشاب بيدوس «أنا حاضر» بنفسه (MORCOS 26 نوفمبر)
+  window._inGo=()=>{if(window._inB||!YT())return;window._inB=1;const b=$("inGo");if(b){b.disabled=true;b.textContent="…"}
+    callApi("attSelf",{code,tok:YT()},r=>{lsSet("gsyf_in","");window._in=r;window._inB=0;renderHome()},m=>{lsSet("gsyf_in","");window._in={err:m};window._inB=0;renderHome()})};
   if(I&&I.err){window._in=null;return `<section class="y-news"><span class="y-tag">الحضور</span><div>${esc(I.err)}</div></section>`}
   if(I&&I.meet){const g=isGirl();return `<section class="y-kas y-alex" id="inCard"><div class="kh"><span class="tr">✅</span><div><b>${I.already?"إنت متسجل خلاص":"اتسجل حضورك"} يا ${esc(I.first)} 🙏</b><small>اجتماع ${esc(I.meet)} · ${g?"منورة":"منور"} النهارده</small></div></div></section>`}
-  return `<section class="y-kas y-alex" id="inCard"><div class="kh"><span class="tr">📍</span><div><b>تسجيل الحضور</b><small>${YT()?"بنسجل حضورك…":"ادخل بحسابك أو سجّل في دقيقة، وحضورك هيتسجل على طول"}</small></div></div>
-    ${YT()?"":`<div class="kb"><div class="btns"><button type="button" class="primary kgo in-in">عندي حساب</button><button type="button" class="kgo in-reg">سجّل دلوقتي</button></div></div>`}</section>`;
+  return `<section class="y-kas y-alex" id="inCard"><div class="kh"><span class="tr">📍</span><div><b>تسجيل الحضور</b><small>${YT()?"دوس الزرار وحضورك يتسجل":"ادخل بحسابك أو سجّل في دقيقة، وبعدها دوس «أنا حاضر»"}</small></div></div>
+    ${YT()?`<div class="kb"><div class="btns"><button type="button" id="inGo" class="primary kgo" onclick="_inGo()">✋ ${isGirl()?"أنا حاضرة":"أنا حاضر"}</button></div></div>`:`<div class="kb"><div class="btns"><button type="button" class="primary kgo in-in">عندي حساب</button><button type="button" class="kgo in-reg">سجّل دلوقتي</button></div></div>`}</section>`;
 }
 function claimCard(){
   const code=lsGet("gsyf_claim")||"",C=window._clm;
