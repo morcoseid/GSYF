@@ -549,6 +549,12 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .att-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .att-seg button{padding:10px;border-radius:12px;font-weight:700}
 .att-seg button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+#chk{position:fixed;inset:0;z-index:2000;background:#5e1520;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.chk-c{background:#fff;color:#1d1d1d;border-radius:22px;padding:24px 20px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;text-align:center;box-shadow:0 10px 40px #0005}
+.chk-c b{font-size:1.35rem}.chk-c span{color:#666;font-size:.95rem}.chk-ok{font-size:2.6rem;line-height:1}
+.chk-c input{font:inherit;font-size:1.15rem;padding:12px 14px;border:1.5px solid #ccc;border-radius:12px;text-align:center;background:#fff;color:#111}
+.chk-b{font:inherit;font-size:1.25rem;font-weight:800;padding:14px;border:0;border-radius:14px;background:#7a1f2b;color:#fff;cursor:pointer}.chk-b:disabled{opacity:.6}
+.chk-m{margin:0;min-height:1em;font-size:.95rem}.chk-m.err{color:#b3261e}.chk-l{color:#7a1f2b;font-size:.95rem}
 .att-md{grid-template-columns:1fr 1fr 1fr}.att-md button{padding:8px;font-size:.95rem}
 .att-qr{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .att-qr:fullscreen{justify-content:center;background:#fff;color:#111}.att-qr:fullscreen .qr-box svg{width:72vmin;height:72vmin}.att-qr:fullscreen .qr-t{font-size:2rem}
@@ -1084,7 +1090,8 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
 (()=>{try{const u=new URL(location.href),c=(u.searchParams.get("c")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase();if(c){lsSet("gsyf_claim",c);u.searchParams.delete("c");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
 // الحضور بالـ QR: الشاب بيمسح الكود من الشاشة ← ?in=كود. لو داخل بحسابه بيتسجل على طول، غير كده يدخل أو يسجل الأول
 (()=>{try{const u=new URL(location.href),c=(u.searchParams.get("in")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,12);if(c){lsSet("gsyf_in",c);u.searchParams.delete("in");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
-function inCard(){
+function inCard(){return ""}
+function inCardOld(){
   const code=lsGet("gsyf_in")||"",I=window._in;
   if(!code&&!I)return "";
   // الشاب بيدوس «أنا حاضر» بنفسه (MORCOS 26 نوفمبر)
@@ -2777,6 +2784,11 @@ function route(){
   window.scrollTo(0,0);
 }
 
+// التحديث في الخلفية مبيمسحش فورم الشاب وهو بيكتب (دخول/تسجيل): بيستنى لحد ما يخلص (MORCOS 26 نوفمبر)
+function formBusy(){const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest("main,#home,#me,section"))return true;
+  return [...document.querySelectorAll("form.rgf")].some(f=>f.offsetParent&&[...f.querySelectorAll("input")].some(i=>i.type!=="hidden"&&i.value))}
+function routeSafe(){clearTimeout(window._rsT);if(startedRoute&&formBusy()){window._rsT=setTimeout(routeSafe,3000);return}startedRoute=true;route()}
+let startedRoute=false;
 function start(data){
   D=data;D.holidays=D.holidays||[];
   const t=parse(D.today),c=D.cal[D.today];
@@ -2791,7 +2803,7 @@ function start(data){
   $("back").onclick=()=>{location.hash="year"};
   if(!startedOnce){startedOnce=true;bindLogin($("login"),$("lgPhone"),$("pw"),$("loginMsg"))}
   if(window.START_VIEW&&!location.hash){try{history.replaceState(null,"","#"+window.START_VIEW)}catch(e){location.hash=window.START_VIEW}}
-  meBtn();renderYear();route();
+  meBtn();renderYear();routeSafe();
   const sp=$("splash");if(sp&&!sp.classList.contains("out")){sp.classList.add("out");setTimeout(()=>sp.remove(),600)}
   if(!D.level&&YT()&&!PREVIEW_DATA&&!window._yc){window._yc=1;setTimeout(yCheck,800)}   // لو الأمين فتح له صلاحية خادم يدخل عليها على طول
   if(!hashBound){hashBound=true;window.addEventListener("hashchange",route)}
@@ -2833,6 +2845,53 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState!==
   if(Date.now()-lastLoad>20000){lastLoad=Date.now();if(D.level)load();else yCheck()}});
 setInterval(()=>{if(document.visibilityState==="visible"&&D&&!D.level&&!PREVIEW_DATA&&(lsGet("gsyf_reg_st")!=="مقبول"||lsGet("gsyf_srv")==="مستني"))yCheck()},30000);
 function logout(){try{localStorage.removeItem("gsyf_key")}catch(e){}yOut();KEY="";location.hash="";load("")}
+/* ===== شاشة الحضور الخفيفة (MORCOS 26 نوفمبر) =====
+   الـ QR بيفتح الشاشة دي فوق كل حاجة، قبل ما الموقع يحمّل، ومحدش بيمسحها وهو بيكتب (مش جوه الرئيسية).
+   داخل قبل كده = زرار واحد. مش داخل = موبايل + رقم سري (بيفضل داخل على الموبايل ده بعد كده).
+   نسي الرقم السري أو معندوش حساب = موبايل + اسمه، ويتسجل حاضر "من غير حساب". */
+function chkShow(){
+  const code=lsGet("gsyf_in")||"";if(!code||$("chk"))return;
+  const o=document.createElement("div");o.id="chk";o.setAttribute("role","dialog");document.body.appendChild(o);
+  const g=()=>isGirl(),nm=()=>lsGet("gsyf_ynick")||String(lsGet("gsyf_yname")||"").split(" ")[0];
+  const close=()=>{o.remove();lsSet("gsyf_in","")};
+  const done=r=>{lsSet("gsyf_in","");if(r.tok)ySave(r);
+    o.innerHTML=`<div class="chk-c"><div class="chk-ok">✅</div><b>${r.already?"إنت متسجل خلاص":"اتسجل حضورك"} يا ${esc(r.first||nm()||"")} 🙏</b><span>اجتماع ${esc(r.meet||"")}${r.guest?"":" · "+(g()?"منورة":"منور")}</span><button type="button" class="chk-b chk-x">تمام</button></div>`;
+    o.querySelector(".chk-x").onclick=()=>o.remove()};
+  const err=(box,m)=>{box.textContent=m;box.className="chk-m err"};
+  const send=(p,btn,box)=>{btn.disabled=true;const t=btn.textContent;btn.textContent="…";box.textContent="";
+    callApi("attIn",Object.assign({code},p),done,m=>{btn.disabled=false;btn.textContent=t;
+      if(/ادخل تاني/.test(m)){try{localStorage.removeItem("gsyf_ytok")}catch(e){}view();return}err(box,m)})};
+  const view=mode=>{
+    if(YT()&&!mode){
+      o.innerHTML=`<div class="chk-c"><div class="chk-ok">📍</div><b>أهلاً ${esc(nm())} 👋</b><span>دوس الزرار وحضورك يتسجل</span><button type="button" class="chk-b chk-go">✋ ${g()?"أنا حاضرة":"أنا حاضر"}</button><p class="chk-m"></p><a href="#" class="chk-l chk-other">مش أنا؟</a></div>`;
+      const b=o.querySelector(".chk-go");b.onclick=()=>send({tok:YT()},b,o.querySelector(".chk-m"));
+      o.querySelector(".chk-other").onclick=e=>{e.preventDefault();view("in")};return}
+    if(mode!=="guest"){
+      o.innerHTML=`<form class="chk-c" novalidate autocomplete="on"><div class="chk-ok">📍</div><b>تسجيل الحضور</b><span>ادخل برقمك والرقم السري مرة واحدة، وبعد كده هتدوس زرار بس</span>
+        <input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="رقم الموبايل">
+        <input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password" placeholder="الرقم السري (4 أرقام)">
+        <button type="submit" class="chk-b">✋ دخول وأنا حاضر</button><p class="chk-m"></p>
+        <a href="#" class="chk-l chk-g">نسيت الرقم السري / معنديش حساب</a></form>`;
+      const f=o.querySelector("form"),m=f.querySelector(".chk-m");
+      f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
+        if(!/^01[0125]\d{8}$/.test(phone)){err(m,"اكتب رقم موبايلك صح (11 رقم يبدأ بـ 01)");return}
+        if(!/^\d{4}$/.test(pin)){err(m,"اكتب الرقم السري (4 أرقام)");return}
+        send({phone,pin},f.querySelector("button"),m)};
+      o.querySelector(".chk-g").onclick=e=>{e.preventDefault();view("guest")};return}
+    o.innerHTML=`<form class="chk-c" novalidate><div class="chk-ok">📍</div><b>سجّل حضورك باسمك</b><span>من غير رقم سري. بعد الاجتماع اطلب من الخادم يظبطلك حسابك</span>
+      <input name="name" autocomplete="name" placeholder="اسمك ثنائي">
+      <input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="رقم الموبايل">
+      <button type="submit" class="chk-b">✋ أنا حاضر</button><p class="chk-m"></p><a href="#" class="chk-l chk-bk">رجوع</a></form>`;
+    const f=o.querySelector("form"),m=f.querySelector(".chk-m");
+    f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),name=f.elements.name.value.trim();
+      if(name.split(/\s+/).length<2){err(m,"اكتب اسمك ثنائي على الأقل");return}
+      if(!/^01[0125]\d{8}$/.test(phone)){err(m,"اكتب رقم موبايلك صح (11 رقم يبدأ بـ 01)");return}
+      send({phone,name},f.querySelector("button"),m)};
+    o.querySelector(".chk-bk").onclick=e=>{e.preventDefault();view("in")};
+  };
+  view();
+}
+chkShow();
 load();
 </script>
 </body>
