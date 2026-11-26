@@ -2564,9 +2564,10 @@ function attQrTick(){
 }
 function attNamesShow(){
   const q=normAr(($("attQ")||{}).value||""),P=ATT.people||[],box=$("attRes");if(!box)return;
-  const L=(q?P.filter(x=>normAr(x.name).includes(q)):P.filter(x=>x.meet===ATT.meet)).sort((a,b)=>(a.done-b.done)||a.name.localeCompare(b.name,"ar")).slice(0,q?30:80);
-  box.innerHTML=L.length?L.map(x=>x.done?`<div class="att-p done"><div><b>${esc(x.name)}</b><small>${esc(x.meet?"اجتماع "+x.meet:"")}</small></div><span class="ok">حاضر ✓</span></div>`:
-    `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(x.meet?"اجتماع "+x.meet:"")}</small></div><button type="button" class="ap-ok" data-c="${esc(x.code)}">✓ حاضر</button></div>`).join(""):`<p class="empty">${q?"مفيش اسم كده. لو ده حد جديد سجّله من «بالرقم»":"مفيش أسامي للاجتماع ده"}</p>`;
+  const L=(q?P.filter(x=>normAr(x.name).includes(q)):P.filter(x=>x.meet===ATT.meet)).sort((a,b)=>(a.done-b.done)||(b.srv-a.srv)||a.name.localeCompare(b.name,"ar")).slice(0,q?30:150);
+  const sub=x=>(x.srv?"🙋 خادم":"")+(x.meet?(x.srv?" · ":"")+"اجتماع "+x.meet:"");
+  box.innerHTML=L.length?L.map(x=>x.done?`<div class="att-p done"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><span class="ok">حاضر ✓</span></div>`:
+    `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><button type="button" class="ap-ok" data-c="${esc(x.code)}">✓ حاضر</button></div>`).join(""):`<p class="empty">${q?"مفيش اسم كده. لو ده حد جديد سجّله من «بالرقم»":"مفيش أسامي للاجتماع ده"}</p>`;
   box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{const x=P.find(y=>y.code===b.dataset.c);b.disabled=true;b.textContent="…";
     callApi("attMarkC",{code:x.code,meet:ATT.meet},r=>{x.done=true;attShowList(r);const q2=$("attQ");if(q2&&q2.value){q2.value="";q2.focus()}attNamesShow()},m=>{b.disabled=false;b.textContent="✓ حاضر";alert(m)})});
 }
