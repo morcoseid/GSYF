@@ -554,6 +554,8 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .chk-c b{font-size:1.35rem}.chk-c span{color:#666;font-size:.95rem}.chk-ok{font-size:2.6rem;line-height:1}
 .chk-c input{font:inherit;font-size:1.15rem;padding:12px 14px;border:1.5px solid #ccc;border-radius:12px;text-align:center;background:#fff;color:#111}
 .chk-b{font:inherit;font-size:1.25rem;font-weight:800;padding:14px;border:0;border-radius:14px;background:#7a1f2b;color:#fff;cursor:pointer}.chk-b:disabled{opacity:.6}
+.chk-g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.chk-g2 button{font:inherit;font-size:1.1rem;padding:10px;border-radius:12px;border:1.5px solid #ccc;background:#fff;color:#111}.chk-g2 button[aria-pressed=true]{background:#7a1f2b;color:#fff;border-color:#7a1f2b}
+.chk-lb{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:#666;text-align:right}.chk-lb input{width:100%;box-sizing:border-box}
 .chk-m{margin:0;min-height:1em;font-size:.95rem}.chk-m.err{color:#b3261e}.chk-l{color:#7a1f2b;font-size:.95rem}
 .att-md{grid-template-columns:1fr 1fr 1fr}.att-md button{padding:8px;font-size:.95rem}
 .att-qr{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
@@ -2866,18 +2868,40 @@ function chkShow(){
       o.innerHTML=`<div class="chk-c"><div class="chk-ok">📍</div><b>أهلاً ${esc(nm())} 👋</b><span>دوس الزرار وحضورك يتسجل</span><button type="button" class="chk-b chk-go">✋ ${g()?"أنا حاضرة":"أنا حاضر"}</button><p class="chk-m"></p><a href="#" class="chk-l chk-other">مش أنا؟</a></div>`;
       const b=o.querySelector(".chk-go");b.onclick=()=>send({tok:YT()},b,o.querySelector(".chk-m"));
       o.querySelector(".chk-other").onclick=e=>{e.preventDefault();view("in")};return}
-    if(mode!=="guest"){
+    if(mode!=="guest"&&mode!=="new"){
       o.innerHTML=`<form class="chk-c" novalidate autocomplete="on"><div class="chk-ok">📍</div><b>تسجيل الحضور</b><span>ادخل برقمك والرقم السري مرة واحدة، وبعد كده هتدوس زرار بس</span>
         <input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="رقم الموبايل">
         <input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="current-password" placeholder="الرقم السري (4 أرقام)">
         <button type="submit" class="chk-b">✋ دخول وأنا حاضر</button><p class="chk-m"></p>
-        <a href="#" class="chk-l chk-g">نسيت الرقم السري / معنديش حساب</a></form>`;
+        <a href="#" class="chk-l chk-new">معنديش حساب؟ سجّل في دقيقة</a><a href="#" class="chk-l chk-g">نسيت الرقم السري</a></form>`;
       const f=o.querySelector("form"),m=f.querySelector(".chk-m");
       f.onsubmit=e=>{e.preventDefault();const phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim();
         if(!/^01[0125]\d{8}$/.test(phone)){err(m,"اكتب رقم موبايلك صح (11 رقم يبدأ بـ 01)");return}
         if(!/^\d{4}$/.test(pin)){err(m,"اكتب الرقم السري (4 أرقام)");return}
         send({phone,pin},f.querySelector("button"),m)};
-      o.querySelector(".chk-g").onclick=e=>{e.preventDefault();view("guest")};return}
+      o.querySelector(".chk-g").onclick=e=>{e.preventDefault();view("guest")};
+      o.querySelector(".chk-new").onclick=e=>{e.preventDefault();view("new")};return}
+    if(mode==="new"){   // حساب جديد + حضور في خطوة واحدة، وبيفضل داخل على طول
+      o.innerHTML=`<form class="chk-c" novalidate><div class="chk-ok">📍</div><b>حساب جديد</b><span>مرة واحدة بس، وبعد كده الحضور زرار</span>
+        <input name="name" autocomplete="name" placeholder="اسمك ثلاثي">
+        <div class="chk-g2"><button type="button" data-g="شاب">شاب</button><button type="button" data-g="بنت">بنت</button></div>
+        <label class="chk-lb">تاريخ الميلاد<input name="birth" type="date"></label>
+        <input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="رقم الموبايل">
+        <input name="pin" type="text" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="off" placeholder="اختار رقم سري (4 أرقام)">
+        <button type="submit" class="chk-b">✋ سجّل وأنا حاضر</button><p class="chk-m"></p><a href="#" class="chk-l chk-bk">عندي حساب</a></form>`;
+      const f=o.querySelector("form"),m=f.querySelector(".chk-m");let gd="";
+      f.querySelectorAll(".chk-g2 button").forEach(b=>b.onclick=()=>{gd=b.dataset.g;f.querySelectorAll(".chk-g2 button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
+      o.querySelector(".chk-bk").onclick=e=>{e.preventDefault();view("in")};
+      f.onsubmit=e=>{e.preventDefault();const name=f.elements.name.value.trim().replace(/\s+/g," "),phone=normPhone(f.elements.phone.value),pin=toEn(f.elements.pin.value).trim(),birth=f.elements.birth.value;
+        if(!/^[ء-ي ]+$/.test(name)||name.split(" ").filter(w=>w.length>=2).length<3){err(m,"اكتب اسمك ثلاثي بالعربي (اسمك واسم الأب والجد)");return}
+        if(!gd){err(m,"اختار شاب ولا بنت");return}
+        if(!birth){err(m,"اختار تاريخ ميلادك");return}
+        if(!/^01[0125]\d{8}$/.test(phone)){err(m,"اكتب رقم موبايلك صح (11 رقم يبدأ بـ 01)");return}
+        if(!/^\d{4}$/.test(pin)){err(m,"اختار رقم سري 4 أرقام");return}
+        const b=f.querySelector(".chk-b");b.disabled=true;b.textContent="…";
+        callApi("register",{name,birth,phone,email:"",pin,gender:gd},r=>{lsSet("gsyf_reg",r.email||"");lsSet("gsyf_reg_st",r.status||"مستني");if(r.tok){ySave(r);send({tok:r.tok},b,m)}else{b.disabled=false;b.textContent="✋ سجّل وأنا حاضر";err(m,"الرقم ده متسجل قبل كده. ادخل بيه من «عندي حساب»")}},
+          x=>{b.disabled=false;b.textContent="✋ سجّل وأنا حاضر";err(m,x)})};
+      return}
     o.innerHTML=`<form class="chk-c" novalidate><div class="chk-ok">📍</div><b>سجّل حضورك باسمك</b><span>من غير رقم سري. بعد الاجتماع اطلب من الخادم يظبطلك حسابك</span>
       <input name="name" autocomplete="name" placeholder="اسمك ثنائي">
       <input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="رقم الموبايل">
