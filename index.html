@@ -1145,10 +1145,19 @@ function n25Show(){
   const nm=lsGet("gsyf_ynick")||String(lsGet("gsyf_yname")||"").split(" ")[0];
   o.innerHTML=`<div class="chk-c" id="n25o"><div class="chk-ok">🤍</div><b>${nm?"منوّر يا "+esc(nm):"منوّر النهارده"}</b><span>اجتماع شباب الربع قرن +25</span>
     <a class="chk-b" href="#rate" style="text-decoration:none">⭐ قيّم الاجتماع (دقيقتين)</a>
+    <button type="button" class="chk-b n25-q" style="background:#b7791f">❓ ابعت سؤال لأبونا (من غير اسم)</button>
+    <div class="n25-qf" hidden style="display:flex;flex-direction:column;gap:8px"><textarea rows="4" maxlength="800" placeholder="اكتب سؤالك هنا… محدش هيعرف مين اللي كتبه" style="font:inherit;font-size:1.05rem;padding:10px;border:1.5px solid #ccc;border-radius:12px;color:#111;background:#fff"></textarea><button type="button" class="chk-b n25-qs">ابعت السؤال</button><span class="chk-m small"></span></div>
     <a class="chk-b n25-g" href="#grp" style="text-decoration:none;background:#1f8a4c">📲 ادخل جروب +25 على الواتساب</a>
     <span class="small">${YT()?"":"الجروب للمسجلين بس: هتدخل برقمك والرقم السري الأول، أو تسجّل لو معندكش حساب."}</span>
     <button type="button" class="mq-x" style="background:none;border:0;color:#666;font:inherit;cursor:pointer">بعدين</button></div>`;
   document.body.appendChild(o);o.querySelectorAll("a,.mq-x").forEach(x=>x.addEventListener("click",()=>setTimeout(()=>o.remove(),0)));
+  // سؤال لأبونا: مبيتبعتش معاه أي حاجة عن الشخص (لا موبايل ولا حساب)
+  const qf=o.querySelector(".n25-qf"),ta=qf.querySelector("textarea"),qm=qf.querySelector(".chk-m"),qs=qf.querySelector(".n25-qs");
+  qf.style.display="none";o.querySelector(".n25-q").onclick=()=>{qf.hidden=false;qf.style.display="flex";ta.focus()};
+  qs.onclick=()=>{const q=ta.value.trim();if(q.length<5){qm.textContent="اكتب سؤالك";qm.className="chk-m small err";return}
+    qs.disabled=true;qs.textContent="…";qm.textContent="";
+    callApi("askQ",{q,meet:"+25"},()=>{ta.value="";qs.disabled=false;qs.textContent="ابعت سؤال تاني";qm.textContent="✓ وصل، وأبونا هيناقشه في الاجتماع الجاي 🙏";qm.className="chk-m small"},
+      m=>{qs.disabled=false;qs.textContent="ابعت السؤال";qm.textContent=m;qm.className="chk-m small err"})};
 }
 function inCard(){return ""}
 function inCardOld(){
@@ -1845,7 +1854,7 @@ function renderFollow(){
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
   // «شغلي» ٣ تابات (MORCOS 27 نوفمبر: «شغلي فيها حاجات كتير»): مطلوب مني / الناس / الخدمة. كله بيترسم، والتاب التانية بس مستخبية
   const T1=`${thuNote()}
-    ${evmPanel()}
+    ${evmPanel()}${askQPanel()}
     ${prepPanel(fold)}
     ${D.me&&(mine.length||!D.events.some(e=>prepEv(e)&&e.date<=in30p&&mineEv(e)))?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
     ${sayPanel()}
@@ -1891,14 +1900,22 @@ function renderFollow(){
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,"reg");renderFollow()},fail(b))});
   welcBind(F,renderFollow);
-  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);evmBind(F);aflBind(F);p25Bind(F);revBind(F);
+  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);evmBind(F);aqBind(F);aflBind(F);p25Bind(F);revBind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
 
 /* ================= رسايل تقييم الاجتماع (MORCOS 27 نوفمبر): رسالة واتساب باسم كل واحد حضر اجتماع +25 بس (من الحضور)، بتفتح التقييم على طول ================= */
 function evmMsg(r){const b=r.g==="بنت",f=String(r.nick||"").trim()||String(r.name||"").trim().split(/\s+/)[0];
-  return `مساء الخير يا ${f} 🤍\n\n${b?"نوّرتينا":"نوّرتنا"} النهارده في *أول اجتماع لشباب الربع قرن +25* ✨\n\nعايزين الاجتماع يبقى شبهكم، فرأيك بصراحة يفرق معانا: الصلاة، الترانيم، كلمة أبونا، المدة، واللي ناقصنا.\n\n⭐ قيّم الاجتماع في دقيقتين ومن غير اسم، و📲 ${b?"ادخلي":"ادخل"} جروب +25 على الواتساب، الاتنين من هنا 👇\n${SITE}#n25\n\nمستنيينك الجمعة الجاية ٦ المغرب 🙏`}
+  return `مساء الخير يا ${f} 🤍\n${b?"فرحنا بيكي":"فرحنا بيك"} النهارده، ومستنيينك الجمعة الجاية 🙏\n\n${b?"قوليلنا":"قولنا"} رأيك، ${b?"وابعتي":"وابعت"} سؤالك لأبونا، ${b?"وادخلي":"وادخل"} جروبنا، كله من هنا 👇\n${SITE}#n25`}
 const evmLeft=()=>{const M=D.evMsg;return M&&M.rows?M.rows.filter(r=>!r.srv&&r.phone&&!r.sent).length:0};
+// أسئلة لأبونا (من غير اسم): الأمين العام وأمناء ومساعدين +25. «اتناقش» علامة مشتركة
+function askQPanel(){const A=D.askQ;if(!A)return "";const R=A.rows||[],open=R.filter(r=>!r.done);
+  const row=r=>`<div class="rm-r${r.done?" done":""}" data-r="${r.row}"><div style="flex:1"><div style="white-space:pre-wrap">${esc(r.q)}</div><small class="muted">${esc(r.at)}${r.done?" · اتناقش":""}</small></div><button type="button" class="small aq-d">${r.done?"↩︎":"✓ اتناقش"}</button></div>`;
+  return `<section class="panel inv" id="aq"><h3>❓ أسئلة لأبونا (${open.length} جديد)</h3><p class="small muted" style="margin:0 0 6px">من غير أسامي. اللينك اللي بيتبعت للشباب: <span dir="ltr">${esc(SITE)}#n25</span></p>
+    ${open.length?open.map(row).join(""):`<p class="empty">لسه مفيش أسئلة جديدة.</p>`}
+    ${R.length>open.length?`<details><summary class="small muted" style="cursor:pointer">اللي اتناقش (${R.length-open.length})</summary>${R.filter(r=>r.done).map(row).join("")}</details>`:""}</section>`}
+function aqBind(F){const b=F.querySelector("#aq");if(!b)return;b.querySelectorAll(".aq-d").forEach(x=>x.onclick=()=>{const rw=+x.closest(".rm-r").dataset.r,r=(D.askQ.rows||[]).find(y=>y.row===rw);if(!r)return;const old=r.done;r.done=old?"":"دلوقتي";renderFollow();
+  callApi("askQDone",{row:rw,undo:!!old},()=>{},m=>{r.done=old;renderFollow();alert(m)})})}
 function evmPanel(){const M=D.evMsg;if(!M||!M.rows||!M.rows.length)return "";
   const Y=M.rows.filter(r=>!r.srv),S=M.rows.filter(r=>r.srv),sent=Y.filter(r=>r.sent).length,pc=Y.length?Math.round(sent*100/Y.length):0;
   const row=r=>{const w=waNum(r.phone),i=M.rows.indexOf(r);return `<div class="rm-r in-r${r.sent?" done":""}" data-i="${i}"><b>${esc(r.nick||r.name)}${r.nick?` <small class="muted">${esc(r.name.split(" ").slice(0,2).join(" "))}</small>`:""}</b><span>${!w?`<span class="err small">⚠️ مفيش رقم</span>`:`${r.sent?`<button type="button" class="iv-un em-un" title="${esc(r.sent)}">↩︎ شيل العلامة</button> `:""}<a class="rm-wa em-wa" href="https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(evmMsg(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتبعتت":"ابعت ↗"}</a>`}</span></div>`};
