@@ -635,6 +635,11 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .fc-c{background:var(--surface);border:1px solid var(--line);border-right:5px solid;border-radius:12px;padding:9px 11px;margin-bottom:7px}
 .fc-c .r{display:flex;justify-content:space-between;gap:8px;align-items:center}
 .fc-c .k{font-size:.74rem;font-weight:700}.fc-c .n{font-weight:600;margin-top:2px}.fc-c .w{font-size:.78rem;color:var(--muted);margin-top:3px}
+.fc-sum{border-top:1px dashed var(--line);padding-top:5px;margin-top:2px}
+.fc-act{font-size:.8rem;color:var(--calm);margin-top:3px;font-weight:600}
+.fc-p.fc-s-done{background:var(--calm-soft);color:var(--calm)}.fc-p.fc-s-set{background:var(--blue-soft);color:var(--blue)}.fc-p.fc-s-miss{background:var(--busy-soft);color:var(--busy)}.fc-p.fc-s-x{background:var(--mid-soft);color:var(--mid)}
+.fc-c.fc-miss .n{text-decoration:line-through;color:var(--muted)}.fc-c.fc-miss{opacity:.8}
+.fc-c.fc-x{border-style:dashed;border-right-style:solid}
 .fc-c.no{border-right-color:var(--busy)}.fc-c.no .n{color:var(--busy)}
 .fc-c.calm .n{color:var(--muted);font-weight:400;font-size:.85rem}
 .fc-p{flex:none;font-size:.7rem;padding:2px 8px;border-radius:99px;font-weight:700;white-space:nowrap}
@@ -2624,8 +2629,12 @@ const FC_CATS={
   act:{n:"أيام أنشطة",i:"⚽",c:"#2F7A4F"},
   mat:{n:"إيفنتات المطرانية",i:"⛪",c:"#4A5568"}
 };
+const FC_ST={done:"✅ اتعمل",set:"📌 اتحدد",miss:"✗ ماتعملش"};
 const FC_CONF={fix:"متقرر",hi:"متوقع جدًا",mid:"متوقع",low:"فكرة"};
 const FC_ITEMS=[
+["2026-11",3,"comp","fix","امتحان الكأس لمين، الشهر الأول (الاثنين 16)","ميعاد الأسقفية"],
+["2026-11",3,"lit","mid","يوم روحي: قداس وزيارة كنايس","اتعمل في نوفمبر 2023 و2025"],
+["2026-11",4,"trip","fix","رحلة إسكندرية (السبت 21)","رحلة في نوفمبر 4 من 5 سنين، ومتحددة"],
 ["2026-12",1,"trip","fix","مؤتمر الخدام","قرار اجتماع أبونا: أول أو نص ديسمبر"],
 ["2026-12",2,"trip","low","رحلة دير وحضور تسبحة","اتعملت مرة (وادي النطرون ديسمبر 2025)"],
 ["2026-12",3,"comp","fix","امتحان الكأس لمين، الشهر التاني (الاثنين 14)","ميعاد الأسقفية"],
@@ -2688,6 +2697,7 @@ const FC_ITEMS=[
 ["2027-12",5,"party","mid","حفلة العيد: نفس نظام 2027 (حفلة واحدة بعد 7 يناير)","حفلة الكريسماس أو العيد كل سنة"]
 ];
 const FC_MONTHS={
+"2026-11":["صوم الميلاد من الأربعاء 25","امتحانات الميدترم أول 3 أسابيع","","زحمة"],
 "2026-12":["صوم الميلاد، وكيهك من الخميس 10","آخر الترم، والامتحانات بتبدأ 2 يناير","","زحمة"],
 "2027-01":["عيد الميلاد 7، الغطاس 19","امتحانات 2–21، وإجازة نص السنة 23 يناير – 4 فبراير","الخميس 7 (عيد الميلاد)","زحمة"],
 "2027-02":["صوم يونان 22–24","إجازة لحد 4، الترم التاني من السبت 6، ورمضان من 8","الخميس 11 لو المؤتمر فيه","زحمة"],
@@ -2711,31 +2721,53 @@ function fcWeeks(ym){ // Thursdays of the month -> [{n, sat, fri, thu}]
 
 const FC_SM=["ينا","فبر","مار","أبر","مايو","يون","يول","أغس","سبت","أكت","نوف","ديس"];
 const FCO={fix:4,hi:3,mid:2,low:1},FCS={m:"",c:""};
+// ===== المتوقع قصاد اللي اتعمل =====
+// "اللي اتعمل" = صفوف تاب الإيفنتات اللي ليها "فئة التوقع" (عمود P)، والمقارنة بتبدأ من 15 نوفمبر 2026.
+// كل صف بيتطابق مع نشاط متوقع من نفس الفئة في نفس الشهر (الأقرب في الأسبوع). اللي ملوش نشاط متوقع يبقى "زيادة".
+const FC_FROM="2026-11-15";
+function fcCatKeys(v){v=String(v||"");return Object.keys(FC_CATS).filter(k=>v.includes(FC_CATS[k].n)||v.includes(FC_CATS[k].n.split(" ")[0]))}
+function fcActual(){
+  const out=[];(D.events||[]).forEach(e=>{if(!e.cat||e.status==="اتلغى"||e.date<FC_FROM)return;fcCatKeys(e.cat).forEach(c=>{let m=e.date.slice(0,7);const last=(e.end&&e.end>e.date?e.end:e.date).slice(0,7);for(let k=0;k<14&&m<=last;k++){out.push({e,c,m});const[y,mm]=m.split("-").map(Number);m=mm===12?(y+1)+"-01":y+"-"+String(mm+1).padStart(2,"0")}})});return out;
+}
+function fcWeekOf(ds){const d=parse(ds),wk=fcWeeks(ds.slice(0,7));const w=wk.find(w=>d>=w.sat&&d<=w.fri);return w?w.n:(d<wk[0].sat?1:wk.length)}
+function fcCompare(M){
+  const A=fcActual().filter(a=>a.m===M),P=FC_ITEMS.map((it,i)=>({it,i})).filter(x=>x.it[0]===M),used=new Set(),match={};
+  // إيفنت طويل (زي سهرات كيهك من 10 ديسمبر لـ 6 يناير) بيغطي كل الأنشطة المتوقعة من نفس الفئة في أسابيعه
+  const wk0=fcWeeks(M);A.forEach((a,j)=>{if(!a.e.end||a.e.end<=a.e.date)return;P.forEach(x=>{const w=wk0[x.it[1]-1];if(!match[x.i]&&x.it[2]===a.c&&w&&iso(w.fri)>=a.e.date&&iso(w.sat)<=a.e.end){match[x.i]=a;used.add(j)}})});
+  P.forEach(x=>{if(match[x.i])return;let best=null,bd=99;A.forEach((a,j)=>{if(used.has(j)||a.c!==x.it[2]||a.e.date.slice(0,7)!==M)return;const dd=Math.abs(fcWeekOf(a.e.date)-x.it[1]);if(dd<bd){bd=dd;best=j}});if(best!=null){used.add(best);match[x.i]=A[best]}});
+  const extra=A.filter((a,j)=>!used.has(j)&&a.e.date.slice(0,7)===M);   // تكملة إيفنت طويل من شهر قبله مش "زيادة"
+  const wk=fcWeeks(M),past=x=>{const w=wk[x.it[1]-1];return w&&iso(w.fri)<D.today&&iso(w.fri)>=FC_FROM};
+  const st={};P.forEach(x=>{const a=match[x.i];st[x.i]=a?((a.e.end||a.e.date)<D.today||a.e.status==="تم"?"done":"set"):past(x)?"miss":""});
+  return {st,match,extra,done:P.filter(x=>st[x.i]==="done").length,miss:P.filter(x=>st[x.i]==="miss").length,set:P.filter(x=>st[x.i]==="set").length};
+}
 function renderPlan(){
   const months=Object.keys(FC_MONTHS),ym=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
   if(!FCS.m){const n=ym(parse(D.today));FCS.m=months.includes(n)?n:n<months[0]?months[0]:months[months.length-1]}
   const M=FCS.m,cats=Object.keys(FC_CATS),mi=months.indexOf(M);
   const best=(c,m)=>{const L=FC_ITEMS.filter(i=>i[0]===m&&i[2]===c);return L.length?Math.max(...L.map(i=>FCO[i[3]])):0};
-  const head=months.map(m=>{const k=+m.slice(5)-1;return `<th data-m="${m}" title="${GM[k]}" class="${m===M?"sel":""}">${FC_SM[k]}${k===11?`<small>${m.slice(2,4)}</small>`:""}</th>`}).join("");
+  const head=months.map(m=>{const k=+m.slice(5)-1;return `<th data-m="${m}" title="${GM[k]}" class="${m===M?"sel":""}">${FC_SM[k]}${k===11||k===10?`<small>${m.slice(2,4)}</small>`:""}</th>`}).join("");
   const rows=cats.map(c=>`<tr class="${FCS.c&&FCS.c!==c?"dim":""}"><td class="ic" data-c="${c}" title="${esc(FC_CATS[c].n)}">${FC_CATS[c].i}</td>${months.map(m=>{const b=best(c,m);return `<td data-m="${m}" data-c="${c}" class="${m===M?"sel":""}">${b?`<span class="fc-dot o${b}" style="background:${FC_CATS[c].c};color:${FC_CATS[c].c}"></span>`:""}</td>`}).join("")}</tr>`).join("");
   const X=FC_MONTHS[M],wk=fcWeeks(M),today=D.today,WN=["الأول","التاني","التالت","الرابع","الخامس"];
+  const CMP=fcCompare(M),cmpTxt=CMP.done||CMP.miss||CMP.set||CMP.extra.length?[CMP.done&&`✅ اتعمل ${CMP.done}`,CMP.set&&`📌 في الجدول ${CMP.set}`,CMP.miss&&`✗ ماتعملش ${CMP.miss}`,CMP.extra.length&&`➕ زيادة ${CMP.extra.length}`].filter(Boolean).join(" · "):"";
   const dmx=d=>d.getDate()+" "+GM[d.getMonth()];
   const nums=(X[2].match(/\d+/g)||[]).map(Number);
   const tl=wk.map(w=>{
-    const its=FC_ITEMS.filter(i=>i[0]===M&&i[1]===w.n&&(!FCS.c||i[2]===FCS.c));
+    const its=FC_ITEMS.map((it,ix)=>({it,ix})).filter(({it})=>it[0]===M&&it[1]===w.n&&(!FCS.c||it[2]===FCS.c));
+    const xs=CMP.extra.filter(a=>fcWeekOf(a.e.date)===w.n&&(!FCS.c||a.c===FCS.c));
     const no=/الخميس/.test(X[2])&&nums.includes(w.thu.getDate())&&!FCS.c;
     const now=iso(w.sat)<=today&&today<=iso(w.fri);
     return `<div class="fc-wh${now?" now":""}">الأسبوع ${WN[w.n-1]}<small>${dmx(w.sat)} – ${dmx(w.fri)}</small></div>`+
       (no?`<div class="fc-c no"><div class="n">⛔ مفيش اجتماع الخميس ${w.thu.getDate()}</div></div>`:"")+
-      (its.length?its.map(i=>{const c=FC_CATS[i[2]];return `<div class="fc-c" style="border-right-color:${c.c}"><div class="r"><span class="k" style="color:${c.c}">${c.i} ${esc(c.n)}</span><span class="fc-p ${i[3]}">${FC_CONF[i[3]]}</span></div><div class="n">${esc(i[4])}</div><div class="w">📊 ${esc(i[5])}</div></div>`}).join("")
-        :no?"":`<div class="fc-c calm" style="border-right-color:var(--line)"><div class="n">${FCS.c?"مفيش حاجة من النوع ده":"اجتماع عادي"}</div></div>`);
+      its.map(({it:i,ix})=>{const c=FC_CATS[i[2]],k=CMP.st[ix],a=CMP.match[ix];return `<div class="fc-c${k?" fc-"+k:""}" style="border-right-color:${c.c}"><div class="r"><span class="k" style="color:${c.c}">${c.i} ${esc(c.n)}</span>${k?`<span class="fc-p fc-s-${k}">${FC_ST[k]}</span>`:`<span class="fc-p ${i[3]}">${FC_CONF[i[3]]}</span>`}</div><div class="n">${esc(i[4])}</div>${a?`<div class="fc-act">${k==="done"?"✅ اتعمل":"📌 في الجدول"}: ${esc(a.e.title)} · ${dm(a.e.date)}</div>`:""}<div class="w">📊 ${esc(i[5])}</div></div>`}).join("")+
+      xs.map(a=>{const c=FC_CATS[a.c];return `<div class="fc-c fc-x" style="border-right-color:${c.c}"><div class="r"><span class="k" style="color:${c.c}">${c.i} ${esc(c.n)}</span><span class="fc-p fc-s-x">➕ مش في التوقع</span></div><div class="n">${esc(a.e.title)}</div><div class="w">${(a.e.end||a.e.date)<D.today||a.e.status==="تم"?"اتعمل":"في الجدول"} ${dm(a.e.date)}</div></div>`}).join("")+
+      (its.length||xs.length?"":no?"":`<div class="fc-c calm" style="border-right-color:var(--line)"><div class="n">${iso(w.fri)<FC_FROM?"قبل ما نبدأ نسجل اللي اتعمل":FCS.c?"مفيش حاجة من النوع ده":"اجتماع عادي"}</div></div>`);
   }).join("");
   $("plan").innerHTML=`<p class="fc-intro">توقع مبني على اللي اتعمل من 2022 لـ 2026، ومربوط بمواسم الكنيسة والإجازات. دوس على أي شهر.</p>
     <div class="fc-map"><table><tr><th class="ic"></th>${head}</tr>${rows}</table>
       <div class="fc-key"><span><i class="fc-dot o4"></i>متقرر</span><span><i class="fc-dot o3"></i>متوقع جدًا</span><span><i class="fc-dot o2"></i>متوقع</span><span><i class="fc-dot o1"></i>فكرة</span></div></div>
     <div class="fc-cats"><button type="button" data-c="" class="${FCS.c?"":"on"}">الكل</button>${cats.map(c=>`<button type="button" data-c="${c}" class="${FCS.c===c?"on":""}">${FC_CATS[c].i} ${esc(FC_CATS[c].n)}</button>`).join("")}</div>
     <div class="fc-mh"><button type="button" class="fc-pv" ${mi<=0?"disabled":""} aria-label="الشهر اللي فات">→</button><h2>${GM[+M.slice(5)-1]} ${M.slice(0,4)}</h2><button type="button" class="fc-nx" ${mi>=months.length-1?"disabled":""} aria-label="الشهر الجاي">←</button></div>
-    <div class="fc-band"><div><b>الكنيسة</b>${esc(X[0])}</div>${X[1]?`<div><b>الدراسة والإجازات</b>${esc(X[1])}</div>`:""}${X[2]?`<div class="no"><b>مفيش اجتماع</b>${esc(X[2])}</div>`:""}</div>
+    <div class="fc-band"><div><b>الكنيسة</b>${esc(X[0])}</div>${X[1]?`<div><b>الدراسة والإجازات</b>${esc(X[1])}</div>`:""}${X[2]?`<div class="no"><b>مفيش اجتماع</b>${esc(X[2])}</div>`:""}${cmpTxt?`<div class="fc-sum"><b>قصاد التوقع</b>${cmpTxt}</div>`:""}</div>
     <div class="fc-tl">${tl}</div>`;
   const P=$("plan"),go=(m,c)=>{if(m)FCS.m=m;if(c!==undefined)FCS.c=FCS.c===c?"":c;renderPlan()};
   P.querySelectorAll(".fc-map th[data-m]").forEach(e=>e.onclick=()=>go(e.dataset.m));
