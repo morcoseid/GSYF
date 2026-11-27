@@ -541,6 +541,28 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .ap-meta span[dir=ltr]{align-self:flex-end}
 .ap-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .ap-btns button{font-size:1.05rem;padding:12px;border-radius:12px;font-weight:700}
+.ap-btns.ap-3{grid-template-columns:1fr 1fr 1fr}.ap-wa,.ap-lock{display:flex;align-items:center;justify-content:center;text-align:center;border-radius:12px;padding:10px 6px;font-weight:700;font-size:.95rem;text-decoration:none}
+.ap-wa{background:#25D366;color:#fff}.ap-lock{grid-column:span 2;border:1px dashed var(--line);color:var(--muted);font-weight:400}
+.btns .ap-wa{border-radius:999px;padding:4px 12px;font-size:.85rem}
+.db-st{border-radius:10px;padding:8px 10px;font-size:.88rem;line-height:1.55;border:1px solid}.db-st b{display:block}
+.db-ok{background:var(--calm-soft);color:var(--calm);border-color:color-mix(in srgb,var(--calm) 30%,transparent)}
+.db-warn{background:var(--mid-soft);color:var(--mid);border-color:color-mix(in srgb,var(--mid) 30%,transparent)}
+.db-bad{background:var(--busy-soft);color:var(--busy);border-color:color-mix(in srgb,var(--busy) 30%,transparent)}
+.db-new{background:var(--blue-soft);color:var(--blue);border-color:color-mix(in srgb,var(--blue) 30%,transparent)}
+.af-r{border-top:1px solid var(--line);padding:8px 0;display:flex;flex-direction:column;gap:5px}.af-r.done .af-h b{color:var(--muted)}
+.af-h{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;align-items:baseline}
+.af-tags{display:flex;gap:5px;flex-wrap:wrap}.af-t{font-size:.75rem;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--muted)}
+.af-t.ok{color:var(--calm);border-color:var(--calm)}.af-t.mid{color:var(--mid);border-color:var(--mid)}.af-t.db-ok,.af-t.db-warn,.af-t.db-bad,.af-t.db-new{border-width:1px}
+.af-btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.af-b{border-radius:999px;padding:5px 12px;text-decoration:none;font-weight:700;font-size:.82rem;white-space:nowrap;background:#25D366;color:#fff}
+.af-b.sent{background:var(--line);color:var(--muted)}.af-reg{background:var(--blue-soft);color:var(--blue)}.af-grp{background:#7A1F2B;color:#F3D98B}
+.af-nb,.af-un{background:none;border:1px solid var(--line);border-radius:999px;padding:3px 8px;cursor:pointer;font-size:.85rem}.af-nb:not(.has){opacity:.6}
+.af-mv{font:inherit;font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:var(--surface);color:var(--fg);max-width:150px}
+.af-ne{display:flex;gap:6px}.af-ne input{flex:1;min-width:0}.af-q{margin:4px 0}.af-sg{display:inline-flex;gap:3px;align-items:center;margin:2px 6px 2px 0}.af-sg button{padding:0 6px}
+.p25-n{display:flex;gap:8px;margin:6px 0}.p25-n div{flex:1;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:.8rem;color:var(--muted)}.p25-n b{display:block;font-size:1.3rem;color:var(--fg)}
+.p25-c{display:flex;gap:6px;margin-top:4px}.p25-c input{flex:1;min-width:0}.p25-l{width:100%}
+.me-p25{background:linear-gradient(135deg,#7A1F2B,#4d1219);color:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.me-p25 b{color:#E7C56B;font-size:1.1rem}.me-p25 a{background:#E7C56B;color:#4d1219;border-radius:999px;padding:10px;text-align:center;font-weight:700;text-decoration:none}
 /* حسابات الخدام */
 #login{flex-wrap:wrap}#login input{flex:1 1 140px;min-width:0}
 .hello{margin:0;font-size:1.05rem}
@@ -1514,6 +1536,7 @@ function renderMe(){
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[["أمين مساعد","أمين","أمين عام"].includes(sv.role)||!!(sv.perms||{})[k],PERM_L[k]])):[])];
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
+    ${p&&p.p25?`<section class="me-p25"><b>✨ جروب +25 الخاص</b><span class="small">جروب واتساب لشباب +25 المسجلين بس. ${gen==="بنت"?"اطلبي":"اطلب"} الانضمام والأمناء هيقبلوا طلبك. ${gen==="بنت"?"متبعتيش":"متبعتش"} اللينك لحد 🙏</span><a href="${esc(p.p25)}" target="_blank" rel="noopener">ادخل الجروب</a></section>`:""}
     ${meAsk(p)}<section class="panel me-data"></section>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">مواعيد الاجتماعات هتتفتح لك أول ما طلبك يتقبل. الرحلات تقدر تحجزها من دلوقتي.</p>`:""}
@@ -1532,7 +1555,7 @@ const avg=xs=>{const n=xs.map(Number).filter(x=>x>0);return n.length?(n.reduce((
 const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullYear();if(n.getMonth()<d.getMonth()||(n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()))a--;return isNaN(a)?"":a};
 function regPanel(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
-  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b>${r.gender?" · "+gTag(r.gender):""} · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`<div class="btns" style="margin-top:4px"><button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button><button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button></div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>${r.status==="مقبول"?" "+welcBtn(r,"reg"):""}`}</div></div>`;
+  const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b>${r.gender?" · "+gTag(r.gender):""} · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`${regExtra(r)}<div class="btns" style="margin-top:4px">${canDecide()?`<button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button>`:""}${regWa(r)}${canDecide()?`<button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button>`:`<span class="small muted">🔒 القبول للأمناء بس</span>`}</div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>${r.status==="مقبول"?" "+welcBtn(r,"reg"):""}`}</div></div>`;
   return `${welcPanel(["reg"])}<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
 // اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
@@ -1750,6 +1773,7 @@ function monthPanel(ev){
   </section>`;
 }
 function renderFollow(){
+  aflLoad();
   const openEv=[...document.querySelectorAll("#follow details[data-ev][open]")].map(d=>d.dataset.ev);
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
@@ -1774,6 +1798,8 @@ function renderFollow(){
     ${thuNote()}
     ${prepPanel(fold)}
     ${invPanel()}
+    ${p25Panel()}
+    ${aflPanel()}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
     <a class="fc-go" href="#plan">📅 توقع أنشطة السنة الجاية</a>
     ${mcPanel()}
@@ -1806,7 +1832,7 @@ function renderFollow(){
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,"reg");renderFollow()},fail(b))});
   welcBind(F,renderFollow);
-  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);
+  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);aflBind(F);p25Bind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
 
@@ -1839,6 +1865,99 @@ function invBind(F){const I=D.inv;if(!I)return;
   F.querySelectorAll(".in-ns").forEach(x=>x.onclick=()=>{const rw=x.closest(".rm-r"),r=I.rows.find(z=>z.row===+rw.dataset.row),v=rw.querySelector(".in-ni").value.trim(),old=r.note;
     x.disabled=true;x.textContent="…";r.note=v;callApi("invNote",{row:r.row,note:v},()=>renderFollow(),m=>{r.note=old;x.disabled=false;x.textContent="حفظ";alert(m)})});
 }
+
+/* ================= الافتقاد + فحص التسجيل + جروب +25 الخاص (MORCOS 27 نوفمبر) =================
+   - كل طلب تسجيل بيظهر عليه حالته في قاعدة بيانات الشباب، والقبول والرفض للأمناء بس
+   - كل مخدوم جديد بيتوزع أوتوماتيك على خادم من نوعه في اجتماعه، والخادم بيلاقيه في «افتقادي» ويكلمه من واتساب
+   - النقل من خادم لخادم للأمين بس
+   - جروب +25: لينك واتساب بيتبعت بس للي عنده حساب مقبول وفي افتقاد +25، والأدمن عنده فحص رقم لطلبات الانضمام */
+const DBS={ok:["ok","✅ موجود في قاعدة البيانات"],name:["warn","⚠️ الاسم موجود بس الموبايل مختلف"],phone:["bad","⛔ الموبايل ده مسجل باسم تاني"],"new":["new","🆕 مش موجود في قاعدة البيانات"]};
+const dbBox=(s,h)=>DBS[s]?`<div class="db-st db-${DBS[s][0]}"><b>${DBS[s][1]}</b>${h?esc(h):""}</div>`:"";
+const canDecide=()=>!!(D&&D.afl&&D.afl.lead)||(!!D&&D.level===2&&!D.me);
+const meFirst=()=>D&&D.me?(D.me.nick||D.me.name.split(" ")[0]):"";
+// رسالة التعارف (للي مش في الداتا أو بياناته مش متطابقة) ورسالة السلام (للي موجود)
+function aflMsg(p,kind){const b=p.g==="بنت"||p.gender==="بنت",n=callName(p),mg=D&&D.me&&D.me.gender==="بنت",me=meFirst();
+  const from=me?` أنا ${me} من خدمة شباب مارجرجس والأنبا شنودة.`:" من خدمة شباب مارجرجس والأنبا شنودة.";
+  if(kind==="grp")return `أهلاً يا ${n} 🤍\n\nده لينك جروب *شباب +25* الخاص على واتساب 👇\n${AFL.link||D.afl.link||""}\n\nالجروب للأعضاء المسجلين بس، فياريت ${b?"متبعتيش":"متبعتش"} اللينك لحد 🙏 ولو حد من صحابك عايز يدخل، خليه يسجل على الموقع الأول.`;
+  if(kind==="reg")return `أهلاً يا ${n} 🤍\n\nعملنا جروب واتساب خاص لشباب *+25* ✨ وعلشان ${b?"تدخليه":"تدخله"} لازم ${b?"تسجلي":"تسجل"} على موقع الخدمة الأول (دقيقة واحدة):\n${SITE}\n\nأول ما حسابك يتقبل هبعتلك لينك الجروب 🙏`;
+  if(kind==="new")return `أهلاً ${b?"بيكي":"بيك"} يا ${n} 👋${from} شفنا طلب تسجيلك على الموقع ومبسوطين ${b?"بيكي":"بيك"} جدًا، بس اسمك لسه مش موجود عندنا في بيانات الخدمة.\n\n${mg?"حابة":"حابب"} أتعرف ${b?"عليكي":"عليك"} أكتر 😊 ممكن ${b?"تعرّفيني":"تعرّفني"} ${b?"بنفسك":"بنفسك"}؟ و${b?"عرفتي":"عرفت"} الموقع منين أو مين ${b?"بعتلك":"بعتلك"} اللينك؟ 🙏`;
+  return `أهلاً ${b?"بيكي":"بيك"} يا ${n} 👋${from} مبسوطين إنك ${b?"سجلتي":"سجلت"} على موقع الخدمة 🤍\n\nأنا ${mg?"هكون":"هكون"} ${b?"معاكي":"معاك"} ${b?"ومتابعاكي":"ومتابعك"}، ولو ${b?"احتجتي":"احتجت"} أي حاجة ${b?"كلميني":"كلمني"} في أي وقت 🙏`}
+const aflKind=r=>r.db&&r.db!=="ok"?"new":"hi";
+const aflUrl=(r,kind)=>{const w=waNum(r.phone);return w?`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(aflMsg(r,kind))}`:""};
+const AFL={rows:null,at:0,busy:false,who:"",f:"",link:"",q:""};
+function aflLoad(force){if(!D||!D.level||!D.afl||AFL.busy)return;if(!force&&AFL.rows&&Date.now()-AFL.at<120000)return;
+  AFL.busy=true;callApi("aflList",{},r=>{AFL.busy=false;Object.assign(AFL,{rows:r.rows||[],all:r.all,lead:r.lead,p25:r.p25,me:r.me,srvs:r.srvs||[],link:r.link||"",at:Date.now()});if(location.hash==="#follow")renderFollow()},
+    m=>{AFL.busy=false;AFL.err=m;AFL.at=Date.now();if(location.hash==="#follow")renderFollow()})}
+const accTag=r=>r.acc==="مقبول"?`<span class="af-t ok">✅ حساب مقبول</span>`:r.acc==="مستني"?`<span class="af-t mid">⏳ مستني موافقة</span>`:`<span class="af-t">معندوش حساب</span>`;
+const p25Ok=r=>r.meet==="الربع قرن"&&r.acc==="مقبول";
+function aflPanel(){if(!D||!D.afl||!D.level)return "";
+  if(!AFL.rows)return `<section class="panel"><h3>👥 ${AFL.all?"الافتقاد":"افتقادي"}</h3><p class="small muted" style="margin:0">${AFL.err?esc(AFL.err):"بيحمّل…"}</p></section>`;
+  const R=AFL.rows,srvs=[...new Set(R.map(r=>r.srv||""))].sort((a,b)=>!a?-1:!b?1:a.localeCompare(b,"ar"));
+  const mineName=x=>n2(x)===AFL.me;
+  let who=AFL.all?(srvs.includes(AFL.who)?AFL.who:(srvs.find(mineName)!==undefined&&!AFL.who?srvs.find(mineName):"*")):"";
+  let L=AFL.all&&who!=="*"?R.filter(r=>(r.srv||"")===who):R;
+  const F={"":["كل الحالات",()=>true],nw:["🆕 جداد",r=>r.src==="a"],todo:["لسه متكلمش",r=>!r.sent],grp:["🔐 مستوفي الجروب",r=>p25Ok(r)&&!r.grp],noacc:["📝 معندوش حساب",r=>r.meet==="الربع قرن"&&!r.acc]};
+  const f=F[AFL.f]?AFL.f:"";L=L.filter(F[f][1]);
+  const q=normAr(toEn(AFL.q||"")).trim();if(q)L=L.filter(r=>normAr(r.name+" "+(r.nick||"")).includes(q)||String(r.phone).includes(q));
+  const sel=r=>{const S=(AFL.srvs||[]).filter(s=>(s.group===r.meet||s.group==="الاتنين")&&(!r.g||!s.g||s.g===r.g)&&n2(s.name)!==n2(r.srv));
+    return S.length?`<select class="af-mv" aria-label="انقل لخادم تاني"><option value="">↔ انقل لـ…</option>${S.map(s=>`<option value="${s.row}">${esc(s.name.split(" ").slice(0,2).join(" "))}${s.role!=="خادم"?" ("+esc(s.role)+")":""}</option>`).join("")}</select>`:""};
+  const row=r=>{const w=waNum(r.phone),k=r.src+":"+r.row,ag=age(r.birth),lk=AFL.link;
+    const grpB=r.meet==="الربع قرن"?(p25Ok(r)?(lk?`<a class="af-b af-grp${r.grp?" sent":""}" href="${aflUrl(r,"grp")}" target="_blank" rel="noopener">${r.grp?"✓ لينك الجروب اتبعت":"🔐 ابعت لينك الجروب"}</a>`:""):!r.acc&&w?`<a class="af-b af-reg" href="${aflUrl(r,"reg")}" target="_blank" rel="noopener">📝 ابعت لينك التسجيل</a>`:""):"";
+    return `<div class="af-r${r.sent?" done":""}" data-k="${k}"><div class="af-h"><b>${esc(r.nick?r.nick+" ("+r.name+")":r.name)}</b><span class="small muted">${ag!==""?ag+" سنة · ":""}${r.meet==="الربع قرن"?"+25":"جامعيين"}${AFL.all?" · "+(r.srv?esc(r.srv.split(" ").slice(0,2).join(" ")):`<span class="err">مش متوزع</span>`):""}</span></div>
+      <div class="af-tags">${r.src==="a"&&DBS[r.db]?`<span class="af-t db-${DBS[r.db][0]}" title="${esc(r.dbh)}">${({ok:"✅ في الداتا",name:"⚠️ الاسم بس",phone:"⛔ الرقم باسم حد تاني","new":"🆕 جديد"})[r.db]}</span>`:""}${accTag(r)}${r.moved?`<span class="af-t" title="${esc(r.moved)}">↔ اتنقل</span>`:""}</div>
+      <div class="af-btns">${w?`<a class="af-b af-wa${r.sent?" sent":""}" href="${aflUrl(r,aflKind(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتكلم · كلمه تاني":"💬 كلمه واتساب"}</a>`:`<span class="err small">⚠️ مفيش رقم</span>`}${grpB}<button type="button" class="af-nb${r.note?" has":""}" aria-label="ملاحظة">📝</button>${r.sent?`<button type="button" class="af-un" title="${esc(r.sent)}">↩︎</button>`:""}${AFL.lead?sel(r):""}</div>
+      ${r.note?`<div class="in-nt">📝 ${esc(r.note)}</div>`:""}<div class="af-ne" hidden><input type="text" maxlength="300" class="af-ni" value="${esc(r.note||"")}" placeholder="مثلاً: رد، جه الاجتماع، الرقم غلط…"><button type="button" class="small primary af-ns">حفظ</button></div></div>`};
+  const cnt=x=>R.filter(r=>(r.srv||"")===x),miss=(AFL.srvs||[]).filter(s=>!s.g);
+  const done=L.filter(r=>r.sent).length;
+  return `<section class="panel af" id="afl"><h3>👥 ${AFL.all?"الافتقاد":"افتقادي"} <span class="small muted">(${R.length})</span></h3>
+    <p class="small muted" style="margin:0">${AFL.all?"كل مخدوم جديد بيتوزع لوحده على خادم من نوعه في اجتماعه. النقل من هنا (للأمين بس).":"دول اللي عليك. دوس «كلمه واتساب» والرسالة هتفتح جاهزة باسمه."}</p>
+    ${AFL.lead&&miss.length?`<div class="db-st db-warn"><b>⚠️ خدام نوعهم مش متحدد (مش بيتوزع عليهم):</b>${miss.map(s=>`<span class="af-sg" data-row="${s.row}">${esc(s.name.split(" ").slice(0,2).join(" "))} <button type="button" data-g="شاب">👦</button><button type="button" data-g="بنت">👧</button></span>`).join(" ")}</div>`:""}
+    ${AFL.all?`<div class="chips in-ch af-who"><button type="button" class="chip${who==="*"?" on":""}" data-s="*">الكل ${R.length}</button>${srvs.map(x=>`<button type="button" class="chip${x===who?" on":""}" data-s="${esc(x)}">${x?esc(x.split(" ").slice(0,2).join(" ")):"⚠️ مش متوزع"} ${cnt(x).length}</button>`).join("")}</div>`:""}
+    <div class="chips in-ch af-f">${Object.keys(F).map(k=>`<button type="button" class="chip${k===f?" on":""}" data-f="${k}">${F[k][0]}</button>`).join("")}</div>
+    <input type="search" class="af-q" placeholder="دوّر بالاسم أو الموبايل" value="${esc(AFL.q||"")}">
+    <p class="small" style="margin:2px 0"><b>${done}</b> من <b>${L.length}</b> اتكلموا</p>
+    <div class="af-list">${L.slice(0,150).map(row).join("")||`<p class="empty">مفيش حد هنا.</p>`}${L.length>150?`<p class="small muted">وكمان ${L.length-150}… استخدم البحث.</p>`:""}</div></section>`}
+function aflFind(el){const k=el.closest("[data-k]").dataset.k.split(":");return AFL.rows.find(r=>r.src===k[0]&&r.row===+k[1])}
+function aflBind(F){const box=F.querySelector("#afl");if(!box)return;
+  box.querySelectorAll(".af-who .chip").forEach(b=>b.onclick=()=>{AFL.who=b.dataset.s;renderFollow()});
+  box.querySelectorAll(".af-f .chip").forEach(b=>b.onclick=()=>{AFL.f=b.dataset.f;renderFollow()});
+  const q=box.querySelector(".af-q");q.oninput=()=>{clearTimeout(AFL.t);AFL.t=setTimeout(()=>{AFL.q=q.value;renderFollow();const n=$("follow").querySelector(".af-q");if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length)}},350)};
+  const who=()=>(D.me?D.me.name.split(" ").slice(0,2).join(" "):"أمين")+" · دلوقتي";
+  const mark=(r,act,fld,undo)=>{const old=r[fld];r[fld]=undo?"":who();callApi(act,{src:r.src,row:r.row,undo:!!undo},()=>{},m=>{r[fld]=old;renderFollow();alert(m)})};
+  box.querySelectorAll(".af-wa").forEach(a=>a.addEventListener("click",()=>{const r=aflFind(a);if(r&&!r.sent)mark(r,"aflMark","sent");setTimeout(renderFollow,300)}));
+  box.querySelectorAll(".af-grp").forEach(a=>a.addEventListener("click",()=>{const r=aflFind(a);if(r&&!r.grp)mark(r,"p25Mark","grp");setTimeout(renderFollow,300)}));
+  box.querySelectorAll(".af-un").forEach(b=>b.onclick=()=>{mark(aflFind(b),"aflMark","sent",true);renderFollow()});
+  box.querySelectorAll(".af-nb").forEach(b=>b.onclick=()=>{const e=b.closest(".af-r").querySelector(".af-ne");e.hidden=!e.hidden;if(!e.hidden)e.querySelector("input").focus()});
+  box.querySelectorAll(".af-ns").forEach(b=>b.onclick=()=>{const r=aflFind(b),v=b.closest(".af-r").querySelector(".af-ni").value.trim(),old=r.note;b.disabled=true;r.note=v;
+    callApi("aflNote",{src:r.src,row:r.row,note:v},()=>renderFollow(),m=>{r.note=old;b.disabled=false;alert(m)})});
+  box.querySelectorAll(".af-mv").forEach(s=>s.onchange=()=>{const r=aflFind(s),to=(AFL.srvs||[]).find(x=>x.row===+s.value);if(!to)return;
+    if(!confirm(`تنقل ${r.name.split(" ").slice(0,2).join(" ")} من ${r.srv?r.srv.split(" ").slice(0,2).join(" "):"(مش متوزع)"} لـ ${to.name.split(" ").slice(0,2).join(" ")}؟`)){s.value="";return}
+    s.disabled=true;callApi("aflMove",{src:r.src,row:r.row,to:to.row},()=>{r.moved="دلوقتي: "+(r.srv||"—")+" ← "+to.name;r.srv=to.name;renderFollow()},m=>{s.disabled=false;s.value="";alert(m)})});
+  box.querySelectorAll(".af-sg button").forEach(b=>b.onclick=()=>{const row=+b.closest(".af-sg").dataset.row;b.disabled=true;
+    callApi("aflSrvG",{row,g:b.dataset.g},()=>{const s=AFL.srvs.find(x=>x.row===row);if(s)s.g=b.dataset.g;renderFollow()},m=>{b.disabled=false;alert(m)})});
+}
+// جروب +25 الخاص: للأمين العام وأمناء ومساعدين +25. اللينك + الأعداد + فحص رقم لطلبات الانضمام
+function p25Panel(){if(!D||!D.afl||!D.afl.p25||!AFL.rows)return "";
+  const R=AFL.rows.filter(r=>r.meet==="الربع قرن"),ok=R.filter(p25Ok),sent=ok.filter(r=>r.grp).length,no=R.filter(r=>!r.acc).length;
+  return `<section class="panel p25" id="p25"><h3>🔐 جروب +25 الخاص (واتساب)</h3>
+    <p class="small muted" style="margin:0">اللينك مبيظهرش لأي حد. بيتبعت بس للي عنده <b>حساب مقبول</b> و<b>اسمه في افتقاد +25</b>، كل خادم للي عليه من «افتقادي».</p>
+    <div class="p25-n"><div><b>${ok.length}</b>مستوفي</div><div><b>${sent}</b>اتبعتله</div><div><b>${no}</b>معندوش حساب</div></div>
+    ${AFL.lead?`<label class="small">لينك الجروب <input type="url" class="p25-l" dir="ltr" placeholder="https://chat.whatsapp.com/..." value="${esc(AFL.link)}"></label><button type="button" class="small primary p25-s">حفظ اللينك</button>`:AFL.link?"":`<p class="small err">لسه الأمين محطش لينك الجروب.</p>`}
+    <p class="small" style="margin:6px 0 0">⚙️ مهم: في إعدادات الجروب على واتساب فعّل <b>«موافقة الأدمن على الأعضاء الجداد»</b>. كده لو اللينك وصل لحد غريب، مش هيدخل غير لما تتأكد منه هنا:</p>
+    <div class="p25-c"><input type="tel" class="p25-q" dir="ltr" placeholder="رقم اللي طالب يدخل الجروب"><button type="button" class="small p25-go">اتأكد</button></div><div class="p25-r"></div></section>`}
+function p25Bind(F){const box=F.querySelector("#p25");if(!box)return;
+  const sv=box.querySelector(".p25-s");if(sv)sv.onclick=()=>{const v=box.querySelector(".p25-l").value.trim();sv.disabled=true;sv.textContent="…";
+    callApi("p25Link",{link:v},r=>{AFL.link=r.link||"";sv.textContent="اتحفظ ✓";setTimeout(renderFollow,700)},m=>{sv.disabled=false;sv.textContent="حفظ اللينك";alert(m)})};
+  const go=box.querySelector(".p25-go"),out=box.querySelector(".p25-r"),q=box.querySelector(".p25-q");
+  const run=()=>{go.disabled=true;out.innerHTML=`<p class="small muted">…</p>`;callApi("p25Check",{phone:toEn(q.value)},r=>{go.disabled=false;const x=r.r||{};
+    out.innerHTML=`<div class="db-st db-${x.s==="ok"?"ok":x.s==="no"?"bad":"warn"}"><b>${x.s==="ok"?"✅ وافق عليه":x.s==="no"?"⛔ ارفضه":"⚠️ استنى"}</b>${esc(x.h||"")}</div>`},m=>{go.disabled=false;out.innerHTML=`<p class="err small">${esc(m)}</p>`})};
+  go.onclick=run;q.onkeydown=e=>{if(e.key==="Enter")run()};
+}
+// كارت طلب التسجيل: حالة قاعدة البيانات + المسؤول + واتساب، والقبول/الرفض للأمناء بس
+function regChk(r){const c=D.afl&&D.afl.chk?D.afl.chk[normPhone(r.phone)]:null;return c||null}
+function regExtra(r){const c=regChk(r);
+  return `${c?dbBox(c.s,c.h):""}${c&&c.srv?`<div class="small muted">👤 المسؤول عن افتقاده: <b>${esc(c.srv.split(" ").slice(0,2).join(" "))}</b></div>`:""}`}
+function regWa(r){const c=regChk(r),u=aflUrl({name:r.name,nick:r.nick,g:r.gender,phone:r.phone},c&&c.s!=="ok"?"new":"hi");return u?`<a class="ap-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}
 
 /* ================= إعلان الاجتماع الأسبوعي (خدام الاجتماع بيكتبوه من "شغلي") =================
    الخادم بيكتب نقط عن موضوع الاجتماع الجاي، والمساعد (Gemini المجاني) بيقترح عنوان وأيقونة ونقط تشويقية،
@@ -2092,9 +2211,11 @@ function renderApprove(){
   const pinRow=r=>`<div class="row" data-reg="${r.row}" style="grid-template-columns:minmax(0,1fr) auto;align-items:center"><div class="t"><b>${esc(dn(r))}</b><div class="why" dir="ltr" style="text-align:right">${esc(r.phone||"")}</div>${r.forgot?`<div class="why">طلب <span dir="ltr">${esc(r.forgot)}</span></div>`:""}</div>${r.pin?`<button type="button" class="small primary pin-rs" style="flex:none;width:auto;min-height:0;padding:8px 12px;align-self:center">امسح الرقم السري</button>`:`<span class="small muted">مفيش رقم سري، يدخل ويعمل رقم جديد</span>`}</div>`;
   const card=r=>`<article class="ap-card" data-row="${r.row}"><div class="ap-top"><b>${esc(dn(r))}</b><span class="muted small">${esc(r.at)}</span></div>
     <div class="ap-meta">${r.gender?`<span>${gTag(r.gender)}</span>`:""}<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>${r.phone?`<a href="https://wa.me/2${esc(r.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(r.phone)}</a>`:""}${realEm(r.email)?`<span dir="ltr">✉️ ${esc(r.email)}</span>`:""}</div>
-    <div class="ap-btns"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button><button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div></article>`;
+    ${regExtra(r)}
+    ${canDecide()?`<div class="ap-btns ap-3"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button>${regWa(r)}<button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div>`:`<div class="ap-btns ap-3">${regWa(r)}<div class="ap-lock">🔒 مستني موافقة الأمين</div></div>`}</article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
     ${welcPanel(["reg","pin"])}
+    ${wait.length&&!canDecide()?`<p class="small muted" style="margin:0 0 4px">🔒 القبول والرفض للأمناء بس. لو تعرف حد من دول قول للأمين.</p>`:""}
     ${fg.length?`<section class="panel tm-hot"><h3>🔑 نسيوا الرقم السري (${fg.length})</h3><p class="small muted" style="margin:0">امسحه، وبعدها الشاب يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه.</p>${fg.map(pinRow).join("")}</section>`:""}
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
     <details class="panel"><summary class="small muted" style="cursor:pointer">🔑 حد نسي الرقم السري؟</summary><p class="small muted" style="margin:6px 0 0">دوّر عليه وامسح الرقم السري. بعدها يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه مرة واحدة.</p>
