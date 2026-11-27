@@ -566,7 +566,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .me-p25 b{color:#E7C56B;font-size:1.1rem}.me-p25 a{background:#E7C56B;color:#4d1219;border-radius:999px;padding:10px;text-align:center;font-weight:700;text-decoration:none}
 /* حسابات الخدام */
 #login{flex-wrap:wrap}#login input{flex:1 1 140px;min-width:0}
-.hello{margin:0;font-size:1.05rem}
+.hello{margin:0;font-size:1.05rem}.ftabs{display:flex;gap:6px;position:sticky;top:0;z-index:5;background:var(--bg,#f6efe6);padding:6px 0}.ftab{flex:1;border:1px solid var(--line);border-radius:999px;padding:8px 4px;font:inherit;font-size:.9rem;font-weight:700;background:var(--surface);cursor:pointer;white-space:nowrap}.ftab.on{background:#6b1d24;color:#fff;border-color:#6b1d24}.ftab i{font-style:normal;background:#c9a14a;color:#2b1a10;border-radius:999px;padding:0 6px;margin-inline-start:4px;font-size:.78rem}.ftp{display:flex;flex-direction:column;gap:inherit}.ftp[hidden]{display:none}
 /* الغياب برقم التليفون */
 .att-go{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;background:var(--accent);color:#fff;font-weight:700;font-size:1.1rem;text-decoration:none}
 .att-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -1544,7 +1544,7 @@ function renderMe(){
     ${meAsk(p)}<section class="panel me-data"></section>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">مواعيد الاجتماعات هتتفتح لك أول ما طلبك يتقبل. الرحلات تقدر تحجزها من دلوقتي.</p>`:""}
-    ${sv&&mcMeets().length?`<a class="btn primary me-mc" href="#follow" onclick="setTimeout(()=>{const x=$('mc');x&&x.scrollIntoView({behavior:'smooth'})},150)">📣 اكتب إعلان الاجتماع الجاي</a>`:""}
+    ${sv&&mcMeets().length?`<a class="btn primary me-mc" href="#follow" onclick="lsSet('gsyf_ftab','me');setTimeout(()=>{const x=$('mc');x&&x.scrollIntoView({behavior:'smooth'})},150)">📣 اكتب إعلان الاجتماع الجاي</a>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
   if(tok)bindPhoto(box,tok);
   if(tok&&p){meData(box.querySelector(".me-data"),tok,p);bindAsk(box,tok,p);const md=box.querySelector("#md");if(md)mdLoad(md,tok,p)}
@@ -1797,35 +1797,42 @@ function renderFollow(){
   const monthNow=parse(t).getDate()<=10;
   const openF=[...document.querySelectorAll("#follow details[data-fold][open]")].map(d=>d.dataset.fold);
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
-  $("follow").innerHTML=`
-    ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
-    ${thuNote()}
+  // «شغلي» ٣ تابات (MORCOS 27 نوفمبر: «شغلي فيها حاجات كتير»): مطلوب مني / الناس / الخدمة. كله بيترسم، والتاب التانية بس مستخبية
+  const T1=`${thuNote()}
     ${prepPanel(fold)}
-    ${invPanel()}
-    ${revPanel()}
-    ${p25Panel()}
-    ${aflPanel()}
-    <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
-    <a class="fc-go" href="#plan">📅 توقع أنشطة السنة الجاية</a>
-    ${mcPanel()}
-    ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}
     ${D.me&&(mine.length||!D.events.some(e=>prepEv(e)&&e.date<=in30p&&mineEv(e)))?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
     ${sayPanel()}
-    ${srvMeetPanel()}
-    ${v25Panel(ev)}
-    ${pollPanel()}
+    <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
+    ${mcPanel()}
     ${monthNow?monthPanel(ev):""}
+    ${srvMeetPanel()}
+    ${(D.news||[]).filter(n=>n.show==="الخدام").map(n=>`<div class="news">${esc(n.text)}</div>`).join("")}`;
+  const T2=`${revPanel()}
     ${can("regs")&&(D.regs||[]).some(r=>r.status==="مستني")?regPanel():""}
-    ${bkSee()?`<a class="att-go" href="#trips">🚌 إدارة الرحلات والحجوزات</a>`:""}
+    ${aflPanel()}
+    ${invPanel()}
+    ${p25Panel()}`;
+  const T3=`${bkSee()?`<a class="att-go" href="#trips">🚌 إدارة الرحلات والحجوزات</a>`:""}
+    <a class="fc-go" href="#plan">📅 توقع أنشطة السنة الجاية</a>
     ${can("tasks")&&!D.me?allTasks:""}
     ${can("tasks")&&D.me?fold("all","📋 كل التاسكات المفتوحة ("+(late.length+now.length)+")",allTasks):""}
+    ${v25Panel(ev)}
+    ${pollPanel()}
     ${fold("rt","⭐ تقييمات آخر شهر ("+recent.length+")",`<section class="panel"><h3>التقييمات</h3>
       ${recent.map(e=>{const y=ev.filter(r=>r.kind==="إيفنت-شباب"&&r.target===tgt(e)),s=ev.filter(r=>r.kind==="إيفنت-خدام"&&r.target===tgt(e));return `<div class="row"><div class="d num">${dm(e.date)}</div><div class="t ev" data-row="${e.row}"><b>${esc(e.title)}</b>${can("evals")?`<span class="meta">${y.length?`الشباب ★ ${avg(y.map(r=>r.a[0]))} من ${y.length} رأي`:"لسه مفيش تقييم من الشباب"}${s.length?` · الخدام: التنظيم ★ ${avg(s.map(r=>r.a[1]))}`:""}</span>`:""}<div class="btns"><button type="button" class="sv small">تقييم الخدام</button></div></div></div>`}).join("")||`<p class="empty">مفيش إيفنتات خلصت آخر 30 يوم.</p>`}
     </section>`)}
     ${can("evals")&&notes.length+closedN.length?fold("nt","📝 الملاحظات ("+notes.length+" مفتوحة)",`<section class="panel"><h3>الملاحظات (${notes.length} مفتوحة · ${closedN.length} اتقفلت)</h3>${notes.length?notes.map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-open">مفتوحة</span> ${esc(n.txt)}<div class="why">${esc(n.r.target)}</div><div class="btns" style="margin-top:4px"><button type="button" class="cl small" data-row="${n.r.row}">✓ اتقفلت</button></div></div></div>`).join(""):`<p class="empty">كل الملاحظات اتقفلت 👌</p>`}${closedN.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتقفل (${closedN.length})</summary>${closedN.slice().reverse().map(n=>`<div class="row"><div class="d"><small>${esc(n.lbl)}</small></div><div class="t"><span class="st-closed">اتقفلت</span> <span class="muted">${esc(n.txt)}</span><div class="why">${esc(n.r.target)}</div></div></div>`).join("")}</details>`:""}</section>`):""}
     ${!monthNow&&D.level===2?fold("mo","📊 تقييم الخدمة الشهري",monthPanel(ev)):""}
-    ${can("ai")?fold("ai","✨ اسأل المساعد",aiPanel(),AI.log.length):""}
+    ${can("ai")?fold("ai","✨ اسأل المساعد",aiPanel(),AI.log.length):""}`;
+  const nP=(REV.rows?REV.rows.filter(r=>!r.dec||r.dec.d==="اتواصل").length:0)+(can("regs")?(D.regs||[]).filter(r=>r.status==="مستني").length:0);
+  const TB=[["me","📌 مطلوب مني",T1,mine.length],["ppl","👥 الناس",T2,nP],["srv","⛪ الخدمة",T3,0]].filter(x=>x[2].replace(/\s+/g,""));
+  const ft=TB.some(x=>x[0]===lsGet("gsyf_ftab"))?lsGet("gsyf_ftab"):TB[0][0];
+  $("follow").innerHTML=`
+    ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
+    ${TB.length>1?`<div class="ftabs" role="tablist">${TB.map(x=>`<button type="button" role="tab" class="ftab${x[0]===ft?" on":""}" data-t="${x[0]}" aria-selected="${x[0]===ft}">${x[1]}${x[3]?`<i>${x[3]}</i>`:""}</button>`).join("")}</div>`:""}
+    ${TB.map(x=>`<div class="ftp" data-t="${x[0]}"${x[0]===ft?"":" hidden"}>${x[2]}</div>`).join("")}
     <p class="small muted"><a href="#guide">❓ إزاي أستخدم الموقع</a> · ${D.sheetUrl?`<a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a> · `:""}<a href="#" id="logout">خروج</a></p>`;
+  $("follow").querySelectorAll(".ftab").forEach(b=>b.onclick=()=>{lsSet("gsyf_ftab",b.dataset.t);$("follow").querySelectorAll(".ftab").forEach(x=>{x.classList.toggle("on",x===b);x.setAttribute("aria-selected",x===b)});$("follow").querySelectorAll(".ftp").forEach(p=>p.hidden=p.dataset.t!==b.dataset.t);window.scrollTo(0,0)});
   const F=$("follow"),fail=b=>m=>{b.disabled=false;b.textContent=m};
   openEv.forEach(r=>{const d=F.querySelector(`details[data-ev="${r}"]`);if(d)d.open=true});
   F.querySelectorAll(".dn").forEach(b=>b.onclick=()=>{const row=+b.closest("[data-row]").dataset.row,e=D.events.find(x=>x.row===row);b.disabled=true;b.textContent="…";
