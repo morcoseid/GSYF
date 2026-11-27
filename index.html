@@ -1153,10 +1153,16 @@ function renderHome(){
   const SURPRISE={"اجتماع شباب الربع قرن +25":{until:"2026-11-27",reveal:"2026-11-15T20:00:00",old:"اجتماع الأحد",oldDay:0,
     prog:[["🙏","صلاة"],["✝️","كلمة أبونا"],["🥤","سناكس وقعدة حلوة"]]}};
   const spOut=sp=>Date.now()>=new Date(sp.reveal).getTime();
-  const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&t<SURPRISE[m.title].until)).concat(recent);
+  const rate0=lastMeets.filter(m=>!(SURPRISE[m.title]&&m.date<SURPRISE[m.title].until)).concat(recent);
   // إيفنت ليه فورم تقييم خاص = بيظهر كبير فوق خالص لحد ما يخلص وقت التقييم
-  const feat=recent.filter(e=>(D.evalQs||{})[e.title]).sort((a,b)=>b.date.localeCompare(a.date))[0];
-  const rate=rate0.filter(e=>e!==feat);
+  // تقييم الاجتماع (MORCOS 27 نوفمبر): إيفنت ليه أسئلة بيتقيّم من نفس اليوم بعد ٧ بالليل. لو نوعه «اجتماع» بيظهر كبير فوق للي جه من لينك الرسالة (#rate)،
+  // وللباقيين بياخد مكان كارت الاجتماع العادي في «قيّم» بنفس الأسئلة
+  if(location.hash==="#rate")lsSet("gsyf_rtgo","1");
+  const evQ=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(D.evalQs||{})[e.title]&&((e.end||e.date)<t||((e.end||e.date)===t&&new Date().getHours()>=19))&&daysAgo(e.end||e.date)<=14);
+  const isMeetEv=e=>e&&e.type==="اجتماع";
+  const feat=evQ.filter(e=>!isMeetEv(e)||lsGet("gsyf_rtgo")).sort((a,b)=>b.date.localeCompare(a.date))[0];
+  const rate=rate0.map(m=>{if(!m.meet)return m;const x=evQ.find(e=>isMeetEv(e)&&e.date===m.date&&e.title.includes(m.title));return x||m})
+    .concat(evQ).filter((e,i,A)=>e!==feat&&A.indexOf(e)===i);
   const meets=[];
   D.weekly.forEach(w=>{const sp=SURPRISE[w.title];
     if(sp&&t<sp.until){
@@ -1238,14 +1244,14 @@ function renderHome(){
   $("home").innerHTML=`
     ${inCard()}
     ${claimCard()}
-    ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">قيّم الحفلة 🎉</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في الحفلة الجاية. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
+    ${feat?`<section class="y-feat" data-row="${feat.row}"><div class="ft-in ev" data-row="${feat.row}"><span class="ft-tag">${isMeetEv(feat)?"قيّم الاجتماع 🤍":"قيّم الحفلة 🎉"}</span><h2>${esc(feat.title)}</h2><p class="ft-sub">${dl(feat.date)}${feat.place?" · "+esc(feat.place):""}</p>${fDone?`<p class="ok">شكرا على رأيك 💛</p>`:`<p class="ft-txt">رأيك هيفرق في ${isMeetEv(feat)?"الاجتماع":"الحفلة"} الجاي${isMeetEv(feat)?"":"ة"}. دقيقتين بس، ومن غير اسم.</p><div class="btns"><button type="button" class="primary ft-go">ابدأ التقييم</button></div>`}</div></section>`:""}
     ${(D.news||[]).filter(n=>n.show==="الكل").map(n=>`<div class="y-news"><span class="y-tag">إعلان</span><div>${esc(n.text)}</div></div>`).join("")}
     ${locked?bkTeaser+regSec:""}
     ${locked?surprise+pollCard(locked,pend)+kas:""}
     ${lockOpen}
     <section class="y-sec"><h2 class="y-h">الأسبوع ده</h2><div class="y-meets">${meets.map(({w,d,p,cls})=>meetCard(w,d,p,cls)).join("")}</div></section>
     <section class="y-sec"><h2 class="y-h">الجاي خلال شهر ${GM[parse(t).getMonth()]}</h2>${locked?"":surprise+pollCard(locked,pend)+kas}${evList.length?`<div class="y-cards">${evList.slice(0,3).map(evCard).join("")}</div>${evList.length>3?`<details class="y-more"><summary>شوف الكل (${evList.length})</summary><div class="y-cards">${evList.slice(3).map(evCard).join("")}</div></details>`:""}`:!locked&&(surprise||kas)?"":`<p class="empty">مفيش إيفنتات متأكدة دلوقتي، تابعنا قريب 👀</p>`}</section>
-    ${rateLeft.length?`<section class="y-sec"><h2 class="y-h">قيّم</h2><div class="y-cards">${rateLeft.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
+    ${rateLeft.length?`<section class="y-sec"><h2 class="y-h">قيّم</h2><div class="y-cards">${rateLeft.map(e=>`<article class="y-card">${dbox(e.date)}<div class="ev" data-row="${e.row}"><span class="kind">${e.meet||isMeetEv(e)?"اجتماع":"إيفنت"}</span><b>${esc(e.title)}</b>${lsGet("rt_"+e.row+e.title+e.date)?`<span class="ok small">شكرا على رأيك ✓</span>`:`<div class="btns"><button type="button" class="primary rt">${e.meet||isMeetEv(e)?"قيّم الاجتماع":"قيّم الإيفنت"}</button></div>`}</div></article>`).join("")}</div><p class="muted small">التقييم من غير اسم.</p></section>`:""}
     ${lockClose}
     ${locked||!showReg?"":regSec}
     <section class="y-follow sm"><div>تابع أخبار الخدمة أول بأول</div>${installBtn()}<div class="soc"><a href="https://www.facebook.com/GSYFmly" target="_blank" rel="noopener">فيسبوك</a><a href="https://www.instagram.com/gsyfamliy" target="_blank" rel="noopener">إنستجرام</a><a href="https://wa.me/201200690490" target="_blank" rel="noopener">واتساب</a></div></section>
@@ -1296,6 +1302,7 @@ function renderHome(){
   pollBind($("home"),locked,pend);
   if(location.hash==="#vote"&&!window._plGo){window._plGo=1;setTimeout(()=>{const x=$("vote");if(x)x.scrollIntoView({block:"center"})},80)}
   if(location.hash==="#plus25"&&!window._spGo){window._spGo=1;setTimeout(()=>{const x=$("plus25");if(x)x.scrollIntoView({block:"center"})},80)}
+  if(location.hash==="#rate"&&!window._rtGo){window._rtGo=1;setTimeout(()=>{const x=document.querySelector(".y-feat");if(!x)return;x.scrollIntoView({block:"start"});const g=x.querySelector(".ft-go");if(g)g.click()},120)}
   if(location.hash==="#alex"&&!window._axGo){window._axGo=1;setTimeout(()=>{const x=$("alex");if(x)x.scrollIntoView({block:"start"})},80)}
   const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rateLeft.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
@@ -1799,6 +1806,7 @@ function renderFollow(){
   const fold=(k,title,html,op)=>html?`<details class="fold-p" data-fold="${k}"${op||openF.includes(k)?" open":""}><summary>${title}</summary>${html}</details>`:"";
   // «شغلي» ٣ تابات (MORCOS 27 نوفمبر: «شغلي فيها حاجات كتير»): مطلوب مني / الناس / الخدمة. كله بيترسم، والتاب التانية بس مستخبية
   const T1=`${thuNote()}
+    ${evmPanel()}
     ${prepPanel(fold)}
     ${D.me&&(mine.length||!D.events.some(e=>prepEv(e)&&e.date<=in30p&&mineEv(e)))?`<section class="panel"><h3>تاسكاتي (${mine.length})</h3>${mine.length?mine.map(taskRow).join(""):`<p class="empty">مفيش حاجة عليك دلوقتي 👌</p>`}</section>`:""}
     ${sayPanel()}
@@ -1825,7 +1833,7 @@ function renderFollow(){
     ${!monthNow&&D.level===2?fold("mo","📊 تقييم الخدمة الشهري",monthPanel(ev)):""}
     ${can("ai")?fold("ai","✨ اسأل المساعد",aiPanel(),AI.log.length):""}`;
   const nP=(REV.rows?REV.rows.filter(r=>!r.dec||r.dec.d==="اتواصل").length:0)+(can("regs")?(D.regs||[]).filter(r=>r.status==="مستني").length:0);
-  const TB=[["me","📌 مطلوب مني",T1,mine.length],["ppl","👥 الناس",T2,nP],["srv","⛪ الخدمة",T3,0]].filter(x=>x[2].replace(/\s+/g,""));
+  const TB=[["me","📌 مطلوب مني",T1,mine.length+evmLeft()],["ppl","👥 الناس",T2,nP],["srv","⛪ الخدمة",T3,0]].filter(x=>x[2].replace(/\s+/g,""));
   const ft=TB.some(x=>x[0]===lsGet("gsyf_ftab"))?lsGet("gsyf_ftab"):TB[0][0];
   $("follow").innerHTML=`
     ${D.me?`<p class="hello">أهلاً ${esc(D.me.nick||D.me.name.split(" ")[0])} 👋 <span class="me-tag">${esc(srvTitle(D.me.role,D.me.group))}</span></p>`:""}
@@ -1844,8 +1852,29 @@ function renderFollow(){
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,"reg");renderFollow()},fail(b))});
   welcBind(F,renderFollow);
-  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);aflBind(F);p25Bind(F);revBind(F);
+  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);evmBind(F);aflBind(F);p25Bind(F);revBind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
+}
+
+/* ================= رسايل تقييم الاجتماع (MORCOS 27 نوفمبر): رسالة واتساب باسم كل واحد حضر اجتماع +25 بس (من الحضور)، بتفتح التقييم على طول ================= */
+function evmMsg(r){const b=r.g==="بنت",f=String(r.nick||"").trim()||String(r.name||"").trim().split(/\s+/)[0];
+  return `مساء الخير يا ${f} 🤍\n\n${b?"نوّرتينا":"نوّرتنا"} النهارده في *أول اجتماع لشباب الربع قرن +25* ✨\n\nعايزين الاجتماع يبقى شبهكم، فرأيك بصراحة يفرق معانا: الصلاة، الترانيم، كلمة أبونا، المدة، واللي ناقصنا.\n\n⏱️ دقيقتين بس ومن غير اسم 👇\n${SITE}#rate\n\nمستنيينك الجمعة الجاية ٦ المغرب 🙏`}
+const evmLeft=()=>{const M=D.evMsg;return M&&M.rows?M.rows.filter(r=>!r.srv&&r.phone&&!r.sent).length:0};
+function evmPanel(){const M=D.evMsg;if(!M||!M.rows||!M.rows.length)return "";
+  const Y=M.rows.filter(r=>!r.srv),S=M.rows.filter(r=>r.srv),sent=Y.filter(r=>r.sent).length,pc=Y.length?Math.round(sent*100/Y.length):0;
+  const row=r=>{const w=waNum(r.phone),i=M.rows.indexOf(r);return `<div class="rm-r in-r${r.sent?" done":""}" data-i="${i}"><b>${esc(r.nick||r.name)}${r.nick?` <small class="muted">${esc(r.name.split(" ").slice(0,2).join(" "))}</small>`:""}</b><span>${!w?`<span class="err small">⚠️ مفيش رقم</span>`:`${r.sent?`<button type="button" class="iv-un em-un" title="${esc(r.sent)}">↩︎ شيل العلامة</button> `:""}<a class="rm-wa em-wa" href="https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(evmMsg(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتبعتت":"ابعت ↗"}</a>`}</span></div>`};
+  return `<section class="panel inv" id="evm"><h3>⭐ رسايل تقييم ${esc(M.title)}</h3>
+    <div><b>اتبعت لـ <span class="num">${sent}</span> من <span class="num">${Y.length}</span> حضروا</b>${Y.length&&sent===Y.length?" 🎉":""}<div class="iv-bar" style="margin-top:6px"><i style="width:${pc}%"></i></div></div>
+    <p class="small" style="margin:6px 0">دي لستة اللي اتسجل حضورهم بس. دوس «ابعت»، الشات هيفتح والرسالة جاهزة باسمه (اسم الشهرة لو موجود)، ابعت وارجع للي بعده. اللينك بيفتح أسئلة التقييم على طول، من غير اسم.</p>
+    <details><summary class="small" style="cursor:pointer">👀 شوف الرسالة</summary><p class="small" style="white-space:pre-wrap;background:var(--bg2,#f6f6f6);padding:8px;border-radius:8px">${esc(evmMsg(Y[0]||{name:"مينا"}))}</p></details>
+    ${Y.map(row).join("")}
+    ${S.length?`<details style="margin-top:8px"><summary class="small" style="cursor:pointer">🙋 الخدام اللي حضروا (${S.length}): لو عايز رأيهم كمان</summary>${S.map(row).join("")}</details>`:""}</section>`}
+function evmBind(F){const M=D.evMsg;if(!M)return;
+  const mark=(x,undo)=>{const r=M.rows[+x.closest(".rm-r").dataset.i];if(!r)return;const old=r.sent;
+    r.sent=undo?"":(D.me?D.me.name.split(" ").slice(0,2).join(" "):"أمين")+" · دلوقتي";
+    callApi("evMsgMark",{phone:r.phone,name:r.name,undo:!!undo},()=>{},m=>{r.sent=old;renderFollow();alert(m)})};
+  F.querySelectorAll(".em-wa").forEach(x=>x.addEventListener("click",()=>{const r=M.rows[+x.closest(".rm-r").dataset.i];if(r&&!r.sent)mark(x);setTimeout(renderFollow,300)}));
+  F.querySelectorAll(".em-un").forEach(x=>x.onclick=()=>{mark(x,true);renderFollow()});
 }
 
 /* ================= دعوات +25 (MORCOS 20 نوفمبر): كل خادم +25 يلاقي الأسماء اللي عليه، وقدام كل اسم زرار يفتح واتساب بالدعوة جاهزة =================
