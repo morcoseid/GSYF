@@ -591,6 +591,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .att-p{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .att-p b{font-size:1.1rem}.att-p small{display:block;color:var(--muted)}
 .att-p button{font-size:1.05rem;padding:10px 18px;border-radius:12px;font-weight:700;flex:none}
+.att-nw{border-style:dashed;background:transparent}
 .att-p.done{border-color:#3C8D5A}.att-p.done .ok{color:#2E7D4F;font-weight:700;flex:none}
 .att-new{display:flex;flex-direction:column;gap:8px}.att-new input{font:inherit;font-size:1rem;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .att-cnt{font-size:1.1rem}.att-cnt b{font-size:1.6rem;color:var(--accent)}
@@ -2825,7 +2826,14 @@ function attNamesShow(){
   const L=(q?P.filter(hit):P.filter(x=>x.meet===ATT.meet)).sort((a,b)=>(a.done-b.done)||(b.srv-a.srv)||(q?(a.meet===ATT.meet?0:1)-(b.meet===ATT.meet?0:1):0)||a.name.localeCompare(b.name,"ar")).slice(0,q?40:400);
   const sub=x=>(x.srv?"🙋 خادم":"")+(x.meet?(x.srv?" · ":"")+"اجتماع "+x.meet:"");
   box.innerHTML=L.length?L.map(x=>x.done?`<div class="att-p done"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><span class="ok">حاضر ✓</span></div>`:
-    `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><button type="button" class="ap-ok" data-c="${esc(x.code)}">✓ حاضر</button></div>`).join(""):`<p class="empty">${q?"مفيش اسم كده. لو ده حد جديد سجّله من «بالرقم»":"مفيش أسامي للاجتماع ده"}</p>`;
+    `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><button type="button" class="ap-ok" data-c="${esc(x.code)}">✓ حاضر</button></div>`).join(""):`<p class="empty">${q?"مفيش اسم كده":"مفيش أسامي للاجتماع ده"}</p>`;
+  // حد جديد مش متسجل: بالاسم بس، من غير رقم (MORCOS 27 نوفمبر)
+  const raw=(($("attQ")||{}).value||"").trim().replace(/\s+/g," ");
+  if(raw)box.insertAdjacentHTML("beforeend",`<div class="att-p att-nw"><div><b>${esc(raw)}</b><small>${raw.split(" ").length<2?"اكتب الاسم ثنائي عشان تسجله جديد":"مش في القايمة؟ سجّله حاضر كجديد"}</small></div>${raw.split(" ").length<2?"":`<button type="button" class="ap-ok" id="attNwB">＋ حاضر (جديد)</button>`}</div>`);
+  const nb=$("attNwB");if(nb)nb.onclick=()=>{nb.disabled=true;nb.textContent="…";
+    callApi("attNewN",{name:raw,meet:ATT.meet},r=>{attShowList(r);const q2=$("attQ");if(q2){q2.value="";attNamesShow();q2.focus()}
+      const rb=$("attRes");if(rb)rb.insertAdjacentHTML("afterbegin",`<div class="att-p done"><div><b>${esc(raw)}</b><small>جديد</small></div><span class="ok">حاضر ✓</span></div>`)},
+      m=>{nb.disabled=false;nb.textContent="＋ حاضر (جديد)";alert("متسجلش: "+m)})};
   // دوسة واحدة = حاضر على طول (من غير ما نستنى السيرفر)، ولو حصلت مشكلة بيرجع ويقولك
   box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{const x=P.find(y=>y.code===b.dataset.c);x.done=true;
     const card=b.closest(".att-p");card.classList.add("done");b.outerHTML=`<span class="ok">حاضر ✓</span>`;
