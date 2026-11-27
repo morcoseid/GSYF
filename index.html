@@ -1139,6 +1139,17 @@ function mqShow(t,name){
   qrLib().then(Q=>{const q=Q(0,"M");q.addData(mqUrl(t));q.make();o.querySelector(".mq-box").innerHTML=q.createSvgTag({cellSize:8,margin:2,scalable:true})}).catch(()=>{o.querySelector(".mq-box").innerHTML=`<p class="err small">مفيش نت يحمّل الكود. جرّب تاني</p>`});
 }
 window.addEventListener("load",()=>{if(window._mqShow)setTimeout(()=>mqShow(),300)});
+// بعد اجتماع +25: لينك واحد (#n25) بيفتح زرارين، قيّم الاجتماع وادخل الجروب (MORCOS 27 نوفمبر)
+function n25Show(){
+  if($("n25o"))return;const o=document.createElement("div");o.id="mqo";o.className="n25o";o.setAttribute("role","dialog");
+  const nm=lsGet("gsyf_ynick")||String(lsGet("gsyf_yname")||"").split(" ")[0];
+  o.innerHTML=`<div class="chk-c" id="n25o"><div class="chk-ok">🤍</div><b>${nm?"منوّر يا "+esc(nm):"منوّر النهارده"}</b><span>اجتماع شباب الربع قرن +25</span>
+    <a class="chk-b" href="#rate" style="text-decoration:none">⭐ قيّم الاجتماع (دقيقتين)</a>
+    <a class="chk-b n25-g" href="#grp" style="text-decoration:none;background:#1f8a4c">📲 ادخل جروب +25 على الواتساب</a>
+    <span class="small">${YT()?"":"الجروب للمسجلين بس: هتدخل برقمك والرقم السري الأول، أو تسجّل لو معندكش حساب."}</span>
+    <button type="button" class="mq-x" style="background:none;border:0;color:#666;font:inherit;cursor:pointer">بعدين</button></div>`;
+  document.body.appendChild(o);o.querySelectorAll("a,.mq-x").forEach(x=>x.addEventListener("click",()=>setTimeout(()=>o.remove(),0)));
+}
 function inCard(){return ""}
 function inCardOld(){
   const code=lsGet("gsyf_in")||"",I=window._in;
@@ -1165,6 +1176,7 @@ function claimCard(){
     <div class="kb"><p class="small" style="margin:0 0 8px">${YT()?"بنربط حجزك بحسابك…":"سجّل حسابك في دقيقة (أو ادخل لو عندك حساب)، ومكانك هيتربط بيك على طول وتتابعه من هنا."}</p>${YT()?"":`<div class="btns"><button type="button" class="primary kgo cl-reg">سجّل دلوقتي</button><button type="button" class="kgo cl-in">عندي حساب</button></div>`}</div></section>`;
 }
 function renderHome(){
+  if(!D.level&&YT()&&lsGet("gsyf_ggo")&&location.hash!=="#me"){location.hash="me";return}
   if(!D.level&&YT()&&lsGet("gsyf_dgo")){if(location.hash!=="#me")location.hash="me";else route();return}   // جه من لينك «كمّل بياناتك» ولسه داخل
   // الشباب يشوفوا إيفنتات الشهر الجاري بس (الشهر الجاي بيظهر أول يوم فيه)
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t&&e.date.slice(0,7)<=t.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
@@ -1570,7 +1582,7 @@ function renderMe(){
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[["أمين مساعد","أمين","أمين عام"].includes(sv.role)||!!(sv.perms||{})[k],PERM_L[k]])):[])];
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`${p.dform||lsGet("gsyf_dgo")?`<section class="panel md" id="md"></section>`:""}<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
-    ${p&&p.p25?`<section class="me-p25"><b>✨ جروب +25 الخاص</b><span class="small">جروب واتساب لشباب +25 المسجلين بس. ${gen==="بنت"?"اطلبي":"اطلب"} الانضمام والأمناء هيقبلوا طلبك. ${gen==="بنت"?"متبعتيش":"متبعتش"} اللينك لحد 🙏</span><a href="${esc(p.p25)}" target="_blank" rel="noopener">ادخل الجروب</a></section>`:""}
+    ${p&&p.p25?`<section class="me-p25"><b>✨ جروب +25 الخاص</b><span class="small">جروب واتساب لشباب +25 المسجلين بس. ${gen==="بنت"?"اطلبي":"اطلب"} الانضمام والأمناء هيقبلوا طلبك. ${gen==="بنت"?"متبعتيش":"متبعتش"} اللينك لحد 🙏</span><a href="${esc(p.p25)}" target="_blank" rel="noopener">ادخل الجروب</a></section>`:p&&lsGet("gsyf_ggo")?`<section class="me-p25"><b>✨ جروب +25 الخاص</b><span class="small">زرار الجروب هيظهر هنا أول ما حسابك يتقبل في اجتماع +25. لو محتاج حاجة كلّم الخادم بتاعك 🙏</span></section>`:""}
     <section class="panel me-qr"><h3>🎟️ كود الحضور بتاعي</h3><p class="small muted" style="margin:0 0 8px">وريه للخادم على باب الاجتماع وهو يسكانه، من غير ما تعمل حاجة.</p><button type="button" class="btn primary me-qrb">اعرض الكود</button></section>
     ${meAsk(p)}<section class="panel me-data"></section>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
@@ -1580,6 +1592,7 @@ function renderMe(){
   if(tok)bindPhoto(box,tok);
   const qb=box.querySelector(".me-qrb");if(qb)qb.onclick=()=>{const c=lsGet("gsyf_mq_"+tok.slice(2,13));if(c){mqShow(c,nick||real.split(" ")[0]);return}qb.disabled=true;qb.textContent="…";
     callApi("myQr",{tok},r=>{qb.disabled=false;qb.textContent="اعرض الكود";lsSet("gsyf_mq_"+tok.slice(2,13),r.t);lsSet("gsyf_mq",r.t);mqShow(r.t,nick||real.split(" ")[0])},m=>{qb.disabled=false;qb.textContent="اعرض الكود";alert(m)})};
+  if(p&&lsGet("gsyf_ggo")){lsSet("gsyf_ggo","");const g=box.querySelector(".me-p25");if(g)setTimeout(()=>g.scrollIntoView({behavior:"smooth",block:"center"}),200)}
   if(tok&&p){meData(box.querySelector(".me-data"),tok,p);bindAsk(box,tok,p);const md=box.querySelector("#md");if(md)mdLoad(md,tok,p)}
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
   if(tok&&!p)callApi("profile",{tok},r=>{if(r.key&&!D.level){load(r.key,true);return}MEP={tok,me:r.me};ySave({name:r.me.name,nick:r.me.nick||"",gender:r.me.gender||"",status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
@@ -1884,7 +1897,7 @@ function renderFollow(){
 
 /* ================= رسايل تقييم الاجتماع (MORCOS 27 نوفمبر): رسالة واتساب باسم كل واحد حضر اجتماع +25 بس (من الحضور)، بتفتح التقييم على طول ================= */
 function evmMsg(r){const b=r.g==="بنت",f=String(r.nick||"").trim()||String(r.name||"").trim().split(/\s+/)[0];
-  return `مساء الخير يا ${f} 🤍\n\n${b?"نوّرتينا":"نوّرتنا"} النهارده في *أول اجتماع لشباب الربع قرن +25* ✨\n\nعايزين الاجتماع يبقى شبهكم، فرأيك بصراحة يفرق معانا: الصلاة، الترانيم، كلمة أبونا، المدة، واللي ناقصنا.\n\n⏱️ دقيقتين بس ومن غير اسم 👇\n${SITE}#rate\n\nمستنيينك الجمعة الجاية ٦ المغرب 🙏`}
+  return `مساء الخير يا ${f} 🤍\n\n${b?"نوّرتينا":"نوّرتنا"} النهارده في *أول اجتماع لشباب الربع قرن +25* ✨\n\nعايزين الاجتماع يبقى شبهكم، فرأيك بصراحة يفرق معانا: الصلاة، الترانيم، كلمة أبونا، المدة، واللي ناقصنا.\n\n⭐ قيّم الاجتماع في دقيقتين ومن غير اسم، و📲 ${b?"ادخلي":"ادخل"} جروب +25 على الواتساب، الاتنين من هنا 👇\n${SITE}#n25\n\nمستنيينك الجمعة الجاية ٦ المغرب 🙏`}
 const evmLeft=()=>{const M=D.evMsg;return M&&M.rows?M.rows.filter(r=>!r.srv&&r.phone&&!r.sent).length:0};
 function evmPanel(){const M=D.evMsg;if(!M||!M.rows||!M.rows.length)return "";
   const Y=M.rows.filter(r=>!r.srv),S=M.rows.filter(r=>r.srv),sent=Y.filter(r=>r.sent).length,pc=Y.length?Math.round(sent*100/Y.length):0;
@@ -3093,6 +3106,8 @@ function renderPlan(){
 function route(){
   let h=location.hash.slice(1);
   if(h==="app")h="home";
+  if(h==="n25"){h="home";try{history.replaceState(null,"","#home")}catch(e){}setTimeout(n25Show,50)}   // لينك واحد بعد الاجتماع: تقييم + جروب (MORCOS 27 نوفمبر)
+  if(h==="grp"){lsSet("gsyf_ggo","1");h="me";try{history.replaceState(null,"","#me")}catch(e){}}   // لينك جروب +25 في رسالة التقييم: بيفتح البروفايل على زرار الجروب (MORCOS 27 نوفمبر)
   if(h==="data"){lsSet("gsyf_dgo","1");h="me";try{history.replaceState(null,"","#me")}catch(e){}}                       // لينك «كمّل بياناتك» اللي بيتبعت واتساب
   if(h==="plus25"||h==="alex"||h==="vote")h="home";                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
