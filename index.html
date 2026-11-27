@@ -267,7 +267,10 @@ body.youth #staff{text-align:center}
 .y-feat h2{font-family:var(--kufi);font-size:clamp(1.8rem,8vw,2.6rem);color:var(--goldhi);line-height:1.2}
 .ft-sub{margin:0;font-size:.88rem;opacity:.8}.ft-txt{margin:0;font-size:1.02rem}
 .y-feat .btns .primary{font-size:1.05rem;padding:10px 28px}
-.y-feat form{background:rgba(255,251,246,.97)!important;color:var(--y-fg,#1A0D0B);--surface:#FFFBF6;--fg:#1A0D0B;--muted:#6E5D55;--line:#E9DCCF}
+.y-feat form{background:rgba(255,251,246,.97)!important;color:#1A0D0B;--surface:#FFFBF6;--fg:#1A0D0B;--muted:#6E5D55;--line:#E9DCCF;--y-fg:#1A0D0B;--y-surface:#FFFBF6;--y-muted:#6E5D55;--y-line:#E9DCCF;--y-soft:#F2E4D6;--y-gold:#8E6418;--y-accent:#7A1810;--accent:#7A1810}
+.y-feat form p,.y-feat form label,.y-feat form span,.y-feat form .small{color:#1A0D0B}.y-feat form .muted{color:#6E5D55!important}
+.y-feat form input:not([type=radio]):not([type=checkbox]),.y-feat form textarea{background:#fff;color:#1A0D0B;border:1px solid #D9C6B5}
+.y-feat form .chips label:has(input:checked){background:#2A1512;border-color:#2A1512}.y-feat form .chips label:has(input:checked) span{color:#E4C47E}
 .y-feat .ok{color:var(--goldhi)}
 .me-btn{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));z-index:50;width:46px;height:46px;border-radius:50%;border:1px solid rgba(228,196,126,.6);background:rgba(26,7,6,.82);color:var(--goldhi);font-weight:700;font-size:1.2rem;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.3);backdrop-filter:blur(6px)}
 .me-btn[hidden]{display:none}
