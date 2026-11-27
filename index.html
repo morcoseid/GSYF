@@ -607,6 +607,23 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .att-cnt{font-size:1.1rem}.att-cnt b{font-size:1.6rem;color:var(--accent)}
 .kl input{font:inherit;font-size:1rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg)}
 .pt{border-radius:999px;padding:4px 12px;font-size:.88rem}
+/* نظرة أبونا: أرقام بس */
+#abouna{display:flex;flex-direction:column;gap:12px;max-width:640px;margin:0 auto;width:100%}
+.ab-hi{text-align:center;margin:2px 0 0}.ab-hi b{font-family:var(--display);font-size:1.25rem;display:block}.ab-hi span{color:var(--muted);font-size:.9rem}
+.ab-f{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.ab-k{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ab-k>div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0}
+.ab-k .ic{font-size:1.4rem}.ab-k b{font-family:var(--display);font-size:2rem;line-height:1.1;color:var(--accent);font-variant-numeric:tabular-nums}.ab-k span{font-size:.92rem}.ab-k small{color:var(--muted);font-size:.8rem}
+.ab-bars{display:flex;align-items:flex-end;gap:6px;height:130px;padding-top:18px}
+.ab-bars>div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.ab-bars i{display:block;width:100%;max-width:34px;border-radius:6px 6px 0 0;background:var(--accent);min-height:3px}.ab-bars i.p25{background:var(--mid)}
+.ab-bars b{font-size:.8rem;font-variant-numeric:tabular-nums}.ab-bars small{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.ab-lg{display:flex;gap:14px;justify-content:center;font-size:.8rem;color:var(--muted)}.ab-lg i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--accent);margin-inline-end:4px}.ab-lg i.p25{background:var(--mid)}
+.ab-s{display:flex;flex-direction:column;gap:2px;padding:9px 0;border-top:1px solid var(--line)}.ab-s:first-of-type{border-top:0}
+.ab-s .t{display:flex;justify-content:space-between;gap:8px;align-items:baseline}.ab-s .t b{font-size:.98rem}.ab-s .t small{color:var(--muted);font-size:.78rem;white-space:nowrap}
+.ab-s .bar{height:8px;border-radius:6px;background:var(--accent-soft);overflow:hidden}.ab-s .bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.ab-s .n{display:flex;gap:12px;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}.ab-s.zero .t b{color:var(--muted)}
+.ab-out{text-align:center;font-size:.85rem}
 .pt[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
 .tm-perms{display:flex;flex-wrap:wrap;gap:6px}.tm-hint{margin:-4px 0 0;line-height:1.5}
 .tm-pick{display:flex;flex-direction:column;gap:4px}.tm-pick>span{font-size:.82rem;color:var(--muted)}
@@ -730,6 +747,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
   <div id="team" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="admin" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="week" hidden style="display:flex;flex-direction:column;gap:14px"></div>
+  <div id="abouna" hidden></div>
   <div id="guide" hidden style="display:flex;flex-direction:column;gap:12px"></div>
   <div id="ratings" hidden style="display:flex;flex-direction:column;gap:14px"></div>
   <div id="att" hidden style="display:flex;flex-direction:column;gap:14px"></div>
@@ -2435,21 +2453,24 @@ function bindLogin(f,ph,pw,msg){
 /* ================= لينك الخدام (#servant) =================
    الخادم بيدوس على اللينك، يسجل أو يدخل بحسابه العادي، وطلبه يروح للأمين. محدش بيبقى خادم غير لما الأمين يوافق من "الإدارة ← الخدام" */
 const SV_ST={"مستني":["⏳","طلبك وصل للأمين","أول ما يوافق، الموقع هيتحوّل لصفحة الخدام لوحده. ممكن تقفل دلوقتي وترجع بعدين من نفس اللينك."],"مرفوض":["✖️","طلبك متقبلش","لو في حاجة غلط كلّم أمين الخدمة."],"موقوف":["⏸️","حسابك كخادم متوقف","كلّم أمين الخدمة."]};
-const SV_HEAD=`<div class="sv-hero"><span class="sv-ic">🙌</span><b>أهلا بيك يا خادم</b><span>خطوة واحدة وتبقى معانا على الموقع</span></div>`;
+const SV_HEAD0=`<div class="sv-hero"><span class="sv-ic">🙌</span><b>أهلا بيك يا خادم</b><span>خطوة واحدة وتبقى معانا على الموقع</span></div>`;
+// لينك أبونا (#abouna): نفس التسجيل، بكلام لأبونا، والطلب بيوصل للأمين العام بعلامة «أبونا»
+const abIn=()=>location.hash==="#abouna";
+const svHead=()=>abIn()?`<div class="sv-hero"><span class="sv-ic">🙏</span><b>أهلاً يا أبونا</b><span>سجّل مرة واحدة بس، وهتشوف الخدمة كلها بالأرقام</span></div>`:SV_HEAD0;
 function svGo(r){MEP=null;if(r.key){load(r.key,true);return}if(r.srv!==undefined)lsSet("gsyf_srv",r.srv||"");renderKhadem()}
 function svAsk(btn,msg){btn.disabled=true;btn.textContent="بيتبعت…";
-  callApi("srvRequest",{tok:YT()},svGo,m=>{btn.disabled=false;btn.textContent="ابعت طلبي";msg.textContent=m;if(/ادخل/.test(m)){yOut();renderKhadem()}})}
+  callApi("srvRequest",{tok:YT(),ab:abIn()?1:0},svGo,m=>{btn.disabled=false;btn.textContent="ابعت طلبي";msg.textContent=m;if(/ادخل/.test(m)){yOut();renderKhadem()}})}
 function renderKhadem(){
   const box=$("khadem");
-  if(D.level){box.innerHTML=D.me?`<section class="panel sv-card">${SV_HEAD.replace("🙌","✅").replace("أهلا بيك يا خادم","إنت خادم بالفعل").replace("خطوة واحدة وتبقى معانا على الموقع","داخل باسم "+esc(D.me.name))}<a class="btn primary sv-big" href="#follow">افتح صفحة الخدام</a></section>`
+  if(D.level){box.innerHTML=D.me?`<section class="panel sv-card">${svHead().replace("🙌","✅").replace("أهلا بيك يا خادم","إنت خادم بالفعل").replace("خطوة واحدة وتبقى معانا على الموقع","داخل باسم "+esc(D.me.name))}<a class="btn primary sv-big" href="#follow">افتح صفحة الخدام</a></section>`
       :`<section class="panel sv-card"><h3>إنت داخل بالباسورد المشترك</h3><p class="muted" style="margin:0">اخرج وادخل بحسابك (رقم الموبايل والرقم السري).</p><button type="button" class="sv-big sv-out">خروج</button></section>`;
     const o=box.querySelector(".sv-out");if(o)o.onclick=()=>{try{localStorage.removeItem("gsyf_key")}catch(e){}KEY="";location.hash="servant";load("")};return}
   const tok=YT(),st=lsGet("gsyf_srv"),name=lsGet("gsyf_yname")||"";
   if(!tok){
-    box.innerHTML=`<section class="panel sv-card">${SV_HEAD}
+    box.innerHTML=`<section class="panel sv-card">${svHead()}
       <button type="button" class="primary sv-big sv-new">أول مرة: سجّلني</button>
       <button type="button" class="sv-big sv-old">عندي حساب على الموقع</button>
-      <p class="small muted" style="margin:0;text-align:center">بعد ما تسجل، أمين الخدمة بيوافق على طلبك وتبقى خادم على الموقع.</p></section>`;
+      <p class="small muted" style="margin:0;text-align:center">${abIn()?"بعد التسجيل بنفتح لحضرتك صفحتك على طول.":"بعد ما تسجل، أمين الخدمة بيوافق على طلبك وتبقى خادم على الموقع."}</p></section>`;
     box.querySelector(".sv-new").onclick=()=>srvRegForm(box);
     box.querySelector(".sv-old").onclick=()=>svLogin(box);
     return}
@@ -2457,18 +2478,18 @@ function renderKhadem(){
   if(S){box.innerHTML=`<section class="panel sv-card"><div class="sv-hero"><span class="sv-ic">${S[0]}</span><b>${S[1]}</b><span>${esc(name)}</span></div><p style="margin:0;text-align:center">${S[2]}</p>${st!=="مستني"?WA_BTN():""}<p class="small" style="margin:0;text-align:center"><a href="#" class="sv-x">مش إنت؟ اخرج</a></p></section>`}
   else if(st==="مقبول"){box.innerHTML=`<section class="panel sv-card"><div class="sv-hero"><span class="sv-ic">✅</span><b>إنت خادم بالفعل</b><span>ادخل برقم موبايلك والرقم السري بتاع حساب الخادم</span></div><div class="sv-lg"></div></section>`;
     svLogin(box.querySelector(".sv-lg"));return}
-  else{box.innerHTML=`<section class="panel sv-card">${SV_HEAD.replace("أهلا بيك يا خادم","أهلا يا "+esc(name.split(" ")[0]||"خادم"))}<button type="button" class="primary sv-big sv-ask">أنا خادم: ابعت طلبي</button><p class="msg small err" style="margin:0"></p><p class="small" style="margin:0;text-align:center"><a href="#" class="sv-x">مش إنت؟ اخرج</a></p></section>`;
+  else{box.innerHTML=`<section class="panel sv-card">${svHead().replace("أهلا بيك يا خادم","أهلا يا "+esc(name.split(" ")[0]||"خادم"))}<button type="button" class="primary sv-big sv-ask">${abIn()?"افتح صفحتي":"أنا خادم: ابعت طلبي"}</button><p class="msg small err" style="margin:0"></p><p class="small" style="margin:0;text-align:center"><a href="#" class="sv-x">مش إنت؟ اخرج</a></p></section>`;
     const b=box.querySelector(".sv-ask");b.onclick=()=>svAsk(b,box.querySelector(".msg"))}
   const x=box.querySelector(".sv-x");if(x)x.onclick=e=>{e.preventDefault();yOut();renderKhadem()};
-  if(!window._svChk){window._svChk=1;callApi("regStatus",{email:lsGet("gsyf_reg")||"",tok},r=>{window._svChk=0;if(r.key){load(r.key,true);return}if((r.srv||"")!==st){lsSet("gsyf_srv",r.srv||"");if(location.hash==="#servant")renderKhadem()}},()=>{window._svChk=0})}
+  if(!window._svChk){window._svChk=1;callApi("regStatus",{email:lsGet("gsyf_reg")||"",tok},r=>{window._svChk=0;if(r.key){load(r.key,true);return}if((r.srv||"")!==st){lsSet("gsyf_srv",r.srv||"");if(/^#(servant|abouna)$/.test(location.hash))renderKhadem()}},()=>{window._svChk=0})}
 }
 function svLogin(box,o){yLoginForm(box,Object.assign({back:renderKhadem,note:"رقم الموبايل والرقم السري اللي بتدخل بيهم الموقع",
-  done:r=>{if(!r.tok){renderKhadem();return}box.innerHTML='<p class="muted" style="text-align:center;padding:20px">بيبعت طلبك…</p>';callApi("srvRequest",{tok:r.tok},svGo,()=>renderKhadem())}},o||{}))}
+  done:r=>{if(!r.tok){renderKhadem();return}box.innerHTML='<p class="muted" style="text-align:center;padding:20px">بيبعت طلبك…</p>';callApi("srvRequest",{tok:r.tok,ab:abIn()?1:0},svGo,()=>renderKhadem())}},o||{}))}
 function srvRegForm(box){
   box.innerHTML=`<section class="panel"><form class="rgf" novalidate>
-    <div class="rg-head"><b>سجّلني كخادم</b><span>اكتب بياناتك مرة واحدة بس</span></div>
-    <label class="fld"><span>اسمك الحقيقي ثلاثي بالعربي (زي البطاقة)</span><input name="name" autocomplete="name" placeholder="مثال: مينا عادل حلمي"><small class="hint">لو الناس بتعرفك باسم تاني، هتقدر تضيفه من بروفايلك بعد التسجيل.</small><em></em></label>
-    <div class="fld g-fld"><span>أنا</span>${gPick("")}<em></em></div>
+    <div class="rg-head"><b>${abIn()?"تسجيل أبونا":"سجّلني كخادم"}</b><span>اكتب بياناتك مرة واحدة بس</span></div>
+    <label class="fld"><span>${abIn()?"الاسم ثلاثي بالعربي":"اسمك الحقيقي ثلاثي بالعربي (زي البطاقة)"}</span><input name="name" autocomplete="name" placeholder="${abIn()?"مثال: شنوده رزق ...":"مثال: مينا عادل حلمي"}">${abIn()?"":`<small class="hint">لو الناس بتعرفك باسم تاني، هتقدر تضيفه من بروفايلك بعد التسجيل.</small>`}<em></em></label>
+    <div class="fld g-fld"${abIn()?" hidden":""}><span>أنا</span>${gPick(abIn()?"شاب":"")}<em></em></div>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
@@ -2486,7 +2507,7 @@ function srvRegForm(box){
     if(!ok){msg.className="msg small err";msg.textContent="صلّح الخانات اللي باللون الأحمر";(f.querySelector(".bad input")||{focus(){}}).focus();return}
     const btn=f.querySelector(".rg-send"),phone=normPhone(f.elements.phone.value),em=f.elements.email.value.trim().toLowerCase();btn.disabled=true;msg.className="msg small muted";msg.textContent="بيتبعت…";
     const old=()=>svLogin(box,{phone,note:"إنت متسجل قبل كده على الموقع. ادخل برقمك والرقم السري بتاعك"});
-    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone,email:em,pin:toEn(f.elements.pin.value),gender:f.elements.gender.value,srv:1},
+    callApi("register",{name:f.elements.name.value.trim().replace(/\s+/g," "),birth:f.elements.birth.value,phone,email:em,pin:toEn(f.elements.pin.value),gender:f.elements.gender.value,srv:1,ab:abIn()?1:0},
       r=>{if(r.existed||!r.tok){old();return}ySave(r);lsSet("gsyf_srv",r.srv||"مستني");renderKhadem();window.scrollTo(0,0)},
       e=>{if(/متسجل قبل كده/.test(e)){old();return}btn.disabled=false;msg.className="msg small err";msg.textContent=e})};
 }
@@ -2495,18 +2516,18 @@ const OTHER="خدمة تانية";
 const GRP=[["جامعيين","جامعيين"],["الربع قرن","الربع قرن +25"],["الاتنين","الاتنين"],[OTHER,"خدمة تانية"],["الرحلات","🚌 مسؤول الرحلات"]];
 const grpL=g=>(GRP.find(x=>x[0]===g)||[,""])[1];
 // الأدوار (MORCOS 23 نوفمبر): أمين عام / أمين (اجتماعه) / أمين مساعد / خادم
-const ROLES=["خادم","أمين مساعد","أمين","أمين عام"],isLead=r=>ROLES.indexOf(r)>0,myRank=()=>D.me?(D.me.rank||0):(D.level===2?3:0);
-const srvTitle=(role,g)=>role==="أمين عام"?role:(ROLES.includes(role)?role:"خادم")+(g==="الاتنين"?" جامعيين و+25":g&&g!==OTHER?" "+grpL(g):"");
+const ROLES=["خادم","أمين مساعد","أمين","أمين عام","أبونا"],AB=()=>!!(D&&D.me&&D.me.role==="أبونا"),isLead=r=>ROLES.indexOf(r)>0,myRank=()=>D.me?(D.me.rank||0):(D.level===2?3:0);
+const srvTitle=(role,g)=>role==="أمين عام"||role==="أبونا"?role:(ROLES.includes(role)?role:"خادم")+(g==="الاتنين"?" جامعيين و+25":g&&g!==OTHER?" "+grpL(g):"");
 const grpHint=`<p class="small muted tm-hint">"خدمة تانية" للي بيخدم برا الاجتماعين (زي المسرح): بياخد كل حاجة الخادم بياخدها، بس مش بيكتب إعلان اجتماع. "مسؤول الرحلات": بيشوف صفحة إدارة الرحلات بس، وهو الوحيد اللي بيأكد الدفع والإلغاء.</p>`;
 const grpChips=(cur,cls)=>GRP.map(([v,l])=>`<button type="button" class="pt ${cls}" data-g="${v}" aria-pressed="${cur===v}">${esc(l)}</button>`).join("");
 // صفحة الأمناء: الموافقة على الخدام (بالمجموعة والدور في خطوة واحدة) وفتح/قفل الصلاحيات
 function renderTeam(){
   const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
-  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق.</p>
-    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips("","pg")}</div></div>${grpHint}
-    <div class="tm-pick"${myRank()<3?" hidden":""}><span>الدور:</span><div class="tm-perms">${ROLES.map(r=>`<button type="button" class="pt pr" data-r="${r}" aria-pressed="${r==="خادم"}">${r}</button>`).join("")}</div></div>
-    ${myRank()>=2?`<div class="ap-btns"><button type="button" class="ap-ok ap-acc" disabled>✓ اختار بيخدم فين الأول</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div>`:`<p class="small muted" style="margin:0">القبول للأمين.</p>`}</article>`;
+  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">${u.ask&&myRank()>=3?"🙏 <b>طلب من لينك أبونا</b>: لو هو أبونا فعلًا، دوس قبول وهيشوف صفحة «الخدمة بالأرقام» بس (عرض من غير تعديل).":"طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق."}</p>
+    <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.ask&&myRank()>=3?"الاتنين":"","pg")}</div></div>${grpHint}
+    <div class="tm-pick"${myRank()<3?" hidden":""}><span>الدور:</span><div class="tm-perms">${ROLES.map(r=>`<button type="button" class="pt pr" data-r="${r}" aria-pressed="${r===(u.ask&&myRank()>=3?"أبونا":"خادم")}">${r}</button>`).join("")}</div></div>
+    ${myRank()>=2?`<div class="ap-btns"><button type="button" class="ap-ok ap-acc"${u.ask&&myRank()>=3?">✓ قبول أبونا":" disabled>✓ اختار بيخدم فين الأول"}</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div>`:`<p class="small muted" style="margin:0">القبول للأمين.</p>`}</article>`;
   const rk=myRank(),canU=u=>rk>=3||(rk>=2&&!isLead(u.role));
   const card=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}${isLead(u.role)?` <span class="tm-badge">${esc(u.role)}</span>`:""}</b><span class="muted small">${u.last?"آخر دخول "+esc(u.last):"لسه مدخلش"}</span></div>
     ${canU(u)?`<div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.group,"ug")}</div></div>`:""}
@@ -2750,7 +2771,7 @@ function renderGuide(){
 }
 
 function renderNav(cur){
-  if(!D.level){$("views").hidden=true;return}
+  if(!D.level||AB()){$("views").hidden=true;return}$("views").hidden=false;
   // الخادم: 3 تابات بس. الأمين: تاب رابع "الإدارة" جواه الطلبات والخدام والتقييمات وخطة السنة والبرامج
   const nw=(D.regs||[]).filter(r=>r.status==="مستني"||r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
   const c=ADM_PAGES.includes(cur)||(lead&&cur==="trips")||/^(meet|m)-/.test(cur)?"admin":cur;
@@ -2758,17 +2779,50 @@ function renderNav(cur){
   const items=tripsOnly()?[["trips","إدارة الرحلات"+(rq?` (${rq})`:"")],["me","بروفايلي"]]:[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:bkSee()?[["trips","الرحلات"+(rq?` (${rq})`:"")]]:[]),["home","الشباب"],["me","بروفايلي"]];
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===c?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
-const ADM_PAGES=["admin","approve","team","ratings","year","week"];
+const ADM_PAGES=["admin","approve","team","ratings","year","week","abouna"];
 // صفحة الإدارة (للأمناء): زراير كبيرة للصفحات اللي مش محتاجها كل يوم
 function renderAdmin(){
   const nw=(D.regs||[]).filter(r=>r.status==="مستني").length,nf=(D.regs||[]).filter(r=>r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length;
   const R0=weekData(),hot=R0.dec.length+R0.prob.length;
-  const L=[["week","📊","تقرير الأسبوع لأبونا",hot?hot+" محتاج تتابعه":"جاهز"],["trips","🚌","إدارة الرحلات",""],...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
+  const L=[...(myRank()>=3?[["abouna","🙏","الخدمة بالأرقام (صفحة أبونا)",""]]:[]),["week","📊","تقرير الأسبوع لأبونا",hot?hot+" محتاج تتابعه":"جاهز"],["trips","🚌","إدارة الرحلات",""],...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
   $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني|محتاج/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
 }
 
+/* ===== الخدمة بالأرقام (صفحة أبونا، MORCOS 27 نوفمبر): أرقام بس من فوق + إنجاز كل خادم، وفلتر بالاجتماع والفترة. من غير تفاصيل ===== */
+const AB_S={m:"",p:"m",d:null,busy:false,err:"",at:0};
+function abLoad(){if(AB_S.busy)return;AB_S.busy=true;AB_S.err="";
+  callApi("ovr",{},r=>{AB_S.busy=false;AB_S.d=r;AB_S.at=Date.now();if(!$("abouna").hidden)renderAbouna()},m=>{AB_S.busy=false;AB_S.err=m;if(!$("abouna").hidden)renderAbouna()})}
+function renderAbouna(){
+  const B=$("abouna"),R=AB_S.d,nf=n=>Number(n||0).toLocaleString("ar-EG");
+  if(!R||Date.now()-AB_S.at>5*60000)abLoad();
+  const hi=`<div class="ab-hi"><b>${AB()?"أهلاً يا أبونا 🙏":"🙏 الخدمة بالأرقام"}</b><span>الخدمة كلها في صفحة واحدة</span></div>`;
+  const chips=(k,L)=>`<div class="ab-f">${L.map(([v,l])=>`<button type="button" class="pt" data-k="${k}" data-v="${v}" aria-pressed="${AB_S[k]===v}">${l}</button>`).join("")}</div>`;
+  const fl=chips("m",[["","الكل"],["ج","جامعيين"],["25","+25"]])+chips("p",[["m","الشهر ده"],["3","آخر 3 شهور"],["a","من الأول"]]);
+  const out=AB()?`<p class="ab-out"><a href="#" class="ab-x">خروج</a></p>`:"";
+  if(!R){B.innerHTML=hi+(AB_S.err?`<section class="panel"><p class="err">${esc(AB_S.err)}</p><button type="button" class="ab-r">جرّب تاني</button></section>`:`<p class="muted" style="text-align:center;padding:30px 0">بيحمّل الأرقام…</p>`)+out;abBind(B);return}
+  const t=R.today,from=AB_S.p==="m"?t.slice(0,8)+"01":AB_S.p==="3"?(()=>{const d=new Date(t+"T12:00:00");d.setMonth(d.getMonth()-3);return d.toISOString().slice(0,10)})():"0000";
+  const inP=d=>d>=from&&d<=t,mOk=m=>!AB_S.m||m===AB_S.m;
+  const att=R.att.filter(a=>inP(a[0])&&mOk(a[1])),avg=att.length?Math.round(att.reduce((x,a)=>x+a[2],0)/att.length):0;
+  const mem=R.mem.filter(x=>!AB_S.m||x[0]===AB_S.m),nw=mem.filter(x=>inP(x[1])).length;
+  const af=AB_S.m?R.afl[AB_S.m]:[R.afl["ج"][0]+R.afl["25"][0],R.afl["ج"][1]+R.afl["25"][1]],afp=af[0]?Math.round(af[1]/af[0]*100):0;
+  const ev=R.ev.filter(e=>inP(e[0])&&(!AB_S.m||!e[1]||e[1]===AB_S.m)).length;
+  const sv=R.srv.filter(s=>!AB_S.m||s.m===AB_S.m||s.m==="2").map(s=>{const a=s.a.filter(inP).length,w=s.w.filter(inP).length;return Object.assign({},s,{na:a,nw:w,sc:a+w+s.f[1]})}).sort((x,y)=>y.sc-x.sc||x.n.localeCompare(y.n,"ar"));
+  const mx=Math.max(1,...sv.map(s=>s.sc)),pl={m:"الشهر ده",3:"آخر 3 شهور",a:"من الأول"}[AB_S.p];
+  const K=[["👥",nf(mem.length),"شاب وبنت على الموقع",nw?`+${nf(nw)} جديد ${pl}`:`مفيش جديد ${pl}`],["🙋",nf(avg),"متوسط الحضور",att.length?`في ${nf(att.length)} اجتماع`:"لسه مفيش حضور متسجل"],
+    ["📞",nf(afp)+"٪","اتعمل لهم افتقاد",`${nf(af[1])} من ${nf(af[0])}`],["🎉",nf(ev),"إيفنت اتعمل",pl]];
+  const last=att.slice(-8),amx=Math.max(1,...last.map(a=>a[2]));
+  const bars=last.length?`<section class="panel"><h3>الحضور اجتماع باجتماع</h3><div class="ab-bars">${last.map(a=>`<div><b>${nf(a[2])}</b><i class="${a[1]==="25"?"p25":""}" style="height:${Math.round(a[2]/amx*100)}%"></i><small>${nf(+a[0].slice(8))}/${nf(+a[0].slice(5,7))}</small></div>`).join("")}</div>${AB_S.m?"":`<div class="ab-lg"><span><i></i>جامعيين</span><span><i class="p25"></i>+25</span></div>`}</section>`:"";
+  const row=s=>`<div class="ab-s${s.sc?"":" zero"}"><div class="t"><b>${esc(s.n)}</b><small>${s.r!=="خادم"?esc(s.r):""}</small></div><div class="bar"><i style="width:${Math.round(s.sc/mx*100)}%"></i></div><div class="n"><span>🙋 حضر ${nf(s.na)}</span><span>✅ شغل ${nf(s.nw)}</span><span>📞 افتقاد ${nf(s.f[1])}/${nf(s.f[0])}</span></div></div>`;
+  B.innerHTML=hi+fl+`<div class="ab-k">${K.map(([ic,n,l,x])=>`<div><span class="ic">${ic}</span><b>${n}</b><span>${l}</span><small>${esc(x)}</small></div>`).join("")}</div>`+bars+
+    `<section class="panel"><h3>إنجاز الخدام (${nf(sv.length)})</h3><p class="small muted" style="margin:0 0 4px">حضر = اجتماعات حضرها · شغل = حاجات خلصها (إعلان، ترويج، مسؤول اجتماع أو إيفنت) · افتقاد = اتواصل مع كام من اللي عليه</p>${sv.map(row).join("")||`<p class="empty">مفيش خدام</p>`}</section>`+
+    `<p class="small muted" style="text-align:center;margin:0">الأرقام بتتحدث لوحدها كل ١٠ دقايق</p>`+out;
+  abBind(B);
+}
+function abBind(B){B.querySelectorAll(".ab-f .pt").forEach(b=>b.onclick=()=>{AB_S[b.dataset.k]=b.dataset.v;renderAbouna()});
+  const r=B.querySelector(".ab-r");if(r)r.onclick=()=>{AB_S.at=0;AB_S.d=null;abLoad();renderAbouna()};
+  const x=B.querySelector(".ab-x");if(x)x.onclick=e=>{e.preventDefault();if(confirm("تخرج من حسابك؟"))logout()}}
 /* التقييمات: نتايج تقييم الإيفنتات (زي حفلة ع الضيق) لايف، شباب وخدام */
 const RP={ev:"",f:"all",d:null,t:null};
 const rpNum=n=>Number(n).toLocaleString("ar-EG"),rpFmt=n=>(Math.round(n*10)/10).toLocaleString("ar-EG");
@@ -3135,6 +3189,9 @@ function route(){
   if(h==="data"){lsSet("gsyf_dgo","1");h="me";try{history.replaceState(null,"","#me")}catch(e){}}                       // لينك «كمّل بياناتك» اللي بيتبعت واتساب
   if(h==="plus25"||h==="alex"||h==="vote"||h==="rate")h="home";   // #rate = التقييم في الصفحة الرئيسية، للشباب والخدام (MORCOS 27 نوفمبر)                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
+  if(!D.level&&h==="abouna")h="servant";                  // لينك أبونا قبل ما يدخل: نفس تسجيل الخدام بكلام لأبونا
+  if(D.level&&AB())h="abouna";                            // حساب أبونا: صفحة الأرقام بس
+  if(h==="abouna"&&D.level&&!AB()&&myRank()<3)h="follow";
   if(!D.level)h=h==="me"&&YT()?"me":h==="servant"?"servant":"home";   // servant = لينك الخدام (تسجيل + طلب، والأمين بيوافق)               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
   else if(!h)h=tripsOnly()?"trips":"follow";
   if(D.level&&tripsOnly()&&!["trips","me"].includes(h))h="trips";   // مسؤول الرحلات: صفحة الرحلات وبروفايله بس، من غير أي حاجة تانية
@@ -3142,22 +3199,23 @@ function route(){
   if(h==="approve"&&!can("regs"))h="follow";
   if((h==="team"||h==="admin"||h==="week")&&D.level!==2)h="follow";
   if(D.level===1&&!["follow","home","me","approve","att","servant","plan","trips","guide"].includes(h))h="follow";   // الخادم بيشوف شغله والشباب وبروفايله بس
-  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att", isP=h==="plan", isTr=h==="trips", isW=h==="week", isG=h==="guide";
-  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isW||isG);$("week").hidden=!isW;$("guide").hidden=!isG;$("trips").hidden=!isTr;$("plan").hidden=!isP;$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
+  const m=/^m-(\d{4}-\d{2})$/.exec(h), mt=/^meet-(\d+)$/.exec(h), isHome=h==="home", isFollow=h==="follow", isAp=h==="approve", isK=h==="servant", isT=h==="team", isR=h==="ratings", isMe=h==="me", isA=h==="admin", isAt=h==="att", isP=h==="plan", isTr=h==="trips", isW=h==="week", isG=h==="guide", isAb=h==="abouna";
+  $("year").hidden=!!(m||mt||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isW||isG||isAb);$("abouna").hidden=!isAb;$("week").hidden=!isW;$("guide").hidden=!isG;$("trips").hidden=!isTr;$("plan").hidden=!isP;$("admin").hidden=!isA;$("att").hidden=!isAt;$("me").hidden=!isMe;$("ratings").hidden=!isR;$("approve").hidden=!isAp;$("month").hidden=!m;$("back").hidden=!m;$("meet").hidden=!mt;
   $("khadem").hidden=!isK;$("team").hidden=!isT;$("staff").hidden=!!D.level||isK;
   $("home").hidden=!isHome;$("follow").hidden=!isFollow;
   document.body.classList.toggle("youth",isHome||((isMe||isK)&&!D.level));$("hero").hidden=!isHome;
-  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isG;
+  $("pdfBtn").hidden=!!D.preview||isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isG||isAb;
   const w=mt&&D.weekly[+mt[1]-1];
-  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isTr?"إدارة الرحلات":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":isP?"توقع السنة":isW?"تقرير الأسبوع":isG?"دليل الخادم":"خطة السنة";
-  renderNav(isTr?"trips":isW?"week":mt?h:isHome?"home":isFollow||isAt||isP||isG?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
+  $("title").textContent=m?"تفاصيل الشهر":w?w.title:isHome?"خدمة الشباب":isTr?"إدارة الرحلات":isFollow?"شغلي":isA?"الإدارة":isAp?"طلبات التسجيل":isK?"أنا خادم":isT?"الخدام":isR?"التقييمات":isMe?"بروفايلي":isAt?"الغياب":isP?"توقع السنة":isW?"تقرير الأسبوع":isG?"دليل الخادم":isAb?"الخدمة بالأرقام":"خطة السنة";
+  renderNav(isAb?"abouna":isTr?"trips":isW?"week":mt?h:isHome?"home":isFollow||isAt||isP||isG?"follow":isAp?"approve":isK?"me":isT?"team":isR?"ratings":isMe?"me":isA?"admin":"year");
   if(isA)renderAdmin();
   if(isW)renderWeek();
+  if(isAb)renderAbouna();
   if(isG)renderGuide();
   if(isAt)renderAtt();
   if(isP)renderPlan();
   if(isMe)renderMe();
-  meBtn();if(isMe)$("meBtn").hidden=true;
+  meBtn();if(isMe||AB())$("meBtn").hidden=true;
   if(isAp)renderApprove();
   if(isK)renderKhadem();
   if(isT)renderTeam();
@@ -3167,7 +3225,7 @@ function route(){
   if(isTr)renderTrips();
   if(m)renderMonth(m[1]);
   if(mt){meetMonth=null;renderMeet(+mt[1]-1)}
-  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isW||isG);   // ملاحظة الزحمة لخطة السنة بس
+  document.querySelector("footer span").hidden=!D.level||!!(isHome||isFollow||isAp||isK||isT||isR||isMe||isA||isAt||isP||isTr||isW||isG||isAb);   // ملاحظة الزحمة لخطة السنة بس
   window.scrollTo(0,0);
 }
 
@@ -3227,7 +3285,7 @@ if(!KEY){document.body.classList.add("youth");$("hero").hidden=false}
 // التحديث الفوري: أول ما الصفحة ترجع قدامك بتجيب آخر بيانات، واللي طلبه مستني بيتشيّك عليه كل 30 ثانية
 let lastLoad=Date.now();
 function yCheck(){const em=lsGet("gsyf_reg");if(!D||D.level||(!em&&!YT()))return;
-  callApi("regStatus",{email:em||"",tok:YT()},r=>{if(r.key){load(r.key,true);return}if(YT()&&(r.srv||"")!==(lsGet("gsyf_srv")||"")){lsSet("gsyf_srv",r.srv||"");if(location.hash==="#servant")renderKhadem()}const was=lsGet("gsyf_reg_st")||"";if(r.status&&r.status!==was){lsSet("gsyf_reg_st",r.status);if(location.hash!=="#me")renderHome();else renderMe()}},()=>{})}
+  callApi("regStatus",{email:em||"",tok:YT()},r=>{if(r.key){load(r.key,true);return}if(YT()&&(r.srv||"")!==(lsGet("gsyf_srv")||"")){lsSet("gsyf_srv",r.srv||"");if(/^#(servant|abouna)$/.test(location.hash))renderKhadem()}const was=lsGet("gsyf_reg_st")||"";if(r.status&&r.status!==was){lsSet("gsyf_reg_st",r.status);if(location.hash!=="#me")renderHome();else renderMe()}},()=>{})}
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState!=="visible"||!D||PREVIEW_DATA)return;
   if(Date.now()-lastLoad>20000){lastLoad=Date.now();if(D.level)load();else yCheck()}});
 setInterval(()=>{if(document.visibilityState==="visible"&&D&&!D.level&&!PREVIEW_DATA&&(lsGet("gsyf_reg_st")!=="مقبول"||lsGet("gsyf_srv")==="مستني"))yCheck()},30000);
