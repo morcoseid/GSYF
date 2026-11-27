@@ -1773,7 +1773,7 @@ function monthPanel(ev){
   </section>`;
 }
 function renderFollow(){
-  aflLoad();
+  aflLoad();revLoad();
   const openEv=[...document.querySelectorAll("#follow details[data-ev][open]")].map(d=>d.dataset.ev);
   const t=D.today,in30=iso(addDays(parse(t),30));
   const open=D.events.filter(e=>e.status!=="تم"&&e.status!=="اتلغى").sort((a,b)=>a.date.localeCompare(b.date));
@@ -1798,6 +1798,7 @@ function renderFollow(){
     ${thuNote()}
     ${prepPanel(fold)}
     ${invPanel()}
+    ${revPanel()}
     ${p25Panel()}
     ${aflPanel()}
     <a class="att-go" href="#att">📋 خد الغياب برقم التليفون</a>
@@ -1832,7 +1833,7 @@ function renderFollow(){
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
     callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,"reg");renderFollow()},fail(b))});
   welcBind(F,renderFollow);
-  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);aflBind(F);p25Bind(F);
+  aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);aflBind(F);p25Bind(F);revBind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
 }
 
@@ -1958,6 +1959,33 @@ function regChk(r){const c=D.afl&&D.afl.chk?D.afl.chk[normPhone(r.phone)]:null;r
 function regExtra(r){const c=regChk(r);
   return `${c?dbBox(c.s,c.h):""}${c&&c.srv?`<div class="small muted">👤 المسؤول عن افتقاده: <b>${esc(c.srv.split(" ").slice(0,2).join(" "))}</b></div>`:""}`}
 function regWa(r){const c=regChk(r),u=aflUrl({name:r.name,nick:r.nick,g:r.gender,phone:r.phone},c&&c.s!=="ok"?"new":"hi");return u?`<a class="ap-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}
+
+/* ===== طلبات مراجعة (MORCOS 27 نوفمبر): للأمين العام بس. اللي سجّل على الموقع ومش متطابق في قاعدة البيانات =====
+   قدام كل واحد: ✓ موافق عليه (بيتشال من اللستة) أو 💬 تواصل واتساب (بيتعلّم إنه اتكلم). الأحدث الأول */
+const REV={rows:null,at:0,busy:false};
+const isTop=()=>!!D&&(D.me?(D.me.rank||0)>=3:D.level===2);
+function revLoad(force){if(!isTop()||REV.busy)return;if(!force&&REV.rows&&Date.now()-REV.at<120000)return;
+  REV.busy=true;callApi("revList",{},r=>{REV.busy=false;REV.rows=r.rows||[];REV.at=Date.now();if(location.hash==="#follow")renderFollow()},m=>{REV.busy=false;REV.err=m;REV.at=Date.now();if(location.hash==="#follow")renderFollow()})}
+function revPanel(){if(!isTop())return "";
+  if(!REV.rows)return `<section class="panel"><h3>🔎 طلبات مراجعة</h3><p class="small muted" style="margin:0">${REV.err?esc(REV.err):"بيحمّل…"}</p></section>`;
+  const open=REV.rows.filter(r=>!r.dec||r.dec.d!=="موافق"),ok=REV.rows.filter(r=>r.dec&&r.dec.d==="موافق");
+  const row=r=>{const ag=age(r.birth),u=aflUrl({name:r.name,nick:r.nick,g:r.g,phone:r.phone},"new");
+    return `<div class="af-r" data-ph="${esc(r.phone)}"><div class="af-h"><b>${esc(r.nick?r.nick+" ("+r.name+")":r.name)}</b><span class="small muted" dir="ltr">${esc(r.phone)}</span></div>
+      <div class="small muted">${ag!==""?ag+" سنة · ":""}سجّل ${esc(r.at)} · ${r.st==="مقبول"?"✅ حسابه مقبول":"⏳ مستني موافقة"}</div>
+      ${dbBox(r.db,r.dbh)}
+      ${r.dec&&r.dec.d?`<div class="small ok">${r.dec.d==="موافق"?"✓ موافق عليه":"💬 اتواصل"} · ${esc(r.dec.by)} · ${esc(r.dec.at)}</div>`:""}
+      <div class="af-btns">${r.dec&&r.dec.d==="موافق"?`<button type="button" class="small rv" data-d="">↩︎ رجّعه للمراجعة</button>`:`<button type="button" class="small primary rv" data-d="موافق">✓ موافق عليه</button>${u?`<a class="af-b rv-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}`}</div></div>`};
+  return `<section class="panel rv-p" id="rev"><h3>🔎 طلبات مراجعة <span class="small muted">(${open.length})</span></h3>
+    <p class="small muted" style="margin:0">اللي سجّلوا على الموقع ومش متطابقين في قاعدة بيانات الشباب. ظاهرة ليك انت بس.</p>
+    ${open.length?open.map(row).join(""):`<p class="empty">مفيش حد محتاج مراجعة 👌</p>`}
+    ${ok.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتوافق عليهم (${ok.length})</summary>${ok.map(row).join("")}</details>`:""}</section>`}
+function revBind(F){const box=F.querySelector("#rev");if(!box)return;
+  const set=(el,d)=>{const r=REV.rows.find(x=>x.phone===el.closest("[data-ph]").dataset.ph);if(!r)return;const old=r.dec;
+    r.dec=d===""?null:{d,by:D.me?D.me.name.split(" ").slice(0,2).join(" "):"أمين",at:"دلوقتي"};
+    callApi("revSet",{phone:r.phone,name:r.name,d},()=>{},m=>{r.dec=old;renderFollow();alert(m)})};
+  box.querySelectorAll(".rv").forEach(b=>b.onclick=()=>{set(b,b.dataset.d);renderFollow()});
+  box.querySelectorAll(".rv-wa").forEach(a=>a.addEventListener("click",()=>{set(a,"اتواصل");setTimeout(renderFollow,300)}));
+}
 
 /* ================= إعلان الاجتماع الأسبوعي (خدام الاجتماع بيكتبوه من "شغلي") =================
    الخادم بيكتب نقط عن موضوع الاجتماع الجاي، والمساعد (Gemini المجاني) بيقترح عنوان وأيقونة ونقط تشويقية،
