@@ -2797,8 +2797,13 @@ function renderAdmin(){
   const R0=weekData(),hot=R0.dec.length+R0.prob.length;
   const L=[...(myRank()>=3?[["abouna","🙏","الخدمة بالأرقام (صفحة أبونا)",""]]:[]),["week","📊","تقرير الأسبوع لأبونا",hot?hot+" محتاج تتابعه":"جاهز"],["trips","🚌","إدارة الرحلات",""],...(can("regs")?[["approve","📝","طلبات التسجيل",[nw?nw+" مستني":"",nf?nf+" نسي الرقم السري مستني":""].filter(Boolean).join(" · ")||"مفيش جديد"]]:[]),["team","👥","الخدام والصلاحيات",nu?nu+" مستني":""],["ratings","⭐","التقييمات لايف",""],["year","📅","خطة السنة",""],["plan","🔮","توقع السنة الجاية",""],
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
-  $("admin").innerHTML=`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني|محتاج/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
+  // أبونا متسجل كشاب ومعندوش صفحته لسه: زرار واحد يفتحهاله (MORCOS 27 نوفمبر)
+  const abR=myRank()>=3&&!(D.users||[]).some(u=>u.role==="أبونا"&&u.status==="مقبول")?(D.regs||[]).find(r=>r.status==="مقبول"&&/^(القس|القمص|ابونا|أبونا)\s/.test(String(r.name||"").trim())):null;
+  const abBox=abR?`<section class="panel" style="border-color:var(--accent)"><b>🙏 ${esc(abR.name)} عنده حساب على الموقع</b><p class="small muted" style="margin:0">دوسة واحدة ويفتحله صفحة «الخدمة بالأرقام» (عرض بس). هيدخل برقمه والرقم السري بتاعه.</p><button type="button" class="primary ab-grant">🙏 افتح صفحة أبونا</button><p class="msg small"></p></section>`:"";
+  $("admin").innerHTML=abBox+`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني|محتاج/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
+  const g=$("admin").querySelector(".ab-grant");if(g)g.onclick=()=>{g.disabled=true;g.textContent="بيفتح…";const ms=g.nextElementSibling;
+    callApi("makeServant",{row:abR.row,email:abR.email,group:"الاتنين",role:"أبونا"},()=>{g.textContent="اتفتحت ✓";ms.textContent="خلاص: أول ما أبونا يدخل الموقع برقمه هتفتحله الصفحة على طول.";load()},m=>{g.disabled=false;g.textContent="🙏 افتح صفحة أبونا";ms.className="msg small err";ms.textContent=m})};
 }
 
 /* ===== الخدمة بالأرقام (صفحة أبونا، MORCOS 27 نوفمبر): أرقام بس من فوق + إنجاز كل خادم، وفلتر بالاجتماع والفترة. من غير تفاصيل ===== */
