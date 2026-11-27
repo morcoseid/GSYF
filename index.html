@@ -2535,7 +2535,7 @@ const grpChips=(cur,cls)=>GRP.map(([v,l])=>`<button type="button" class="pt ${cl
 function renderTeam(){
   const U=D.users||[],P=D.permNames||[],wait=U.filter(u=>u.status==="مستني"),on=U.filter(u=>u.status==="مقبول"),off=U.filter(u=>u.status!=="مستني"&&u.status!=="مقبول");
   const wa=u=>`<a href="https://wa.me/2${esc(u.phone)}" target="_blank" rel="noopener" dir="ltr">📱 ${esc(u.phone)}</a>`;
-  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">${u.ask&&myRank()>=3?"🙏 <b>طلب من لينك أبونا</b>: لو هو أبونا فعلًا، دوس قبول وهيشوف صفحة «الخدمة بالأرقام» بس (عرض من غير تعديل).":"طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق."}</p>
+  const pend=u=>`<article class="ap-card" data-row="${u.row}"><div class="ap-top"><b>${esc(dn(u))}</b><span class="muted small">${esc(u.at)}</span></div><div class="ap-meta">${wa(u)}${(r=>r&&r.birth?`<span>🎂 ${esc(r.birth)}${age(r.birth)!==""?` · ${age(r.birth)} سنة`:""}</span>`:"")((D.regs||[]).find(r=>normPhone(r.phone)===u.phone))}</div><p class="small muted" style="margin:0">${u.ask&&myRank()>=3?"🙏 <b>طلب من لينك أبونا</b>: لو هو أبونا فعلًا، دوس قبول وهيتفتحله كل حاجة، وبيبدأ بصفحة «الخدمة بالأرقام».":"طلب يبقى خادم. اتأكد إنه خادم فعلًا قبل ما توافق."}</p>
     <div class="tm-pick"><span>خادم في:</span><div class="tm-perms">${grpChips(u.ask&&myRank()>=3?"الاتنين":"","pg")}</div></div>${grpHint}
     <div class="tm-pick"${myRank()<3?" hidden":""}><span>الدور:</span><div class="tm-perms">${ROLES.map(r=>`<button type="button" class="pt pr" data-r="${r}" aria-pressed="${r===(u.ask&&myRank()>=3?"أبونا":"خادم")}">${r}</button>`).join("")}</div></div>
     ${myRank()>=2?`<div class="ap-btns"><button type="button" class="ap-ok ap-acc"${u.ask&&myRank()>=3?">✓ قبول أبونا":" disabled>✓ اختار بيخدم فين الأول"}</button><button type="button" class="ap-no us" data-f="status" data-v="مرفوض">✕ رفض</button></div>`:`<p class="small muted" style="margin:0">القبول للأمين.</p>`}</article>`;
@@ -2782,12 +2782,12 @@ function renderGuide(){
 }
 
 function renderNav(cur){
-  if(!D.level||AB()){$("views").hidden=true;return}$("views").hidden=false;
+  if(!D.level){$("views").hidden=true;return}$("views").hidden=false;
   // الخادم: 3 تابات بس. الأمين: تاب رابع "الإدارة" جواه الطلبات والخدام والتقييمات وخطة السنة والبرامج
   const nw=(D.regs||[]).filter(r=>r.status==="مستني"||r.forgot).length,nu=(D.users||[]).filter(u=>u.status==="مستني").length,lead=D.level===2,n=(can("regs")?nw:0)+(lead?nu:0);
-  const c=ADM_PAGES.includes(cur)||(lead&&cur==="trips")||/^(meet|m)-/.test(cur)?"admin":cur;
+  const c=AB()&&cur==="abouna"?"abouna":ADM_PAGES.includes(cur)||(lead&&cur==="trips")||/^(meet|m)-/.test(cur)?"admin":cur;
   const rq=bkEdit()?tripReqs().length:0;
-  const items=tripsOnly()?[["trips","إدارة الرحلات"+(rq?` (${rq})`:"")],["me","بروفايلي"]]:[["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:bkSee()?[["trips","الرحلات"+(rq?` (${rq})`:"")]]:[]),["home","الشباب"],["me","بروفايلي"]];
+  const items=tripsOnly()?[["trips","إدارة الرحلات"+(rq?` (${rq})`:"")],["me","بروفايلي"]]:[...(AB()?[["abouna","الأرقام"]]:[]),["follow","شغلي"],...(lead?[["admin","الإدارة"+(n?` (${n})`:"")]]:bkSee()?[["trips","الرحلات"+(rq?` (${rq})`:"")]]:[]),["home","الشباب"],...(AB()?[]:[["me","بروفايلي"]])];   // أبونا: 4 تابات بس (البروفايل من الزرار المدوّر فوق)
   $("views").innerHTML=items.map(([h,l])=>`<a href="#${h}" ${h===c?'aria-current="page"':""}>${esc(l)}</a>`).join("");
 }
 const ADM_PAGES=["admin","approve","team","ratings","year","week","abouna"];
@@ -2799,7 +2799,7 @@ function renderAdmin(){
     ...D.weekly.map((w,i)=>["meet-"+(i+1),"📖","برنامج "+(w.short||w.title.replace("اجتماع ","")),""])];
   // أبونا متسجل كشاب ومعندوش صفحته لسه: زرار واحد يفتحهاله (MORCOS 27 نوفمبر)
   const abR=myRank()>=3&&!(D.users||[]).some(u=>u.role==="أبونا"&&u.status==="مقبول")?(D.regs||[]).find(r=>r.status==="مقبول"&&/^(القس|القمص|ابونا|أبونا)\s/.test(String(r.name||"").trim())):null;
-  const abBox=abR?`<section class="panel" style="border-color:var(--accent)"><b>🙏 ${esc(abR.name)} عنده حساب على الموقع</b><p class="small muted" style="margin:0">دوسة واحدة ويفتحله صفحة «الخدمة بالأرقام» (عرض بس). هيدخل برقمه والرقم السري بتاعه.</p><button type="button" class="primary ab-grant">🙏 افتح صفحة أبونا</button><p class="msg small"></p></section>`:"";
+  const abBox=abR?`<section class="panel" style="border-color:var(--accent)"><b>🙏 ${esc(abR.name)} عنده حساب على الموقع</b><p class="small muted" style="margin:0">دوسة واحدة ويتفتحله كل حاجة، وأول ما يدخل هيلاقي صفحة «الخدمة بالأرقام». هيدخل برقمه والرقم السري بتاعه.</p><button type="button" class="primary ab-grant">🙏 افتح صفحة أبونا</button><p class="msg small"></p></section>`:"";
   $("admin").innerHTML=abBox+`<div class="adm">${L.map(([h,ic,l,x])=>`<a class="adm-i" href="#${h}"><span class="ic">${ic}</span><b>${esc(l)}</b>${x?`<small${/مستني|محتاج/.test(x)?' class="hot"':""}>${esc(x)}</small>`:""}</a>`).join("")}</div>
     ${D.sheetUrl?`<p class="small muted" style="text-align:center"><a href="${esc(D.sheetUrl)}" target="_blank" rel="noopener">فتح الشيت</a></p>`:""}`;
   const g=$("admin").querySelector(".ab-grant");if(g)g.onclick=()=>{g.disabled=true;g.textContent="بيفتح…";const ms=g.nextElementSibling;
@@ -3218,10 +3218,9 @@ function route(){
   if(h==="plus25"||h==="alex"||h==="vote"||h==="rate")h="home";   // #rate = التقييم في الصفحة الرئيسية، للشباب والخدام (MORCOS 27 نوفمبر)                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
   if(!D.level&&h==="abouna")h="servant";                  // لينك أبونا قبل ما يدخل: نفس تسجيل الخدام بكلام لأبونا
-  if(D.level&&AB())h="abouna";                            // حساب أبونا: صفحة الأرقام بس
   if(h==="abouna"&&D.level&&!AB()&&myRank()<3)h="follow";
   if(!D.level)h=h==="me"&&YT()?"me":h==="servant"?"servant":"home";   // servant = لينك الخدام (تسجيل + طلب، والأمين بيوافق)               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
-  else if(!h)h=tripsOnly()?"trips":"follow";
+  else if(!h)h=AB()?"abouna":tripsOnly()?"trips":"follow";   // أبونا: بيبدأ بصفحة الأرقام، وكل حاجة تانية مفتوحة له
   if(D.level&&tripsOnly()&&!["trips","me"].includes(h))h="trips";   // مسؤول الرحلات: صفحة الرحلات وبروفايله بس، من غير أي حاجة تانية
   if(h==="trips"&&D.level&&!bkSee())h="follow";
   if(h==="approve"&&!can("regs"))h="follow";
@@ -3243,7 +3242,7 @@ function route(){
   if(isAt)renderAtt();
   if(isP)renderPlan();
   if(isMe)renderMe();
-  meBtn();if(isMe||AB())$("meBtn").hidden=true;
+  meBtn();if(isMe)$("meBtn").hidden=true;
   if(isAp)renderApprove();
   if(isK)renderKhadem();
   if(isT)renderTeam();
@@ -3300,7 +3299,7 @@ function load(k,fromLogin){
     if(k!==undefined)KEY=k;
     try{d.level?localStorage.setItem("gsyf_key",KEY):localStorage.removeItem("gsyf_key")}catch(e){}
     if(!d.level){try{localStorage.setItem(CACHE_KEY,JSON.stringify(d))}catch(e){}}
-    if(fromLogin)location.hash="follow";
+    if(fromLogin)location.hash=d.me&&d.me.role==="أبونا"?"abouna":"follow";
     const h=location.hash;start(d);if(h&&location.hash!==h)location.hash=h;
   }).catch(err=>{if(!D){$("sub").textContent="مقدرناش نقرا البيانات، جرّب تاني: "+String(err&&err.message||err);if($("splash")){$("spBar").hidden=true;$("spErr").hidden=false}}else $("updated").textContent="مقدرناش نحدّث دلوقتي"});
 }
