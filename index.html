@@ -1143,12 +1143,14 @@ window.addEventListener("load",()=>{if(window._mqShow)setTimeout(()=>mqShow(),30
 function n25Show(){
   if($("n25o"))return;const o=document.createElement("div");o.id="mqo";o.className="n25o";o.setAttribute("role","dialog");
   const nm=lsGet("gsyf_ynick")||String(lsGet("gsyf_yname")||"").split(" ")[0];
+  // الخادم (داخل بحساب الخدام) مالوش بروفايل شباب: الزرار بيفتح الجروب على طول لو اللينك عنده، وإلا مبيظهرش
+  const gl=D&&D.level?(D.p25link||(D.afl&&D.afl.link)||(typeof AFL!=="undefined"&&AFL.link)||""):"#grp";
   o.innerHTML=`<div class="chk-c" id="n25o"><div class="chk-ok">🤍</div><b>${nm?"منوّر يا "+esc(nm):"منوّر النهارده"}</b><span>اجتماع شباب الربع قرن +25</span>
     <a class="chk-b" href="#rate" style="text-decoration:none">⭐ قيّم الاجتماع (دقيقتين)</a>
     <button type="button" class="chk-b n25-q" style="background:#b7791f">❓ ابعت سؤال لأبونا (من غير اسم)</button>
     <div class="n25-qf" hidden style="display:flex;flex-direction:column;gap:8px"><textarea rows="4" maxlength="800" placeholder="اكتب سؤالك هنا… محدش هيعرف مين اللي كتبه" style="font:inherit;font-size:1.05rem;padding:10px;border:1.5px solid #ccc;border-radius:12px;color:#111;background:#fff"></textarea><button type="button" class="chk-b n25-qs">ابعت السؤال</button><span class="chk-m small"></span></div>
-    <a class="chk-b n25-g" href="#grp" style="text-decoration:none;background:#1f8a4c">📲 ادخل جروب +25 على الواتساب</a>
-    <span class="small">${YT()?"":"الجروب للمسجلين بس: هتدخل برقمك والرقم السري الأول، أو تسجّل لو معندكش حساب."}</span>
+    ${gl?`<a class="chk-b n25-g" href="${esc(gl)}" ${gl[0]==="#"?"":`target="_blank" rel="noopener"`} style="text-decoration:none;background:#1f8a4c">📲 ادخل جروب +25 على الواتساب</a>`:""}
+    <span class="small">${YT()||D&&D.level?"":"الجروب للمسجلين بس: هتدخل برقمك والرقم السري الأول، أو تسجّل لو معندكش حساب."}</span>
     <button type="button" class="mq-x" style="background:none;border:0;color:#666;font:inherit;cursor:pointer">بعدين</button></div>`;
   document.body.appendChild(o);o.querySelectorAll("a,.mq-x").forEach(x=>x.addEventListener("click",()=>setTimeout(()=>o.remove(),0)));
   // سؤال لأبونا: مبيتبعتش معاه أي حاجة عن الشخص (لا موبايل ولا حساب)
@@ -3126,7 +3128,7 @@ function route(){
   if(h==="n25"){h="home";try{history.replaceState(null,"","#home")}catch(e){}setTimeout(n25Show,50)}   // لينك واحد بعد الاجتماع: تقييم + جروب (MORCOS 27 نوفمبر)
   if(h==="grp"){lsSet("gsyf_ggo","1");h="me";try{history.replaceState(null,"","#me")}catch(e){}}   // لينك جروب +25 في رسالة التقييم: بيفتح البروفايل على زرار الجروب (MORCOS 27 نوفمبر)
   if(h==="data"){lsSet("gsyf_dgo","1");h="me";try{history.replaceState(null,"","#me")}catch(e){}}                       // لينك «كمّل بياناتك» اللي بيتبعت واتساب
-  if(h==="plus25"||h==="alex"||h==="vote")h="home";                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
+  if(h==="plus25"||h==="alex"||h==="vote"||h==="rate")h="home";   // #rate = التقييم في الصفحة الرئيسية، للشباب والخدام (MORCOS 27 نوفمبر)                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
   if(!D.level)h=h==="me"&&YT()?"me":h==="servant"?"servant":"home";   // servant = لينك الخدام (تسجيل + طلب، والأمين بيوافق)               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
   else if(!h)h=tripsOnly()?"trips":"follow";
