@@ -558,6 +558,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .af-b.sent{background:var(--line);color:var(--muted)}.af-reg{background:var(--blue-soft);color:var(--blue)}.af-grp{background:#7A1F2B;color:#F3D98B}
 .af-nb,.af-un{background:none;border:1px solid var(--line);border-radius:999px;padding:3px 8px;cursor:pointer;font-size:.85rem}.af-nb:not(.has){opacity:.6}
 .af-mv{font:inherit;font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:var(--surface);color:var(--fg);max-width:150px}
+.af-df{margin-top:6px;padding:8px;border:1px solid #e3d6c8;border-radius:10px;background:#fffdf9}.af-dfm .fld{margin:4px 0}.af-de{font-size:.8rem;padding:2px 8px}.rv-no{color:var(--busy)}.rv-bl{background:#3a1d1d;color:#fff;border-color:#3a1d1d}.md-f .fld{margin:6px 0}.md textarea,.af-dfm textarea{width:100%;font:inherit;border:1px solid #e3d6c8;border-radius:12px;padding:8px 10px;background:#f5efe6;box-sizing:border-box}
 .af-ne{display:flex;gap:6px}.af-ne input{flex:1;min-width:0}.af-q{margin:4px 0}.af-sg{display:inline-flex;gap:3px;align-items:center;margin:2px 6px 2px 0}.af-sg button{padding:0 6px}
 .p25-n{display:flex;gap:8px;margin:6px 0}.p25-n div{flex:1;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:.8rem;color:var(--muted)}.p25-n b{display:block;font-size:1.3rem;color:var(--fg)}
 .p25-c{display:flex;gap:6px;margin-top:4px}.p25-c input{flex:1;min-width:0}.p25-l{width:100%}
@@ -929,6 +930,7 @@ const dl=s=>{const d=parse(s);return `${WD[d.getDay()]} ${d.getDate()} ${GM[d.ge
 const daysAgo=s=>Math.round((parse(D.today)-parse(s))/864e5);
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
 const pub=e=>e.show==="الكل"&&e.status!=="اتلغى";
 const STARS=["1","2","3","4","5"];
 const Q_YOUTH=[{t:"stars",l:"تقييمك العام",req:1},{t:"text",l:"أحلى حاجة في اليوم؟"},{t:"text",l:"حاجة محتاجة تتحسن؟"},{t:"chips",l:"تيجي الإيفنت ده تاني؟",o:["أيوه","يمكن","لأ"],req:1}];
@@ -1140,6 +1142,7 @@ function claimCard(){
     <div class="kb"><p class="small" style="margin:0 0 8px">${YT()?"بنربط حجزك بحسابك…":"سجّل حسابك في دقيقة (أو ادخل لو عندك حساب)، ومكانك هيتربط بيك على طول وتتابعه من هنا."}</p>${YT()?"":`<div class="btns"><button type="button" class="primary kgo cl-reg">سجّل دلوقتي</button><button type="button" class="kgo cl-in">عندي حساب</button></div>`}</div></section>`;
 }
 function renderHome(){
+  if(!D.level&&YT()&&lsGet("gsyf_dgo")){if(location.hash!=="#me")location.hash="me";else route();return}   // جه من لينك «كمّل بياناتك» ولسه داخل
   // الشباب يشوفوا إيفنتات الشهر الجاري بس (الشهر الجاي بيظهر أول يوم فيه)
   const t=D.today,soon=D.events.filter(e=>pub(e)&&e.status==="مؤكد"&&e.type!=="ديدلاين"&&(e.end||e.date)>=t&&e.date.slice(0,7)<=t.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,12);
   const recent=D.events.filter(e=>pub(e)&&e.type!=="ديدلاين"&&(e.end||e.date)<t&&daysAgo(e.end||e.date)<=14);
@@ -1297,6 +1300,7 @@ function renderHome(){
   const gr=$("home").querySelector(".go-reg");if(gr)gr.onclick=()=>{$("regSec").scrollIntoView({behavior:"smooth",block:"start"});const n=$("regBox").querySelector(".rg-new");if(n)n.click()};
   $("home").querySelectorAll(".rt").forEach(b=>b.onclick=()=>{const box=b.closest(".ev"),e=rateLeft.find(x=>String(x.row)===box.dataset.row),cq=!e.meet&&(D.evalQs||{})[e.title];
     openForm(box,cq&&cq.qs.length?cq.qs:e.meet?Q_MEET:Q_YOUTH,(a,ok,fail)=>callApi("evaluate",{kind:"event-youth",target:e.title+" ("+e.date+")",answers:a},r=>{lsSet("rt_"+e.row+e.title+e.date,"1");ok(r)},fail),()=>esc(cq&&cq.thanks||"شكرا على رأيك ✓"),cq&&cq.intro)});
+  if(!YT()&&lsGet("gsyf_dgo")&&$("regBox")&&!formBusy()){yLoginForm($("regBox"),{note:"ادخل برقمك والرقم السري علشان تكمّل بياناتك"});setTimeout(()=>{const x=$("regSec");if(x)x.scrollIntoView({behavior:"smooth",block:"start"})},150)}
 }
 
 
@@ -1535,7 +1539,7 @@ function renderMe(){
   const bRow=b=>`<div class="row"><div class="d num">${b.date?dm(b.date):"–"}</div><div class="t"><b>${esc(b.event)}</b><div class="why">${b.status==="ملغي"?"اتلغى":isRsvp(b.event)?"✋ قلت إنك جاي":bkPayTxt(b)}</div>${b.status==="ملغي"?"":seatBox(b)+grpBtn(b)}</div></div>`;
   const ok=st==="مقبول"||!!sv,open=[[ok,"مواعيد الاجتماعات والإيفنتات"],[ok,"الحجز في الرحلات والإيفنتات"],[true,"تقييم الاجتماعات والإيفنتات"],...(sv?[[true,"صفحة الخدام والتاسكات بتاعتك"]].concat(Object.keys(PERM_L).map(k=>[["أمين مساعد","أمين","أمين عام"].includes(sv.role)||!!(sv.perms||{})[k],PERM_L[k]])):[])];
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
-    ${tok?(p?`<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
+    ${tok?(p?`${p.dform||lsGet("gsyf_dgo")?`<section class="panel md" id="md"></section>`:""}<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
     ${p&&p.p25?`<section class="me-p25"><b>✨ جروب +25 الخاص</b><span class="small">جروب واتساب لشباب +25 المسجلين بس. ${gen==="بنت"?"اطلبي":"اطلب"} الانضمام والأمناء هيقبلوا طلبك. ${gen==="بنت"?"متبعتيش":"متبعتش"} اللينك لحد 🙏</span><a href="${esc(p.p25)}" target="_blank" rel="noopener">ادخل الجروب</a></section>`:""}
     ${meAsk(p)}<section class="panel me-data"></section>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
@@ -1543,7 +1547,7 @@ function renderMe(){
     ${sv&&mcMeets().length?`<a class="btn primary me-mc" href="#follow" onclick="setTimeout(()=>{const x=$('mc');x&&x.scrollIntoView({behavior:'smooth'})},150)">📣 اكتب إعلان الاجتماع الجاي</a>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
   if(tok)bindPhoto(box,tok);
-  if(tok&&p){meData(box.querySelector(".me-data"),tok,p);bindAsk(box,tok,p)}
+  if(tok&&p){meData(box.querySelector(".me-data"),tok,p);bindAsk(box,tok,p);const md=box.querySelector("#md");if(md)mdLoad(md,tok,p)}
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
   if(tok&&!p)callApi("profile",{tok},r=>{if(r.key&&!D.level){load(r.key,true);return}MEP={tok,me:r.me};ySave({name:r.me.name,nick:r.me.nick||"",gender:r.me.gender||"",status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
     m=>{if(/ادخل/.test(m)){yOut();location.hash="home";renderHome();return}box.insertAdjacentHTML("beforeend",`<p class="err small">${esc(m)}</p>`)});
@@ -1880,11 +1884,12 @@ const meFirst=()=>D&&D.me?(D.me.nick||D.me.name.split(" ")[0]):"";
 function aflMsg(p,kind){const b=p.g==="بنت"||p.gender==="بنت",n=callName(p),mg=D&&D.me&&D.me.gender==="بنت",me=meFirst();
   const from=me?` أنا ${me} من خدمة شباب مارجرجس والأنبا شنودة.`:" من خدمة شباب مارجرجس والأنبا شنودة.";
   if(kind==="grp")return `أهلاً يا ${n} 🤍\n\nده لينك جروب *شباب +25* الخاص على واتساب 👇\n${AFL.link||D.afl.link||""}\n\nالجروب للأعضاء المسجلين بس، فياريت ${b?"متبعتيش":"متبعتش"} اللينك لحد 🙏 ولو حد من صحابك عايز يدخل، خليه يسجل على الموقع الأول.`;
+  if(kind==="form")return `أهلاً يا ${n} 🤍\n\nمبسوطين ${b?"بيكي":"بيك"} معانا في خدمة الشباب ✨ علشان نكمّل بياناتك عندنا، ${b?"ادخلي":"ادخل"} على اللينك ده و${b?"املي":"املا"} البيانات (دقيقة واحدة):\n${SITE}#data\n\n${b?"هتدخلي":"هتدخل"} برقم موبايلك والرقم السري اللي ${b?"سجلتي":"سجلت"} بيه 🙏`;
   if(kind==="reg")return `أهلاً يا ${n} 🤍\n\nعملنا جروب واتساب خاص لشباب *+25* ✨ وعلشان ${b?"تدخليه":"تدخله"} لازم ${b?"تسجلي":"تسجل"} على موقع الخدمة الأول (دقيقة واحدة):\n${SITE}\n\nأول ما حسابك يتقبل هبعتلك لينك الجروب 🙏`;
   if(kind==="new")return `أهلاً ${b?"بيكي":"بيك"} يا ${n} 👋${from} شفنا طلب تسجيلك على الموقع ومبسوطين ${b?"بيكي":"بيك"} جدًا، بس اسمك لسه مش موجود عندنا في بيانات الخدمة.\n\n${mg?"حابة":"حابب"} أتعرف ${b?"عليكي":"عليك"} أكتر 😊 ممكن ${b?"تعرّفيني":"تعرّفني"} ${b?"بنفسك":"بنفسك"}؟ و${b?"عرفتي":"عرفت"} الموقع منين أو مين ${b?"بعتلك":"بعتلك"} اللينك؟ 🙏`;
   return `أهلاً ${b?"بيكي":"بيك"} يا ${n} 👋${from} مبسوطين إنك ${b?"سجلتي":"سجلت"} على موقع الخدمة 🤍\n\nأنا ${mg?"هكون":"هكون"} ${b?"معاكي":"معاك"} ${b?"ومتابعاكي":"ومتابعك"}، ولو ${b?"احتجتي":"احتجت"} أي حاجة ${b?"كلميني":"كلمني"} في أي وقت 🙏`}
 const aflKind=r=>r.db&&r.db!=="ok"?"new":"hi";
-const aflUrl=(r,kind)=>{const w=waNum(r.phone);return w?`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(aflMsg(r,kind))}`:""};
+const aflUrl=(r,kind)=>{const w=waNum(r.wa||r.phone);return w?`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(aflMsg(r,kind))}`:""};
 const AFL={rows:null,at:0,busy:false,who:"",f:"",link:"",q:""};
 function aflLoad(force){if(!D||!D.level||!D.afl||AFL.busy)return;if(!force&&AFL.rows&&Date.now()-AFL.at<120000)return;
   AFL.busy=true;callApi("aflList",{},r=>{AFL.busy=false;Object.assign(AFL,{rows:r.rows||[],all:r.all,lead:r.lead,p25:r.p25,me:r.me,srvs:r.srvs||[],link:r.link||"",at:Date.now()});if(location.hash==="#follow")renderFollow()},
@@ -1902,12 +1907,12 @@ function aflPanel(){if(!D||!D.afl||!D.level)return "";
   const q=normAr(toEn(AFL.q||"")).trim();if(q)L=L.filter(r=>normAr(r.name+" "+(r.nick||"")).includes(q)||String(r.phone).includes(q));
   const sel=r=>{const S=(AFL.srvs||[]).filter(s=>(s.group===r.meet||s.group==="الاتنين")&&(!r.g||!s.g||s.g===r.g)&&n2(s.name)!==n2(r.srv));
     return S.length?`<select class="af-mv" aria-label="انقل لخادم تاني"><option value="">↔ انقل لـ…</option>${S.map(s=>`<option value="${s.row}">${esc(s.name.split(" ").slice(0,2).join(" "))}${s.role!=="خادم"?" ("+esc(s.role)+")":""}</option>`).join("")}</select>`:""};
-  const row=r=>{const w=waNum(r.phone),k=r.src+":"+r.row,ag=age(r.birth),lk=AFL.link;
+  const row=r=>{const w=waNum(r.wa||r.phone),k=r.src+":"+r.row,ag=age(r.birth),lk=AFL.link,own=!!AFL.me&&n2(r.srv||"")===AFL.me;
     const grpB=r.meet==="الربع قرن"?(p25Ok(r)?(lk?`<a class="af-b af-grp${r.grp?" sent":""}" href="${aflUrl(r,"grp")}" target="_blank" rel="noopener">${r.grp?"✓ لينك الجروب اتبعت":"🔐 ابعت لينك الجروب"}</a>`:""):!r.acc&&w?`<a class="af-b af-reg" href="${aflUrl(r,"reg")}" target="_blank" rel="noopener">📝 ابعت لينك التسجيل</a>`:""):"";
     return `<div class="af-r${r.sent?" done":""}" data-k="${k}"><div class="af-h"><b>${esc(r.nick?r.nick+" ("+r.name+")":r.name)}</b><span class="small muted">${ag!==""?ag+" سنة · ":""}${r.meet==="الربع قرن"?"+25":"جامعيين"}${AFL.all?" · "+(r.srv?esc(r.srv.split(" ").slice(0,2).join(" ")):`<span class="err">مش متوزع</span>`):""}</span></div>
-      <div class="af-tags">${r.src==="a"&&DBS[r.db]?`<span class="af-t db-${DBS[r.db][0]}" title="${esc(r.dbh)}">${({ok:"✅ في الداتا",name:"⚠️ الاسم بس",phone:"⛔ الرقم باسم حد تاني","new":"🆕 جديد"})[r.db]}</span>`:""}${accTag(r)}${r.moved?`<span class="af-t" title="${esc(r.moved)}">↔ اتنقل</span>`:""}</div>
-      <div class="af-btns">${w?`<a class="af-b af-wa${r.sent?" sent":""}" href="${aflUrl(r,aflKind(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتكلم · كلمه تاني":"💬 كلمه واتساب"}</a>`:`<span class="err small">⚠️ مفيش رقم</span>`}${grpB}<button type="button" class="af-nb${r.note?" has":""}" aria-label="ملاحظة">📝</button>${r.sent?`<button type="button" class="af-un" title="${esc(r.sent)}">↩︎</button>`:""}${AFL.lead?sel(r):""}</div>
-      ${r.note?`<div class="in-nt">📝 ${esc(r.note)}</div>`:""}<div class="af-ne" hidden><input type="text" maxlength="300" class="af-ni" value="${esc(r.note||"")}" placeholder="مثلاً: رد، جه الاجتماع، الرقم غلط…"><button type="button" class="small primary af-ns">حفظ</button></div></div>`};
+      <div class="af-tags">${r.src==="a"&&DBS[r.db]?`<span class="af-t db-${DBS[r.db][0]}" title="${esc(r.dbh)}">${({ok:"✅ في الداتا",name:"⚠️ الاسم بس",phone:"⛔ الرقم باسم حد تاني","new":"🆕 جديد"})[r.db]}</span>`:""}${accTag(r)}${r.moved?`<span class="af-t" title="${esc(r.moved)}">↔ اتنقل</span>`:""}${r.wa?`<span class="af-t" dir="ltr">💬 ${esc(r.wa)}</span>`:""}</div>
+      <div class="af-btns">${w?`<a class="af-b af-wa${r.sent?" sent":""}" href="${aflUrl(r,aflKind(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتكلم · كلمه تاني":"💬 كلمه واتساب"}</a>`:`<span class="err small">⚠️ مفيش رقم</span>`}${grpB}<button type="button" class="af-nb${r.note?" has":""}" aria-label="ملاحظة">📝</button>${own?`<button type="button" class="af-de" title="عدّل بياناته">✏️ بياناته</button>`:""}${r.sent?`<button type="button" class="af-un" title="${esc(r.sent)}">↩︎</button>`:""}${AFL.lead?sel(r):""}</div>
+      ${r.note?`<div class="in-nt">📝 ${esc(r.note)}</div>`:""}<div class="af-df" hidden></div><div class="af-ne" hidden><input type="text" maxlength="300" class="af-ni" value="${esc(r.note||"")}" placeholder="مثلاً: رد، جه الاجتماع، الرقم غلط…"><button type="button" class="small primary af-ns">حفظ</button></div></div>`};
   const cnt=x=>R.filter(r=>(r.srv||"")===x),miss=(AFL.srvs||[]).filter(s=>!s.g);
   const done=L.filter(r=>r.sent).length;
   return `<section class="panel af" id="afl"><h3>👥 ${AFL.all?"الافتقاد":"افتقادي"} <span class="small muted">(${R.length})</span></h3>
@@ -1928,6 +1933,8 @@ function aflBind(F){const box=F.querySelector("#afl");if(!box)return;
   box.querySelectorAll(".af-wa").forEach(a=>a.addEventListener("click",()=>{const r=aflFind(a);if(r&&!r.sent)mark(r,"aflMark","sent");setTimeout(renderFollow,300)}));
   box.querySelectorAll(".af-grp").forEach(a=>a.addEventListener("click",()=>{const r=aflFind(a);if(r&&!r.grp)mark(r,"p25Mark","grp");setTimeout(renderFollow,300)}));
   box.querySelectorAll(".af-un").forEach(b=>b.onclick=()=>{mark(aflFind(b),"aflMark","sent",true);renderFollow()});
+  box.querySelectorAll(".af-de").forEach(b=>b.onclick=()=>{const r=aflFind(b),bx=b.closest(".af-r").querySelector(".af-df");if(!bx.hidden){bx.hidden=true;return}
+    bx.hidden=false;bx.innerHTML=`<p class="small muted">بيحمّل…</p>`;callApi("aflData",{src:r.src,row:r.row},d=>aflDataForm(bx,r,d),m=>{bx.innerHTML=`<p class="err small">${esc(m)}</p>`})});
   box.querySelectorAll(".af-nb").forEach(b=>b.onclick=()=>{const e=b.closest(".af-r").querySelector(".af-ne");e.hidden=!e.hidden;if(!e.hidden)e.querySelector("input").focus()});
   box.querySelectorAll(".af-ns").forEach(b=>b.onclick=()=>{const r=aflFind(b),v=b.closest(".af-r").querySelector(".af-ni").value.trim(),old=r.note;b.disabled=true;r.note=v;
     callApi("aflNote",{src:r.src,row:r.row,note:v},()=>renderFollow(),m=>{r.note=old;b.disabled=false;alert(m)})});
@@ -1937,6 +1944,14 @@ function aflBind(F){const box=F.querySelector("#afl");if(!box)return;
   box.querySelectorAll(".af-sg button").forEach(b=>b.onclick=()=>{const row=+b.closest(".af-sg").dataset.row;b.disabled=true;
     callApi("aflSrvG",{row,g:b.dataset.g},()=>{const s=AFL.srvs.find(x=>x.row===row);if(s)s.g=b.dataset.g;renderFollow()},m=>{b.disabled=false;alert(m)})});
 }
+// الخادم المسؤول بس بيعدّل بيانات مخدومه (MORCOS 27 نوفمبر). الاسم والموبايل الأصلي ثابتين، ورقم الواتساب لو مختلف بيبقى هو اللي الزراير بتفتحه
+function aflDataForm(bx,r,d){const v=d.data||{},F=(d.fields||[]).slice().sort((a,b)=>(b[0]==="wa")-(a[0]==="wa"));
+  bx.innerHTML=`<form class="rgf af-dfm" novalidate><p class="small muted" style="margin:0">انت بس (الخادم المسؤول) و${r.g==="بنت"?"هي":"هو"} ${r.g==="بنت"?"نفسها":"نفسه"} اللي تقدروا تعدلوا البيانات دي.${d.saved?` آخر تعديل: ${esc(d.by||"")} ${esc(d.saved)}`:""}</p>
+    ${F.map(f=>`<label class="fld"><span>${esc(f[0]==="wa"?"رقم الواتساب (لو غير "+r.phone+")":f[1])}</span>${f[0]==="note"?`<textarea name="note" rows="2" maxlength="200">${esc(v.note||"")}</textarea>`:`<input name="${f[0]}" maxlength="200" ${f[0]==="wa"?'type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"':""} value="${esc(v[f[0]]||"")}">`}</label>`).join("")}
+    <div class="btns"><button type="submit" class="small primary">احفظ</button><button type="button" class="small af-dx">إلغاء</button></div><p class="msg small"></p></form>`;
+  const f=bx.querySelector("form"),msg=f.querySelector(".msg");f.querySelector(".af-dx").onclick=()=>{bx.hidden=true};
+  f.onsubmit=e=>{e.preventDefault();const o={src:r.src,row:r.row};F.forEach(x=>o[x[0]]=toEn((f.elements[x[0]].value||"").trim()));const b=f.querySelector("[type=submit]");b.disabled=true;b.textContent="…";
+    callApi("aflDataSave",o,x=>{r.wa=x.wa||"";renderFollow()},m=>{b.disabled=false;b.textContent="احفظ";msg.className="msg small err";msg.textContent=m})}}
 // جروب +25 الخاص: للأمين العام وأمناء ومساعدين +25. اللينك + الأعداد + فحص رقم لطلبات الانضمام
 function p25Panel(){if(!D||!D.afl||!D.afl.p25||!AFL.rows)return "";
   const R=AFL.rows.filter(r=>r.meet==="الربع قرن"),ok=R.filter(p25Ok),sent=ok.filter(r=>r.grp).length,no=R.filter(r=>!r.acc).length;
@@ -1957,8 +1972,32 @@ function p25Bind(F){const box=F.querySelector("#p25");if(!box)return;
 // كارت طلب التسجيل: حالة قاعدة البيانات + المسؤول + واتساب، والقبول/الرفض للأمناء بس
 function regChk(r){const c=D.afl&&D.afl.chk?D.afl.chk[normPhone(r.phone)]:null;return c||null}
 function regExtra(r){const c=regChk(r);
-  return `${c?dbBox(c.s,c.h):""}${c&&c.srv?`<div class="small muted">👤 المسؤول عن افتقاده: <b>${esc(c.srv.split(" ").slice(0,2).join(" "))}</b></div>`:""}`}
+  return `${c&&c.prev?`<div class="db-st db-bad"><b>⛔ الاسم ده ${c.prev==="محظور"?"عليه بلوك":"اترفض"} قبل كده برقم تاني</b>اتأكد إنه مش نفس الشخص.</div>`:""}${c?dbBox(c.s,c.h):""}${c&&c.srv?`<div class="small muted">👤 المسؤول عن افتقاده: <b>${esc(c.srv.split(" ").slice(0,2).join(" "))}</b></div>`:""}`}
 function regWa(r){const c=regChk(r),u=aflUrl({name:r.name,nick:r.nick,g:r.gender,phone:r.phone},c&&c.s!=="ok"?"new":"hi");return u?`<a class="ap-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}
+
+/* ===== «كمّل بياناتك» (MORCOS 27 نوفمبر): الأمين العام بيبعته واتساب للي وافق عليه وبياناته مش عندنا.
+   اللينك SITE#data بيفتح البروفايل والفورم فوق (ولو مش داخل، بيدخل الأول وبعدين بيرجع للفورم لوحده).
+   الاسم والموبايل والنوع والميلاد مش بيتسألوا تاني (موجودين في حسابه). بيتحفظ في تاب «بيانات الشباب». */
+function mdLoad(sec,tok,p){sec.innerHTML=`<h3>📋 كمّل بياناتك</h3><p class="small muted" style="margin:0">بيحمّل…</p>`;
+  callApi("myData",{tok},r=>mdForm(sec,tok,p,r),m=>{sec.innerHTML=`<h3>📋 كمّل بياناتك</h3><p class="err small">${esc(m)}</p>`})}
+function mdView(sec,tok,p,r){const d=r.data||{},F=r.fields||[];
+  sec.innerHTML=`<h3>📋 بياناتي في الخدمة</h3><dl class="me-info">${F.filter(f=>d[f[0]]).map(f=>`<dt>${esc(f[1].replace(/ \(.*\)/,""))}</dt><dd>${esc(d[f[0]])}</dd>`).join("")}</dl><div class="btns"><button type="button" class="small md-e">✏️ عدّل</button></div>`;
+  sec.querySelector(".md-e").onclick=()=>mdForm(sec,tok,p,r,true)}
+function mdForm(sec,tok,p,r,edit){const d=r.data||{},F=r.fields||[],b=(p.gender||lsGet("gsyf_ygender"))==="بنت";
+  if(r.saved&&!edit&&!lsGet("gsyf_dgo")){mdView(sec,tok,p,r);return}
+  const ph={area:"مثلاً: بهتيم، المنشية، الخلفاوي",addr:"اسم الشارع ورقم البيت أو علامة مميزة",father:"اسم أب اعترافك",qual:"مثلاً: بكالوريوس تجارة، دبلوم",job:"شغلك دلوقتي، أو طالب",wa:"لو رقم الواتساب غير "+p.phone,note:"أي حاجة "+(b?"حابة":"حابب")+" نعرفها"};
+  sec.innerHTML=`<h3>📋 كمّل بياناتك</h3><p class="small" style="margin:0 0 6px">${b?"أهلاً بيكي":"أهلاً بيك"} 🤍 ${b?"املي":"املا"} البيانات دي مرة واحدة علشان نبقى ${b?"معاكي":"معاك"}. اسمك وموبايلك وميلادك عندنا خلاص.</p>
+    <form class="rgf md-f" novalidate>${F.map(f=>`<label class="fld"><span>${esc(f[1])}${/^(area|addr)$/.test(f[0])?"":" <small class=\"muted\">(اختياري)</small>"}</span>${f[0]==="note"?`<textarea name="note" maxlength="200" rows="2" placeholder="${esc(ph.note)}">${esc(d.note||"")}</textarea>`:`<input name="${f[0]}" maxlength="200" ${f[0]==="wa"?'type="tel" dir="ltr" inputmode="tel"':""} value="${esc(d[f[0]]||"")}" placeholder="${esc(ph[f[0]]||"")}">`}<em></em></label>`).join("")}
+    <div class="btns"><button type="submit" class="primary md-s">احفظ</button>${r.saved?`<button type="button" class="md-x">إلغاء</button>`:""}</div><p class="msg small"></p></form>`;
+  const f=sec.querySelector("form"),msg=f.querySelector(".msg");
+  const x=f.querySelector(".md-x");if(x)x.onclick=()=>{lsDel("gsyf_dgo");mdView(sec,tok,p,r)};
+  f.onsubmit=e=>{e.preventDefault();const v={};F.forEach(x=>v[x[0]]=(f.elements[x[0]].value||"").trim());if(v.wa)v.wa=toEn(v.wa);
+    let ok=true;["area","addr"].forEach(k=>{const fl=f.elements[k].closest(".fld"),bad=!v[k];fl.classList.toggle("bad",bad);fl.querySelector("em").textContent=bad?"مطلوب":"";if(bad)ok=false});
+    if(!ok){msg.textContent="";f.querySelector(".bad input").focus();return}
+    const s=f.querySelector(".md-s");s.disabled=true;s.textContent="بيتحفظ…";
+    callApi("myDataSave",Object.assign({tok},v),()=>{lsDel("gsyf_dgo");p.dform="done";r.data=v;r.saved="دلوقتي";sec.innerHTML=`<h3>📋 كمّل بياناتك</h3><p class="ok" style="margin:0">✅ شكراً! بياناتك اتحفظت 🤍</p>`;setTimeout(()=>mdView(sec,tok,p,r),2500)},
+      m=>{s.disabled=false;s.textContent="احفظ";msg.className="msg small err";msg.textContent=m})};
+  if(lsGet("gsyf_dgo"))setTimeout(()=>sec.scrollIntoView({behavior:"smooth",block:"start"}),200)}
 
 /* ===== طلبات مراجعة (MORCOS 27 نوفمبر): للأمين العام بس. اللي سجّل على الموقع ومش متطابق في قاعدة البيانات =====
    قدام كل واحد: ✓ موافق عليه (بيتشال من اللستة) أو 💬 تواصل واتساب (بيتعلّم إنه اتكلم). الأحدث الأول */
@@ -1968,23 +2007,36 @@ function revLoad(force){if(!isTop()||REV.busy)return;if(!force&&REV.rows&&Date.n
   REV.busy=true;callApi("revList",{},r=>{REV.busy=false;REV.rows=r.rows||[];REV.at=Date.now();if(location.hash==="#follow")renderFollow()},m=>{REV.busy=false;REV.err=m;REV.at=Date.now();if(location.hash==="#follow")renderFollow()})}
 function revPanel(){if(!isTop())return "";
   if(!REV.rows)return `<section class="panel"><h3>🔎 طلبات مراجعة</h3><p class="small muted" style="margin:0">${REV.err?esc(REV.err):"بيحمّل…"}</p></section>`;
-  const open=REV.rows.filter(r=>!r.dec||r.dec.d!=="موافق"),ok=REV.rows.filter(r=>r.dec&&r.dec.d==="موافق");
-  const row=r=>{const ag=age(r.birth),u=aflUrl({name:r.name,nick:r.nick,g:r.g,phone:r.phone},"new");
+  const dd=r=>r.dec&&r.dec.d||"",G={open:[],ok:[],rj:[],bl:[]};
+  REV.rows.forEach(r=>{const d=dd(r);G[d==="موافق"||d==="فورم"?"ok":d==="مرفوض"?"rj":d==="محظور"?"bl":"open"].push(r)});
+  const DL={"موافق":"✓ موافق عليه","فورم":"📋 اتبعتله فورم البيانات","اتواصل":"💬 اتواصل","مرفوض":"✕ اترفض","محظور":"⛔ عليه بلوك"};
+  const row=r=>{const ag=age(r.birth),d=dd(r),p={name:r.name,nick:r.nick,g:r.g,phone:r.phone},u=aflUrl(p,"new"),fu=aflUrl(p,"form");
+    const btns=d==="مرفوض"||d==="محظور"?`<button type="button" class="small rv" data-d="">↩︎ رجّعه للمراجعة</button>`
+      :d==="موافق"||d==="فورم"?`${r.filled?"":fu?`<a class="af-b rv-fm${d==="فورم"?" sent":""}" href="${fu}" target="_blank" rel="noopener">${d==="فورم"?"✓ الفورم اتبعت · ابعته تاني":"📋 ابعتله فورم البيانات"}</a>`:""}<button type="button" class="small rv" data-d="">↩︎ رجّعه للمراجعة</button>`
+      :`<button type="button" class="small primary rv" data-d="موافق">✓ موافق عليه</button>${u?`<a class="af-b rv-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}<button type="button" class="small rv rv-no" data-d="مرفوض">✕ رفض</button><button type="button" class="small rv rv-bl" data-d="محظور">⛔ بلوك</button>`;
     return `<div class="af-r" data-ph="${esc(r.phone)}"><div class="af-h"><b>${esc(r.nick?r.nick+" ("+r.name+")":r.name)}</b><span class="small muted" dir="ltr">${esc(r.phone)}</span></div>
-      <div class="small muted">${ag!==""?ag+" سنة · ":""}سجّل ${esc(r.at)} · ${r.st==="مقبول"?"✅ حسابه مقبول":"⏳ مستني موافقة"}</div>
-      ${dbBox(r.db,r.dbh)}
-      ${r.dec&&r.dec.d?`<div class="small ok">${r.dec.d==="موافق"?"✓ موافق عليه":"💬 اتواصل"} · ${esc(r.dec.by)} · ${esc(r.dec.at)}</div>`:""}
-      <div class="af-btns">${r.dec&&r.dec.d==="موافق"?`<button type="button" class="small rv" data-d="">↩︎ رجّعه للمراجعة</button>`:`<button type="button" class="small primary rv" data-d="موافق">✓ موافق عليه</button>${u?`<a class="af-b rv-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}`}</div></div>`};
-  return `<section class="panel rv-p" id="rev"><h3>🔎 طلبات مراجعة <span class="small muted">(${open.length})</span></h3>
-    <p class="small muted" style="margin:0">اللي سجّلوا على الموقع ومش متطابقين في قاعدة بيانات الشباب. ظاهرة ليك انت بس.</p>
-    ${open.length?open.map(row).join(""):`<p class="empty">مفيش حد محتاج مراجعة 👌</p>`}
-    ${ok.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اتوافق عليهم (${ok.length})</summary>${ok.map(row).join("")}</details>`:""}</section>`}
+      <div class="small muted">${ag!==""?ag+" سنة · ":""}سجّل ${esc(r.at)} · ${r.st==="مقبول"?"✅ حسابه مقبول":r.st==="مرفوض"?"✕ حسابه مقفول":"⏳ مستني موافقة"}</div>
+      ${r.prev&&d!=="محظور"&&d!=="مرفوض"?`<div class="db-st db-bad"><b>⛔ الاسم ده ${r.prev==="محظور"?"عليه بلوك":"اترفض"} قبل كده برقم تاني</b>اتأكد إنه مش نفس الشخص.</div>`:""}
+      ${d==="مرفوض"||d==="محظور"?"":dbBox(r.db,r.dbh)}
+      ${d==="موافق"||d==="فورم"?`<div class="small">${r.filled?`<span class="af-t ok">✅ ملا بياناته</span>`:`<span class="af-t mid">⏳ لسه مملاش بياناته</span>`}</div>`:""}
+      ${d?`<div class="small ${d==="مرفوض"||d==="محظور"?"err":"ok"}">${DL[d]||esc(d)} · ${esc(r.dec.by)} · ${esc(r.dec.at)}</div>`:""}
+      <div class="af-btns">${btns}</div></div>`};
+  const fold=(L,t,open)=>L.length?`<details${open?" open":""}><summary class="small muted" style="cursor:pointer;padding-top:8px">${t} (${L.length})</summary>${L.map(row).join("")}</details>`:"";
+  return `<section class="panel rv-p" id="rev"><h3>🔎 طلبات مراجعة <span class="small muted">(${G.open.length})</span></h3>
+    <p class="small muted" style="margin:0">اللي سجّلوا على الموقع ومش متطابقين في قاعدة بيانات الشباب. ظاهرة ليك انت بس.<br>بعد ما توافق على حد، ابعتله «فورم البيانات» يكمّل بياناته. <b>رفض</b> = حسابه يتقفل ولو سجّل تاني يرجعلك هنا. <b>بلوك</b> = رقمه وإيميله يتقفلوا على طول.</p>
+    ${G.open.length?G.open.map(row).join(""):`<p class="empty">مفيش حد محتاج مراجعة 👌</p>`}
+    ${fold(G.ok,"✓ اتوافق عليهم",G.ok.some(r=>!r.filled))}${fold(G.rj,"✕ اترفضوا")}${fold(G.bl,"⛔ عليهم بلوك")}</section>`}
 function revBind(F){const box=F.querySelector("#rev");if(!box)return;
-  const set=(el,d)=>{const r=REV.rows.find(x=>x.phone===el.closest("[data-ph]").dataset.ph);if(!r)return;const old=r.dec;
-    r.dec=d===""?null:{d,by:D.me?D.me.name.split(" ").slice(0,2).join(" "):"أمين",at:"دلوقتي"};
-    callApi("revSet",{phone:r.phone,name:r.name,d},()=>{},m=>{r.dec=old;renderFollow();alert(m)})};
-  box.querySelectorAll(".rv").forEach(b=>b.onclick=()=>{set(b,b.dataset.d);renderFollow()});
+  const set=(el,d)=>{const r=REV.rows.find(x=>x.phone===el.closest("[data-ph]").dataset.ph);if(!r)return;const old=r.dec,ost=r.st;
+    r.dec=d===""?null:{d,by:D.me?D.me.name.split(" ").slice(0,2).join(" "):"أمين",at:"دلوقتي"};if(d==="مرفوض"||d==="محظور")r.st="مرفوض";else if(d===""&&old&&/مرفوض|محظور/.test(old.d))r.st="مستني";
+    callApi("revSet",{phone:r.phone,name:r.name,d},()=>{if(/مرفوض|محظور/.test(d+(old&&old.d)))load(KEY)},m=>{r.dec=old;r.st=ost;renderFollow();alert(m)})};
+  const nm=el=>{const r=REV.rows.find(x=>x.phone===el.closest("[data-ph]").dataset.ph);return r?r.name.split(" ").slice(0,2).join(" "):""};
+  box.querySelectorAll(".rv").forEach(b=>b.onclick=()=>{const d=b.dataset.d;
+    if(d==="مرفوض"&&!confirm(`ترفض ${nm(b)}؟\nحسابه هيتقفل ومش هيوصله حاجة. لو سجّل تاني هيرجعلك هنا.`))return;
+    if(d==="محظور"&&!confirm(`بلوك لـ ${nm(b)}؟\nرقمه وإيميله هيتقفلوا على الموقع على طول (تسجيل ودخول وحضور)، وأي صلاحية خادم هتتقفل.\nتقدر ترجّعه بعدين من «عليهم بلوك».`))return;
+    set(b,d);renderFollow()});
   box.querySelectorAll(".rv-wa").forEach(a=>a.addEventListener("click",()=>{set(a,"اتواصل");setTimeout(renderFollow,300)}));
+  box.querySelectorAll(".rv-fm").forEach(a=>a.addEventListener("click",()=>{set(a,"فورم");setTimeout(renderFollow,300)}));
 }
 
 /* ================= إعلان الاجتماع الأسبوعي (خدام الاجتماع بيكتبوه من "شغلي") =================
@@ -2897,6 +2949,7 @@ function renderPlan(){
 function route(){
   let h=location.hash.slice(1);
   if(h==="app")h="home";
+  if(h==="data"){lsSet("gsyf_dgo","1");h="me";try{history.replaceState(null,"","#me")}catch(e){}}                       // لينك «كمّل بياناتك» اللي بيتبعت واتساب
   if(h==="plus25"||h==="alex"||h==="vote")h="home";                 // لينكات الإعلانات بتفتح الصفحة الرئيسية                                    // رابط تنزيل الأبلكيشن
   if(h==="khadem")h=D.level?"me":"home";                  // مفيش تسجيل خدام لوحده: الكل بيسجل من الصفحة الرئيسية
   if(!D.level)h=h==="me"&&YT()?"me":h==="servant"?"servant":"home";   // servant = لينك الخدام (تسجيل + طلب، والأمين بيوافق)               // الشباب بيشوفوا صفحتهم وبروفايلهم بس
