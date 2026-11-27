@@ -952,7 +952,7 @@ let FID=0;
 /* فورم صغير بيتفتح جوه الكارت */
 function openForm(box,qs,send,doneMsg,intro){
   if(box.querySelector("form")){box.querySelector("form").remove();return}
-  const id="f"+(++FID),f=document.createElement("form");
+  const id="f"+(++FID),f=document.createElement("form");f.className="of";
   f.innerHTML=(intro?`<p style="margin:0">${esc(intro)}</p>`:"")+qs.map((q,i)=>`<div><div class="small muted">${esc(q.l)}${q.req?" *":""}${q.t==="multi"?" (تقدر تختار أكتر من واحدة)":""}</div>${q.t==="text"?`<textarea name="q${i}" rows="2"></textarea>`:q.t==="input"?`<input name="q${i}" ${q.type?`type="${q.type}"${q.type==="tel"?` inputmode="tel"`:""}${q.type==="email"?` dir="ltr" autocomplete="email"`:""}`:""}>`:`<div class="chips">${(q.o||STARS).map(o=>`<label><input type="${q.t==="multi"?"checkbox":"radio"}" name="q${i}" value="${esc(o)}"><span>${q.t==="stars"?"★".repeat(+o):esc(o)}</span></label>`).join("")}</div>`}</div>`).join("")+`<div class="btns"><button type="submit" class="primary">ابعت</button></div><div class="msg small"></div>`;
   f.onsubmit=e=>{e.preventDefault();const a=qs.map((q,i)=>{if(q.t==="multi")return [...f.querySelectorAll(`[name="q${i}"]:checked`)].map(x=>x.value).join("، ");const el=f.elements["q"+i];return el?(el.value||"").trim():""});
     const miss=qs.findIndex((q,i)=>q.req&&!a[i]);const msg=f.querySelector(".msg");
@@ -1186,7 +1186,12 @@ function claimCard(){
   return `<section class="y-kas y-alex" id="claimCard"><div class="kh"><span class="tr">🎟️</span><div><b>أهلاً ${esc(C.first)} 👋</b><small>ليك ${pl} في ${esc(C.event)} (${dl(C.date)})${C.paid?"، ودفعك متسجل ✅":""}</small></div></div>
     <div class="kb"><p class="small" style="margin:0 0 8px">${YT()?"بنربط حجزك بحسابك…":"سجّل حسابك في دقيقة (أو ادخل لو عندك حساب)، ومكانك هيتربط بيك على طول وتتابعه من هنا."}</p>${YT()?"":`<div class="btns"><button type="button" class="primary kgo cl-reg">سجّل دلوقتي</button><button type="button" class="kgo cl-in">عندي حساب</button></div>`}</div></section>`;
 }
+// التقييم/أي فورم مفتوح في الصفحة الرئيسية: التحديث اللي في الخلفية مبيقفلوش أبدا، بيستنى لحد ما يتبعت أو يتقفل (MORCOS 27 نوفمبر)
 function renderHome(){
+  if(document.querySelector("#home form.of")){clearTimeout(window._rhT);window._rhT=setTimeout(renderHome,2500);return}
+  renderHome0();
+}
+function renderHome0(){
   if(!D.level&&YT()&&lsGet("gsyf_ggo")&&location.hash!=="#me"){location.hash="me";return}
   if(!D.level&&YT()&&lsGet("gsyf_dgo")){if(location.hash!=="#me")location.hash="me";else route();return}   // جه من لينك «كمّل بياناتك» ولسه داخل
   // الشباب يشوفوا إيفنتات الشهر الجاري بس (الشهر الجاي بيظهر أول يوم فيه)
@@ -3167,7 +3172,7 @@ function route(){
 }
 
 // التحديث في الخلفية مبيمسحش فورم الشاب وهو بيكتب (دخول/تسجيل): بيستنى لحد ما يخلص (MORCOS 26 نوفمبر)
-function formBusy(){const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest("main,#home,#me,section"))return true;
+function formBusy(){if(document.querySelector("#home form.of:not([hidden]),#me form.of"))return true;const a=document.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest("main,#home,#me,section"))return true;
   return [...document.querySelectorAll("form.rgf")].some(f=>f.offsetParent&&[...f.querySelectorAll("input")].some(i=>i.type!=="hidden"&&i.value))}
 function routeSafe(){clearTimeout(window._rsT);if(startedRoute&&formBusy()){window._rsT=setTimeout(routeSafe,3000);return}startedRoute=true;route()}
 let startedRoute=false;
