@@ -627,6 +627,14 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .ab-s .bar{height:8px;border-radius:6px;background:var(--accent-soft);overflow:hidden}.ab-s .bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
 .ab-s .n{display:flex;gap:12px;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}.ab-s.zero .t b{color:var(--muted)}
 .ab-out{text-align:center;font-size:.85rem}
+.ab-k>button{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0;cursor:pointer;color:inherit;font:inherit}
+.ab-k>button.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.ab-k em{font-style:normal;font-size:.75rem;color:var(--accent);margin-top:2px}
+button.ab-s{width:100%;background:none;border:0;border-top:1px solid var(--line);border-radius:0;text-align:start;color:inherit;font:inherit;cursor:pointer}
+.ab-d{background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:2px 0 6px}.panel.ab-d{border-color:var(--accent)}
+.ab-d h4{margin:10px 0 2px;font-size:.88rem}
+.ab-ul{list-style:none;margin:0;padding:0}.ab-ul li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.88rem}.ab-ul li:last-child{border-bottom:0}
+.ab-ul li b{font-weight:600;text-align:end;font-variant-numeric:tabular-nums}.ab-ul small{color:var(--muted)}
 .pt[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
 .tm-perms{display:flex;flex-wrap:wrap;gap:6px}.tm-hint{margin:-4px 0 0;line-height:1.5}
 .tm-pick{display:flex;flex-direction:column;gap:4px}.tm-pick>span{font-size:.82rem;color:var(--muted)}
@@ -2794,36 +2802,48 @@ function renderAdmin(){
 }
 
 /* ===== الخدمة بالأرقام (صفحة أبونا، MORCOS 27 نوفمبر): أرقام بس من فوق + إنجاز كل خادم، وفلتر بالاجتماع والفترة. من غير تفاصيل ===== */
-const AB_S={m:"",p:"m",d:null,busy:false,err:"",at:0};
+const AB_S={m:"",p:"m",d:null,busy:false,err:"",at:0,open:""};
 function abLoad(){if(AB_S.busy)return;AB_S.busy=true;AB_S.err="";
   callApi("ovr",{},r=>{AB_S.busy=false;AB_S.d=r;AB_S.at=Date.now();if(!$("abouna").hidden)renderAbouna()},m=>{AB_S.busy=false;AB_S.err=m;if(!$("abouna").hidden)renderAbouna()})}
 function renderAbouna(){
   const B=$("abouna"),R=AB_S.d,nf=n=>Number(n||0).toLocaleString("ar-EG");
   if(!R||Date.now()-AB_S.at>5*60000)abLoad();
-  const hi=`<div class="ab-hi"><b>${AB()?"أهلاً يا أبونا 🙏":"🙏 الخدمة بالأرقام"}</b><span>الخدمة كلها في صفحة واحدة</span></div>`;
+  const hi=`<div class="ab-hi"><b>${AB()?"أهلاً يا أبونا 🙏":"🙏 الخدمة بالأرقام"}</b><span>دوس على أي رقم أو أي خادم يفتحلك التفاصيل</span></div>`;
   const chips=(k,L)=>`<div class="ab-f">${L.map(([v,l])=>`<button type="button" class="pt" data-k="${k}" data-v="${v}" aria-pressed="${AB_S[k]===v}">${l}</button>`).join("")}</div>`;
   const fl=chips("m",[["","الكل"],["ج","جامعيين"],["25","+25"]])+chips("p",[["m","الشهر ده"],["3","آخر 3 شهور"],["a","من الأول"]]);
   const out=AB()?`<p class="ab-out"><a href="#" class="ab-x">خروج</a></p>`:"";
   if(!R){B.innerHTML=hi+(AB_S.err?`<section class="panel"><p class="err">${esc(AB_S.err)}</p><button type="button" class="ab-r">جرّب تاني</button></section>`:`<p class="muted" style="text-align:center;padding:30px 0">بيحمّل الأرقام…</p>`)+out;abBind(B);return}
   const t=R.today,from=AB_S.p==="m"?t.slice(0,8)+"01":AB_S.p==="3"?(()=>{const d=new Date(t+"T12:00:00");d.setMonth(d.getMonth()-3);return d.toISOString().slice(0,10)})():"0000";
-  const inP=d=>d>=from&&d<=t,mOk=m=>!AB_S.m||m===AB_S.m;
+  const inP=d=>d>=from&&d<=t,mOk=m=>!AB_S.m||m===AB_S.m,dd=d=>`${nf(+d.slice(8))}/${nf(+d.slice(5,7))}`,ML={"ج":"جامعيين","25":"+25"};
   const att=R.att.filter(a=>inP(a[0])&&mOk(a[1])),avg=att.length?Math.round(att.reduce((x,a)=>x+a[2],0)/att.length):0;
-  const mem=R.mem.filter(x=>!AB_S.m||x[0]===AB_S.m),nw=mem.filter(x=>inP(x[1])).length;
+  const mem=R.mem.filter(x=>!AB_S.m||x[0]===AB_S.m),nwL=mem.filter(x=>inP(x[1])),nw=nwL.length;
   const af=AB_S.m?R.afl[AB_S.m]:[R.afl["ج"][0]+R.afl["25"][0],R.afl["ج"][1]+R.afl["25"][1]],afp=af[0]?Math.round(af[1]/af[0]*100):0;
-  const ev=R.ev.filter(e=>inP(e[0])&&(!AB_S.m||!e[1]||e[1]===AB_S.m)).length;
-  const sv=R.srv.filter(s=>!AB_S.m||s.m===AB_S.m||s.m==="2").map(s=>{const a=s.a.filter(inP).length,w=s.w.filter(inP).length;return Object.assign({},s,{na:a,nw:w,sc:a+w+s.f[1]})}).sort((x,y)=>y.sc-x.sc||x.n.localeCompare(y.n,"ar"));
+  const evL=R.ev.filter(e=>inP(e[0])&&(!AB_S.m||!e[1]||e[1]===AB_S.m)),ev=evL.length;
+  const sv=R.srv.filter(s=>!AB_S.m||s.m===AB_S.m||s.m==="2").map(s=>{const aL=s.a.filter(inP),wL=s.w.filter(x=>inP(x[0]));return Object.assign({},s,{aL,wL,na:aL.length,nw:wL.length,sc:aL.length+wL.length+s.f[1]})}).sort((x,y)=>y.sc-x.sc||x.n.localeCompare(y.n,"ar"));
   const mx=Math.max(1,...sv.map(s=>s.sc)),pl={m:"الشهر ده",3:"آخر 3 شهور",a:"من الأول"}[AB_S.p];
-  const K=[["👥",nf(mem.length),"شاب وبنت على الموقع",nw?`+${nf(nw)} جديد ${pl}`:`مفيش جديد ${pl}`],["🙋",nf(avg),"متوسط الحضور",att.length?`في ${nf(att.length)} اجتماع`:"لسه مفيش حضور متسجل"],
-    ["📞",nf(afp)+"٪","اتعمل لهم افتقاد",`${nf(af[1])} من ${nf(af[0])}`],["🎉",nf(ev),"إيفنت اتعمل",pl]];
+  const li=L=>L.length?`<ul class="ab-ul">${L.map(([a,b])=>`<li><span>${a}</span><b>${b}</b></li>`).join("")}</ul>`:`<p class="empty">مفيش حاجة ${pl}</p>`;
+  const DET={
+    mem:()=>li([["جامعيين",nf(mem.filter(x=>x[0]==="ج").length)],["+25",nf(mem.filter(x=>x[0]==="25").length)],["شباب",nf(mem.filter(x=>x[2]==="و").length)],["بنات",nf(mem.filter(x=>x[2]==="ب").length)]].filter((x,i)=>!AB_S.m||i>1))+
+      `<h4>الجداد ${pl} (${nf(nw)})</h4>`+li(nwL.slice().sort((a,b)=>b[1]<a[1]?-1:1).map(x=>[esc(x[3]||"")+(AB_S.m?"":` <small>${ML[x[0]]||""}</small>`),dd(x[1])])),
+    att:()=>li(att.slice().reverse().map(a=>[`${dd(a[0])} · ${ML[a[1]]}`,`🙋 ${nf(a[2])} شاب · ${nf(a[3])} خادم`])),
+    afl:()=>(AB_S.m?"":li([["جامعيين",`${nf(R.afl["ج"][1])} من ${nf(R.afl["ج"][0])}`],["+25",`${nf(R.afl["25"][1])} من ${nf(R.afl["25"][0])}`]]))+
+      `<h4>كل خادم</h4>`+li(sv.filter(s=>s.f[0]).sort((a,b)=>(b.f[0]-b.f[1])-(a.f[0]-a.f[1])).map(s=>[esc(s.n),`${nf(s.f[1])} من ${nf(s.f[0])}${s.f[0]>s.f[1]?` · فاضل ${nf(s.f[0]-s.f[1])}`:" ✓"}`])),
+    ev:()=>li(evL.slice().reverse().map(e=>[esc(e[2]||""),dd(e[0])]))};
+  const K=[["mem","👥",nf(mem.length),"شاب وبنت على الموقع",nw?`+${nf(nw)} جديد ${pl}`:`مفيش جديد ${pl}`],["att","🙋",nf(avg),"متوسط الحضور",att.length?`في ${nf(att.length)} اجتماع`:"لسه مفيش حضور متسجل"],
+    ["afl","📞",nf(afp)+"٪","اتعمل لهم افتقاد",`${nf(af[1])} من ${nf(af[0])}`],["ev","🎉",nf(ev),"إيفنت اتعمل",pl]];
+  const op=AB_S.open,kOpen=K.find(k=>k[0]===op);
   const last=att.slice(-8),amx=Math.max(1,...last.map(a=>a[2]));
-  const bars=last.length?`<section class="panel"><h3>الحضور اجتماع باجتماع</h3><div class="ab-bars">${last.map(a=>`<div><b>${nf(a[2])}</b><i class="${a[1]==="25"?"p25":""}" style="height:${Math.round(a[2]/amx*100)}%"></i><small>${nf(+a[0].slice(8))}/${nf(+a[0].slice(5,7))}</small></div>`).join("")}</div>${AB_S.m?"":`<div class="ab-lg"><span><i></i>جامعيين</span><span><i class="p25"></i>+25</span></div>`}</section>`:"";
-  const row=s=>`<div class="ab-s${s.sc?"":" zero"}"><div class="t"><b>${esc(s.n)}</b><small>${s.r!=="خادم"?esc(s.r):""}</small></div><div class="bar"><i style="width:${Math.round(s.sc/mx*100)}%"></i></div><div class="n"><span>🙋 حضر ${nf(s.na)}</span><span>✅ شغل ${nf(s.nw)}</span><span>📞 افتقاد ${nf(s.f[1])}/${nf(s.f[0])}</span></div></div>`;
-  B.innerHTML=hi+fl+`<div class="ab-k">${K.map(([ic,n,l,x])=>`<div><span class="ic">${ic}</span><b>${n}</b><span>${l}</span><small>${esc(x)}</small></div>`).join("")}</div>`+bars+
+  const bars=last.length?`<section class="panel"><h3>الحضور اجتماع باجتماع</h3><div class="ab-bars">${last.map(a=>`<div><b>${nf(a[2])}</b><i class="${a[1]==="25"?"p25":""}" style="height:${Math.round(a[2]/amx*100)}%"></i><small>${dd(a[0])}</small></div>`).join("")}</div>${AB_S.m?"":`<div class="ab-lg"><span><i></i>جامعيين</span><span><i class="p25"></i>+25</span></div>`}</section>`:"";
+  const sDet=s=>`<div class="ab-d">${li([["🙋 حضر",s.aL.length?s.aL.map(dd).join("، "):"—"],["📞 افتقاد",`${nf(s.f[1])} من ${nf(s.f[0])}`],["🕐 آخر دخول",s.last?dd(s.last):"—"]])}<h4>✅ الشغل ${pl} (${nf(s.nw)})</h4>${li(s.wL.slice().reverse().map(x=>[esc(x[1]),dd(x[0])]))}</div>`;
+  const row=s=>{const o=op==="s:"+s.n;return `<button type="button" class="ab-s${s.sc?"":" zero"}" data-o="s:${esc(s.n)}" aria-expanded="${o}"><div class="t"><b>${esc(s.n)}</b><small>${s.r!=="خادم"?esc(s.r)+" · ":""}${o?"▴":"▾"}</small></div><div class="bar"><i style="width:${Math.round(s.sc/mx*100)}%"></i></div><div class="n"><span>🙋 حضر ${nf(s.na)}</span><span>✅ شغل ${nf(s.nw)}</span><span>📞 افتقاد ${nf(s.f[1])}/${nf(s.f[0])}</span></div></button>${o?sDet(s):""}`};
+  B.innerHTML=hi+fl+`<div class="ab-k">${K.map(([k,ic,n,l,x])=>`<button type="button" data-o="${k}" aria-expanded="${op===k}"${op===k?' class="on"':""}><span class="ic">${ic}</span><b>${n}</b><span>${l}</span><small>${esc(x)}</small><em>${op===k?"▴ اقفل":"▾ التفاصيل"}</em></button>`).join("")}</div>`+
+    (kOpen?`<section class="panel ab-d"><h3>${kOpen[1]} ${kOpen[3]}</h3>${DET[op]()}</section>`:"")+bars+
     `<section class="panel"><h3>إنجاز الخدام (${nf(sv.length)})</h3><p class="small muted" style="margin:0 0 4px">حضر = اجتماعات حضرها · شغل = حاجات خلصها (إعلان، ترويج، مسؤول اجتماع أو إيفنت) · افتقاد = اتواصل مع كام من اللي عليه</p>${sv.map(row).join("")||`<p class="empty">مفيش خدام</p>`}</section>`+
     `<p class="small muted" style="text-align:center;margin:0">الأرقام بتتحدث لوحدها كل ١٠ دقايق</p>`+out;
   abBind(B);
 }
 function abBind(B){B.querySelectorAll(".ab-f .pt").forEach(b=>b.onclick=()=>{AB_S[b.dataset.k]=b.dataset.v;renderAbouna()});
+  B.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>{AB_S.open=AB_S.open===b.dataset.o?"":b.dataset.o;renderAbouna();const n=B.querySelector(`[data-o="${CSS.escape(b.dataset.o)}"]`);if(n&&AB_S.open)n.scrollIntoView({block:"nearest",behavior:"smooth"})});
   const r=B.querySelector(".ab-r");if(r)r.onclick=()=>{AB_S.at=0;AB_S.d=null;abLoad();renderAbouna()};
   const x=B.querySelector(".ab-x");if(x)x.onclick=e=>{e.preventDefault();if(confirm("تخرج من حسابك؟"))logout()}}
 /* التقييمات: نتايج تقييم الإيفنتات (زي حفلة ع الضيق) لايف، شباب وخدام */
