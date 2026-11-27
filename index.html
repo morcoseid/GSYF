@@ -572,6 +572,16 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .att-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .att-seg button{padding:10px;border-radius:12px;font-weight:700}
 .att-seg button[aria-pressed=true]{background:var(--accent);color:#fff;border-color:var(--accent)}
+#mqo{position:fixed;inset:0;z-index:2001;background:#5e1520;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.mq-box{background:#fff;padding:6px;border-radius:12px;width:100%;max-width:300px;margin:0 auto;aspect-ratio:1}.mq-box svg{width:100%;height:100%;display:block}
+.att-scan{position:relative;padding:0;overflow:hidden;background:#000;border-radius:18px;aspect-ratio:1;max-height:62vh;display:flex;align-items:center;justify-content:center}
+.att-scan video{width:100%;height:100%;object-fit:cover;display:block}
+.att-scan .sc-st{position:absolute;inset:auto 0 0 0;padding:14px;text-align:center;font-size:1.25rem;font-weight:800;color:#fff;background:#0009;transition:background .15s}
+.att-scan .sc-st.ok{background:#1f8a4c}.att-scan .sc-st.old{background:#b7791f}.att-scan .sc-st.bad{background:#b42323}
+.att-scan .sc-go{position:absolute;font-size:1.2rem;padding:14px 22px;border-radius:14px;font-weight:800}
+.att-scan .sc-frame{position:absolute;inset:18%;border:3px solid #fff8;border-radius:18px;pointer-events:none}
+.att-f2{display:flex;gap:6px;flex-wrap:wrap}.att-f2 button{flex:1;padding:8px;border-radius:10px;font-weight:700}.att-f2 button[aria-pressed=true]{background:var(--accent,#7a1f2b);color:#fff}
+.att-p .ap-wa{background:transparent;border:1px solid var(--line);padding:8px 10px;font-size:1rem}
 #chk{position:fixed;inset:0;z-index:2000;background:#5e1520;display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
 .chk-c{background:#fff;color:#1d1d1d;border-radius:22px;padding:24px 20px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;text-align:center;box-shadow:0 10px 40px #0005}
 .chk-c b{font-size:1.35rem}.chk-c span{color:#666;font-size:.95rem}.chk-ok{font-size:2.6rem;line-height:1}
@@ -580,7 +590,7 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .chk-g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.chk-g2 button{font:inherit;font-size:1.1rem;padding:10px;border-radius:12px;border:1.5px solid #ccc;background:#fff;color:#111}.chk-g2 button[aria-pressed=true]{background:#7a1f2b;color:#fff;border-color:#7a1f2b}
 .chk-lb{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:#666;text-align:right}.chk-lb input{width:100%;box-sizing:border-box}
 .chk-m{margin:0;min-height:1em;font-size:.95rem}.chk-m.err{color:#b3261e}.chk-l{color:#7a1f2b;font-size:.95rem}
-.att-md{grid-template-columns:1fr 1fr 1fr}.att-md button{padding:8px;font-size:.95rem}
+.att-md{grid-template-columns:repeat(4,1fr)}.att-md button{padding:8px;font-size:.95rem}
 .att-qr{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
 .att-qr:fullscreen{justify-content:center;background:#fff;color:#111}.att-qr:fullscreen .qr-box svg{width:72vmin;height:72vmin}.att-qr:fullscreen .qr-t{font-size:2rem}
 .qr-box{background:#fff;padding:14px;border-radius:14px;min-height:280px;min-width:280px;display:grid;place-items:center}.qr-box svg{display:block;width:280px;height:280px}
@@ -1117,6 +1127,18 @@ function pollBind(root,locked,pend){const sec=root.querySelector(".y-poll");if(!
 (()=>{try{const u=new URL(location.href),c=(u.searchParams.get("c")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase();if(c){lsSet("gsyf_claim",c);u.searchParams.delete("c");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
 // الحضور بالـ QR: الشاب بيمسح الكود من الشاشة ← ?in=كود. لو داخل بحسابه بيتسجل على طول، غير كده يدخل أو يسجل الأول
 (()=>{try{const u=new URL(location.href),c=(u.searchParams.get("in")||"").replace(/[^A-Za-z0-9]/g,"").toUpperCase().slice(0,12);if(c){lsSet("gsyf_in",c);u.searchParams.delete("in");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
+// QR الحضور الشخصي (MORCOS 27 نوفمبر): كل واحد ليه كود، يوريه للخادم على الباب والخادم يسكانه. اللينك ?mq= بيتبعت على الواتساب
+(()=>{try{const u=new URL(location.href),t=u.searchParams.get("mq");if(t&&/^[^.\s]{1,80}\.[0-9a-f]{10}$/.test(t)){lsSet("gsyf_mq",t);const n=(u.searchParams.get("n")||"").slice(0,30);if(n)lsSet("gsyf_mqn",n);window._mqShow=1;u.searchParams.delete("mq");u.searchParams.delete("n");history.replaceState(null,"",u.pathname+u.search+u.hash)}}catch(e){}})();
+const mqUrl=t=>"https://morcoseid.github.io/GSYF/?mq="+encodeURIComponent(t);
+function mqShow(t,name){
+  t=t||lsGet("gsyf_mq");if(!t)return;name=name||lsGet("gsyf_mqn")||"";
+  const old=$("mqo");if(old)old.remove();
+  const o=document.createElement("div");o.id="mqo";o.setAttribute("role","dialog");
+  o.innerHTML=`<div class="chk-c"><b>🎟️ كود حضورك${name?" يا "+esc(name):""}</b><div class="mq-box"><p class="muted">…</p></div><span>وري الكود ده للخادم على الباب، وهو يسكانه ✓<br>علّي نور الموبايل لو الكود مش باين.</span><button type="button" class="chk-b mq-x">تمام</button></div>`;
+  document.body.appendChild(o);o.querySelector(".mq-x").onclick=()=>o.remove();
+  qrLib().then(Q=>{const q=Q(0,"M");q.addData(mqUrl(t));q.make();o.querySelector(".mq-box").innerHTML=q.createSvgTag({cellSize:8,margin:2,scalable:true})}).catch(()=>{o.querySelector(".mq-box").innerHTML=`<p class="err small">مفيش نت يحمّل الكود. جرّب تاني</p>`});
+}
+window.addEventListener("load",()=>{if(window._mqShow)setTimeout(()=>mqShow(),300)});
 function inCard(){return ""}
 function inCardOld(){
   const code=lsGet("gsyf_in")||"",I=window._in;
@@ -1549,12 +1571,15 @@ function renderMe(){
   box.innerHTML=`<section class="panel"><div class="me-head"><button type="button" class="me-av${tok?" me-pick":""}" aria-label="صورة البروفايل">${photo?`<img src="${photo}" alt="">`:esc((name.trim()[0])||"👤")}${tok?`<i class="me-cam" aria-hidden="true">📷</i>`:""}</button><input type="file" accept="image/*" class="me-file" hidden><div><b>${esc(name||"…")}${nick&&real?`<span class="me-real">الاسم الرسمي: ${esc(real)}</span>`:""}</b>${role?`<span class="me-tag">${esc(role)}</span>`:""}${st?`<span class="me-tag">${st==="مقبول"?"✅ عضو":esc((REG_ST[st]||[""])[0]+" "+st)}</span>`:""}${!sv&&p&&p.srvReq==="مستني"?`<span class="me-tag">⏳ طلب خادم مستني الأمين</span>`:""}${tok?`<div class="small muted me-ph">${photo?`<a href="#" class="me-chg">غيّر الصورة</a> · <a href="#" class="me-del">شيلها</a>`:`<a href="#" class="me-chg">حط صورتك</a>`}</div>`:""}</div></div></section>
     ${tok?(p?`${p.dform||lsGet("gsyf_dgo")?`<section class="panel md" id="md"></section>`:""}<section class="panel"><h3>حجوزاتي</h3>${up.length?up.map(bRow).join(""):`<p class="empty">مفيش حجوزات جاية. ${ok?`<a href="#home">شوف الإيفنتات</a>`:""}</p>`}${past.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:6px">اللي اشتركت فيه قبل كده (${past.length})</summary>${past.map(bRow).join("")}</details>`:""}</section>
     ${p&&p.p25?`<section class="me-p25"><b>✨ جروب +25 الخاص</b><span class="small">جروب واتساب لشباب +25 المسجلين بس. ${gen==="بنت"?"اطلبي":"اطلب"} الانضمام والأمناء هيقبلوا طلبك. ${gen==="بنت"?"متبعتيش":"متبعتش"} اللينك لحد 🙏</span><a href="${esc(p.p25)}" target="_blank" rel="noopener">ادخل الجروب</a></section>`:""}
+    <section class="panel me-qr"><h3>🎟️ كود الحضور بتاعي</h3><p class="small muted" style="margin:0 0 8px">وريه للخادم على باب الاجتماع وهو يسكانه، من غير ما تعمل حاجة.</p><button type="button" class="btn primary me-qrb">اعرض الكود</button></section>
     ${meAsk(p)}<section class="panel me-data"></section>`
       :`<p class="muted" style="text-align:center;padding:16px">بيحمّل بياناتك…</p>`):""}
     ${!ok?`<p class="small muted" style="text-align:center;margin:0">مواعيد الاجتماعات هتتفتح لك أول ما طلبك يتقبل. الرحلات تقدر تحجزها من دلوقتي.</p>`:""}
     ${sv&&mcMeets().length?`<a class="btn primary me-mc" href="#follow" onclick="lsSet('gsyf_ftab','me');setTimeout(()=>{const x=$('mc');x&&x.scrollIntoView({behavior:'smooth'})},150)">📣 اكتب إعلان الاجتماع الجاي</a>`:""}
     <div class="btns">${sv?`<a class="btn" href="#follow">شغلي</a>`:`<a class="btn" href="#home">الصفحة الرئيسية</a>`}<button type="button" class="me-out">خروج</button></div>`;
   if(tok)bindPhoto(box,tok);
+  const qb=box.querySelector(".me-qrb");if(qb)qb.onclick=()=>{const c=lsGet("gsyf_mq_"+tok.slice(2,13));if(c){mqShow(c,nick||real.split(" ")[0]);return}qb.disabled=true;qb.textContent="…";
+    callApi("myQr",{tok},r=>{qb.disabled=false;qb.textContent="اعرض الكود";lsSet("gsyf_mq_"+tok.slice(2,13),r.t);lsSet("gsyf_mq",r.t);mqShow(r.t,nick||real.split(" ")[0])},m=>{qb.disabled=false;qb.textContent="اعرض الكود";alert(m)})};
   if(tok&&p){meData(box.querySelector(".me-data"),tok,p);bindAsk(box,tok,p);const md=box.querySelector("#md");if(md)mdLoad(md,tok,p)}
   box.querySelector(".me-out").onclick=()=>{if(!confirm("تخرج من حسابك؟"))return;MEP=null;if(D.level)logout();else{yOut();location.hash="home";renderHome()}};
   if(tok&&!p)callApi("profile",{tok},r=>{if(r.key&&!D.level){load(r.key,true);return}MEP={tok,me:r.me};ySave({name:r.me.name,nick:r.me.nick||"",gender:r.me.gender||"",status:r.me.status});lsSet("gsyf_yphoto",r.me.photo||"");meBtn();setMyBk(r.me.bookings||[]);if(location.hash==="#me")renderMe()},
@@ -2773,9 +2798,9 @@ function renderAtt(force){
   if(!ATT.mode)ATT.mode=lsGet("gsyf_att_mode")||"names";
   // التحديث في الخلفية مبيعيدش رسم الصفحة وإنت بتدوّر (كان بيمسح البحث ويهنّج) (MORCOS 27 نوفمبر)
   const key=ATT.meet+"|"+ATT.mode;if(!force&&ATT.drawn===key&&$("att").firstChild)return;ATT.drawn=key;
-  clearTimeout(ATT.qt);
+  clearTimeout(ATT.qt);scStop();
   const seg=`<div class="att-seg">${["جامعيين","+25"].map(m=>`<button type="button" data-m="${m}" aria-pressed="${ATT.meet===m}">اجتماع ${m}</button>`).join("")}</div>
-    <div class="att-seg att-md">${[["qr","📱 QR"],["names","📋 الأسامي"],["phone","☎️ بالرقم"]].map(([k,l])=>`<button type="button" data-md="${k}" aria-pressed="${ATT.mode===k}">${l}</button>`).join("")}</div>`;
+    <div class="att-seg att-md">${[["scan","📷 سكان"],["names","📋 الأسامي"],["qr","📱 QR"],["phone","☎️ رقم"]].map(([k,l])=>`<button type="button" data-md="${k}" aria-pressed="${ATT.mode===k}">${l}</button>`).join("")}</div>`;
   const tail=`<section class="panel"><div class="att-cnt" id="attCnt">…</div><div id="attList"></div></section>`;
   const bind=()=>{$("att").querySelectorAll(".att-seg button[data-m]").forEach(b=>b.onclick=()=>{ATT.meet=b.dataset.m;lsSet("gsyf_att_meet",ATT.meet);renderAtt(1)});
     $("att").querySelectorAll(".att-md button").forEach(b=>b.onclick=()=>{ATT.mode=b.dataset.md;lsSet("gsyf_att_mode",ATT.mode);renderAtt(1)})};
@@ -2787,15 +2812,16 @@ function renderAtt(force){
     $("attFull").onclick=()=>{const x=$("att").querySelector(".att-qr");try{(x.requestFullscreen||x.webkitRequestFullscreen).call(x)}catch(e){}};
     attQrTick();return;
   }
+  if(ATT.mode==="scan"){
+    // الخادم بيسكان الـ QR الشخصي بتاع كل واحد على الباب: الكاميرا فاتحة على طول، وكل كود = حاضر + صوت
+    $("att").innerHTML=seg+`<section class="panel att-scan"><video id="scV" playsinline muted autoplay></video><div class="sc-frame"></div><button type="button" class="sc-go ap-ok" id="scGo">📷 افتح الكاميرا</button><div class="sc-st" id="scSt">وجّه الكاميرا على كود الشخص</div></section>
+      <p class="small muted" style="margin:0;text-align:center">اللي معهوش كود: دوّر على اسمه في «📋 الأسامي». ولو جديد اكتب اسمه هناك ودوس «حاضر (جديد)».</p>`+tail;
+    bind();$("scGo").onclick=scStart;attPeopleLoad(()=>{});scStart();return;
+  }
   if(ATT.mode==="names"){
-    $("att").innerHTML=seg+`<input id="attQ" class="att-q" placeholder="🔍 اكتب أول الاسم" autocomplete="off"><div id="attRes" style="display:flex;flex-direction:column;gap:8px"><p class="muted small">…</p></div>`+tail;
+    $("att").innerHTML=seg+`<input id="attQ" class="att-q" placeholder="🔍 اكتب أول الاسم" autocomplete="off"><div class="att-f2" id="attF2"></div><div id="attRes" style="display:flex;flex-direction:column;gap:8px"><p class="muted small">…</p></div>`+tail;
     bind();let qT;$("attQ").oninput=()=>{clearTimeout(qT);qT=setTimeout(attNamesShow,60)};
-    // القايمة بتظهر على طول من آخر نسخة على الموبايل، وبتتحدث في الخلفية
-    try{const c=JSON.parse(localStorage.getItem("gsyf_att_ppl")||"null");if(c&&c.length&&!ATT.people){ATT.people=c;ATT.people.forEach(x=>x.done=false)}}catch(e){}
-    if(ATT.people)attNamesShow();
-    const mm=ATT.meet;callApi("attNames",{meet:mm},r=>{if(ATT.meet!==mm)return;const pend=(ATT.people||[]).filter(x=>x.done).map(x=>x.code);ATT.people=r.people||[];ATT.people.forEach(x=>{if(pend.includes(x.code))x.done=true});
-      try{localStorage.setItem("gsyf_att_ppl",JSON.stringify(ATT.people.map(x=>({code:x.code,name:x.name,meet:x.meet,srv:x.srv}))))}catch(e){}
-      attShowList(r);attNamesShow()},m=>{if(!ATT.people)attMsg(m,1)});
+    attPeopleLoad(m=>attMsg(m,1));
     setTimeout(()=>{const q=$("attQ");if(q)q.focus()},50);return;
   }
   $("att").innerHTML=seg+`
@@ -2807,6 +2833,56 @@ function renderAtt(force){
   $("attF").onsubmit=e=>{e.preventDefault();const v=normPhone(ph.value);if(!/^01[0125]\d{8}$/.test(v)){attMsg("اكتب الرقم صح (11 رقم يبدأ بـ 01)",1);return}attFind(v)};
   setTimeout(()=>ph.focus(),50);
   callApi("attToday",{meet:ATT.meet},attShowList,m=>attMsg(m,1));
+}
+// قايمة الأسامي: بتظهر على طول من آخر نسخة على الموبايل، وبتتحدث في الخلفية (وكل نص دقيقة عشان تشوف اللي سجلهم خدام تانيين)
+function attPeopleLoad(fail){
+  try{const c=JSON.parse(localStorage.getItem("gsyf_att_ppl")||"null");if(c&&c.length&&!ATT.people){ATT.people=c;ATT.people.forEach(x=>x.done=false)}}catch(e){}
+  if(ATT.people)attNamesShow();
+  const mm=ATT.meet;callApi("attNames",{meet:mm},r=>{if(ATT.meet!==mm)return;const pend=(ATT.people||[]).filter(x=>x.done).map(x=>x.code);ATT.people=r.people||[];ATT.people.forEach(x=>{if(pend.includes(x.code))x.done=true});
+    try{localStorage.setItem("gsyf_att_ppl",JSON.stringify(ATT.people.map(x=>({code:x.code,name:x.name,meet:x.meet,srv:x.srv}))))}catch(e){}
+    attShowList(r);attNamesShow()},m=>{if(!ATT.people)fail(m)});
+}
+setInterval(()=>{if(document.visibilityState!=="visible"||location.hash!=="#att"||!/^(names|scan)$/.test(ATT.mode))return;const q=$("attQ");if(q&&q.value)return;attPeopleLoad(()=>{})},30000);
+/* ===== سكانر الـ QR الشخصي (MORCOS 27 نوفمبر) ===== */
+const SC={};
+function scStop(){try{if(SC.st)SC.st.getTracks().forEach(t=>t.stop())}catch(e){}SC.st=null;clearTimeout(SC.t)}
+function scBeep(ok){try{const A=SC.ac||(SC.ac=new (window.AudioContext||window.webkitAudioContext)()),o=A.createOscillator(),g=A.createGain();o.frequency.value=ok?1250:300;g.gain.value=.25;o.connect(g);g.connect(A.destination);o.start();o.stop(A.currentTime+(ok?.12:.35))}catch(e){}try{navigator.vibrate&&navigator.vibrate(ok?80:[60,60,60])}catch(e){}}
+function scSay(t,c){const e=$("scSt");if(!e)return;e.textContent=t;e.className="sc-st "+(c||"");clearTimeout(SC.ct);if(c)SC.ct=setTimeout(()=>{const x=$("scSt");if(x){x.textContent="وجّه الكاميرا على كود الشخص";x.className="sc-st"}},2500)}
+let JSQR=null;
+function jsqrLib(){return JSQR||(JSQR=new Promise((ok,no)=>{const x=document.createElement("script");x.src="jsqr.js";x.onload=()=>ok(window.jsQR);x.onerror=()=>{JSQR=null;no()};document.head.appendChild(x)}))}   // jsqr.js = jsQR (Apache-2.0) للموبايلات اللي معندهاش BarcodeDetector (آيفون)
+async function scStart(){
+  const v=$("scV"),go=$("scGo");if(!v)return;scStop();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){scSay("الموبايل ده مش بيفتح الكاميرا من المتصفح. افتح الموقع من كروم","bad");return}
+  try{SC.st=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment",width:{ideal:1280},height:{ideal:720}},audio:false})}
+  catch(e){scSay("اسمح للموقع يفتح الكاميرا (من علامة القفل جنب اللينك) ودوس «افتح الكاميرا»","bad");if(go)go.hidden=false;return}
+  if(location.hash!=="#att"||ATT.mode!=="scan"||$("scV")!==v){scStop();return}
+  v.srcObject=SC.st;try{await v.play()}catch(e){}if(go)go.hidden=true;
+  let det=null;try{if("BarcodeDetector" in window&&(await BarcodeDetector.getSupportedFormats()).includes("qr_code"))det=new BarcodeDetector({formats:["qr_code"]})}catch(e){}
+  let J=null;if(!det){try{J=await jsqrLib()}catch(e){scSay("مفيش نت يحمّل السكانر. جرّب تاني","bad");return}}
+  const cv=document.createElement("canvas"),cx=cv.getContext("2d",{willReadFrequently:true});
+  const tick=async()=>{
+    if(!SC.st||location.hash!=="#att"||ATT.mode!=="scan"||!document.body.contains(v)){scStop();return}
+    let raw="";
+    try{if(v.readyState>=2){
+      if(det){const r=await det.detect(v);if(r&&r[0])raw=r[0].rawValue}
+      else{const w=480,h=Math.round(w*(v.videoHeight||720)/(v.videoWidth||1280));cv.width=w;cv.height=h;cx.drawImage(v,0,0,w,h);const r=J(cx.getImageData(0,0,w,h).data,w,h,{inversionAttempts:"dontInvert"});if(r)raw=r.data}
+    }}catch(e){}
+    if(raw)scGot(raw);
+    SC.t=setTimeout(tick,det?120:200)};
+  tick();
+}
+function scGot(raw){
+  let t="";try{const u=new URL(raw);t=u.searchParams.get("mq")||"";if(!t&&u.searchParams.get("in")){if(SC.last!=="in"){SC.last="in";SC.at=Date.now();scSay("ده كود الاجتماع، مش كود شخص","bad");scBeep(0)}return}}catch(e){t=raw.trim()}
+  if(!/^[^.\s]{1,80}\.[0-9a-f]{10}$/.test(t)){if(SC.last!==raw||Date.now()-SC.at>3000){SC.last=raw;SC.at=Date.now();scSay("الكود ده مش كود حضور","bad");scBeep(0)}return}
+  if(SC.last===t&&Date.now()-SC.at<4000)return;   // نفس الشخص لسه قدام الكاميرا
+  SC.last=t;SC.at=Date.now();
+  let code="";try{code=decodeURIComponent(t.split(".")[0])}catch(e){}
+  const x=(ATT.people||[]).find(y=>y.code===code);
+  if(x&&x.done){scSay("✓ "+x.name+" متسجل قبل كده","old");scBeep(1);return}
+  scSay("✓ "+(x?x.name:"حاضر"),"ok");scBeep(1);
+  if(x){x.done=true;ATT.cnt=(ATT.cnt||0)+1;const ce=$("attCnt");if(ce)ce.innerHTML=`حضروا النهارده: <b class="num">${ATT.cnt}</b>`}
+  callApi("attMarkC",{t,meet:ATT.meet},r=>{attShowList(r);const k=r.marked;if(k&&!x){scSay((k.already?"✓ "+k.name+" متسجل قبل كده":"✓ "+k.name),k.already?"old":"ok");const y=(ATT.people||[]).find(z=>z.code===k.code);if(y)y.done=true}},
+    m=>{if(x)x.done=false;SC.last="";scSay("✗ متسجلش"+(x?" "+x.name:"")+": "+m,"bad");scBeep(0)});
 }
 let QRLIB=null;
 function qrLib(){return QRLIB||(QRLIB=new Promise((ok,no)=>{const x=document.createElement("script");x.src="qr.js";x.onload=()=>ok(window.qrcode);x.onerror=()=>{QRLIB=null;no()};document.head.appendChild(x)}))}   // qr.js = qrcode-generator (MIT) جوه الموقع نفسه
@@ -2823,10 +2899,20 @@ function attNamesShow(){
   const q=normAr(($("attQ")||{}).value||""),P=ATT.people||[],box=$("attRes");if(!box)return;
   // البحث بأي جزء من الاسم (كذا كلمة: "مينا عادل")، والخدام الأول، واللي حضر تحت
   const qs=q.split(" ").filter(Boolean),hit=x=>{const n=x._n||(x._n=normAr(x.name));return qs.every(w=>n.includes(w))};
-  const L=(q?P.filter(hit):P.filter(x=>x.meet===ATT.meet)).sort((a,b)=>(a.done-b.done)||(b.srv-a.srv)||(q?(a.meet===ATT.meet?0:1)-(b.meet===ATT.meet?0:1):0)||a.name.localeCompare(b.name,"ar")).slice(0,q?40:400);
+  // «لسه ما اتسجلوش» (MORCOS 27 نوفمبر): عشان تتأكد إن كل اللي جم اتسجلوا
+  const M=P.filter(x=>x.meet===ATT.meet),nd=M.filter(x=>!x.done).length,f2=$("attF2");ATT.f=ATT.f||"all";
+  if(f2){f2.innerHTML=[["all","الكل ("+M.length+")"],["no","لسه ما اتسجلوش ("+nd+")"],["yes","حضروا ("+(M.length-nd)+")"]].map(([k,l])=>`<button type="button" data-f="${k}" aria-pressed="${ATT.f===k}">${l}</button>`).join("");
+    f2.querySelectorAll("button").forEach(b=>b.onclick=()=>{ATT.f=b.dataset.f;attNamesShow()})}
+  const L=(q?P.filter(hit):M.filter(x=>ATT.f==="no"?!x.done:ATT.f==="yes"?x.done:true)).sort((a,b)=>(a.done-b.done)||(b.srv-a.srv)||(q?(a.meet===ATT.meet?0:1)-(b.meet===ATT.meet?0:1):0)||a.name.localeCompare(b.name,"ar")).slice(0,q?40:400);
   const sub=x=>(x.srv?"🙋 خادم":"")+(x.meet?(x.srv?" · ":"")+"اجتماع "+x.meet:"");
   box.innerHTML=L.length?L.map(x=>x.done?`<div class="att-p done"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><span class="ok">حاضر ✓</span></div>`:
-    `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><button type="button" class="ap-ok" data-c="${esc(x.code)}">✓ حاضر</button></div>`).join(""):`<p class="empty">${q?"مفيش اسم كده":"مفيش أسامي للاجتماع ده"}</p>`;
+    `<div class="att-p"><div><b>${esc(x.name)}</b><small>${esc(sub(x))}</small></div><span style="display:flex;gap:6px;flex:none">${x.srv?"":`<button type="button" class="ap-wa" data-w="${esc(x.code)}" title="ابعتله الـ QR بتاعه واتساب" aria-label="ابعتله الـ QR بتاعه واتساب">📲</button>`}<button type="button" class="ap-ok" data-c="${esc(x.code)}">✓ حاضر</button></span></div>`).join(""):`<p class="empty">${q?"مفيش اسم كده":ATT.f==="no"?"كله اتسجل ✓":"مفيش أسامي للاجتماع ده"}</p>`;
+  // 📲 = يبعتله لينك الـ QR الشخصي بتاعه على الواتساب (المرة الجاية يوريه على الباب ويتسكان)
+  box.querySelectorAll("button[data-w]").forEach(b=>b.onclick=()=>{const x=P.find(y=>y.code===b.dataset.w),wn=window.open("about:blank","_blank");b.textContent="…";
+    callApi("attLink",{code:x.code,meet:ATT.meet},r=>{b.textContent="📲";const first=String(r.name||x.name).split(" ")[0];
+      const msg=`أهلاً يا ${first} 👋\nده كود حضورك في اجتماعات خدمة الشباب 🎟️\nافتح اللينك ووري الكود للخادم على الباب، وهو يسكانه:\n${mqUrl(r.t)}&n=${encodeURIComponent(first)}`;
+      const ph=String(r.phone||"").replace(/^0/,"20");const url=(ph?"https://wa.me/"+ph:"https://wa.me/")+"?text="+encodeURIComponent(msg);
+      if(wn)wn.location.href=url;else location.href=url},m=>{b.textContent="📲";if(wn)wn.close();alert(m)})});
   // حد جديد مش متسجل: بالاسم بس، من غير رقم (MORCOS 27 نوفمبر)
   const raw=(($("attQ")||{}).value||"").trim().replace(/\s+/g," ");
   if(raw)box.insertAdjacentHTML("beforeend",`<div class="att-p att-nw"><div><b>${esc(raw)}</b><small>${raw.split(" ").length<2?"اكتب الاسم ثنائي عشان تسجله جديد":"مش في القايمة؟ سجّله حاضر كجديد"}</small></div>${raw.split(" ").length<2?"":`<button type="button" class="ap-ok" id="attNwB">＋ حاضر (جديد)</button>`}</div>`);
