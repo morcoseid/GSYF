@@ -563,6 +563,9 @@ i.rp-y{color:var(--rp-y);border-color:var(--rp-y)}i.rp-s{color:var(--rp-s);borde
 .af-mv{font:inherit;font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:var(--surface);color:var(--fg);max-width:150px}
 .af-df{margin-top:6px;padding:8px;border:1px solid #e3d6c8;border-radius:10px;background:#fffdf9}.af-dfm .fld{margin:4px 0}.af-de{font-size:.8rem;padding:2px 8px}.rv-no{color:var(--busy)}.rv-bl{background:#3a1d1d;color:#fff;border-color:#3a1d1d}.md-f .fld{margin:6px 0}.md textarea,.af-dfm textarea{width:100%;font:inherit;border:1px solid #e3d6c8;border-radius:12px;padding:8px 10px;background:#f5efe6;box-sizing:border-box}
 .af-ne{display:flex;gap:6px}.af-ne input{flex:1;min-width:0}.af-q{margin:4px 0}.af-sg{display:inline-flex;gap:3px;align-items:center;margin:2px 6px 2px 0}.af-sg button{padding:0 6px}
+.pd-box{border:1px solid var(--mid);border-radius:12px;padding:8px 10px;margin:8px 0}.pd-r{border-top:1px dashed var(--line);padding:7px 0}.pd-r:first-of-type{border-top:0}
+.pd-dq{border:1px solid var(--line);border-radius:12px;padding:6px 10px;margin:8px 0}.pd-dq summary{cursor:pointer}.pd-t{width:100%;border-collapse:collapse;font-size:.82rem}.pd-t th,.pd-t td{padding:4px;border-bottom:1px solid var(--line);text-align:right}
+.af-core{border:1px solid var(--line);border-radius:10px;padding:6px 8px;margin:6px 0}.af-ok{font-size:.8rem}
 .p25-n{display:flex;gap:8px;margin:6px 0}.p25-n div{flex:1;border:1px solid var(--line);border-radius:10px;padding:6px;text-align:center;font-size:.8rem;color:var(--muted)}.p25-n b{display:block;font-size:1.3rem;color:var(--fg)}
 .p25-c{display:flex;gap:6px;margin-top:4px}.p25-c input{flex:1;min-width:0}.p25-l{width:100%}
 .me-p25{background:linear-gradient(135deg,#7A1F2B,#4d1219);color:#fff;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px}
@@ -1651,7 +1654,7 @@ const age=b=>{const d=parse(b),n=parse(D.today);let a=n.getFullYear()-d.getFullY
 function regPanel(){
   const R=D.regs||[],wait=R.filter(r=>r.status==="مستني"),done=R.filter(r=>r.status!=="مستني");
   const row=r=>`<div class="row"><div class="d"><small>${esc(r.at)}</small></div><div class="t"><b>${esc(dn(r))}</b>${r.gender?" · "+gTag(r.gender):""} · ${esc(r.birth)}${age(r.birth)!==""?` (${age(r.birth)} سنة)`:""}<div class="why" dir="ltr" style="text-align:right">${esc(realEm(r.email))}${r.phone?(realEm(r.email)?" · ":"")+esc(r.phone):""}</div>${r.status==="مستني"?`${regExtra(r)}<div class="btns" style="margin-top:4px">${canDecide()?`<button type="button" class="rgd small primary" data-row="${r.row}" data-v="مقبول">قبول</button>`:""}${regWa(r)}${canDecide()?`<button type="button" class="rgd small" data-row="${r.row}" data-v="مرفوض">رفض</button>`:`<span class="small muted">🔒 القبول للأمناء بس</span>`}</div>`:`<span class="small ${r.status==="مقبول"?"ok":"err"}">${esc(r.status)}</span>${r.status==="مقبول"?" "+welcBtn(r,"reg"):""}`}</div></div>`;
-  return `${welcPanel(["reg"])}<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
+  return `${welcPanel(["reg","regd"])}<section class="panel"><h3>طلبات التسجيل (${wait.length} مستني)</h3>${wait.length?wait.map(row).join(""):`<p class="empty">مفيش طلبات جديدة.</p>`}${done.length?`<details><summary class="small muted" style="cursor:pointer;padding-top:8px">اللي اتراجع (${done.length})</summary>${done.map(row).join("")}</details>`:""}</section>`;
 }
 // اجتماع الخدام الشهري (آخر جمعة في الشهر): من تاب "اجتماع الخدام" في الشيت
 function srvMeetPanel(){
@@ -1934,7 +1937,7 @@ function renderFollow(){
     openForm(box,Q_SERV,(a,ok,f)=>callApi("evaluate",{kind:"event-servants",target:tgt(e),answers:a},r=>{(D.evals=D.evals||[]).push({row:0,kind:"إيفنت-خدام",target:tgt(e),a,closed:false});ok(r)},f),()=>"اتسجل ✓")});
   F.querySelectorAll(".mo").forEach(b=>b.onclick=()=>{const m=b.dataset.m;openForm(b.closest(".ev"),Q_MONTH,(a,ok,f)=>callApi("evaluate",{kind:"monthly",target:m,answers:a},r=>{lsSet("mo_"+m,"1");(D.evals=D.evals||[]).push({row:0,kind:"شهري",target:m,a,closed:false});ok(r)},f),()=>"اتسجل ✓ شكرًا")});
   F.querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=(D.regs||[]).find(x=>x.row===+b.dataset.row);b.disabled=true;
-    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,"reg");renderFollow()},fail(b))});
+    const done=regAccept(r,b);callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},x=>{done(x);renderFollow()},fail(b))});
   welcBind(F,renderFollow);
   aiBind();mcBind();prepBind(F,renderFollow);sayBind(F,renderFollow);invBind(F);evmBind(F);aqBind(F);aflBind(F);p25Bind(F);revBind(F);
   $("logout").onclick=e=>{e.preventDefault();logout()};
@@ -2011,6 +2014,7 @@ const meFirst=()=>D&&D.me?(D.me.nick||D.me.name.split(" ")[0]):"";
 // رسالة التعارف (للي مش في الداتا أو بياناته مش متطابقة) ورسالة السلام (للي موجود)
 function aflMsg(p,kind){const b=p.g==="بنت"||p.gender==="بنت",n=callName(p),mg=D&&D.me&&D.me.gender==="بنت",me=meFirst();
   const from=me?` أنا ${me} من خدمة شباب مارجرجس والأنبا شنودة.`:" من خدمة شباب مارجرجس والأنبا شنودة.";
+  if(kind==="chk")return `أهلاً يا ${n} 🤍${from}\n\nبنظبط بيانات الخدمة، ممكن ${b?"تأكديلي":"تأكدلي"} ${p.ask||"بياناتك"}؟ 🙏`;
   if(kind==="grp")return `أهلاً يا ${n} 🤍\n\nده لينك جروب *شباب +25* الخاص على واتساب 👇\n${AFL.link||D.afl.link||""}\n\nالجروب للأعضاء المسجلين بس، فياريت ${b?"متبعتيش":"متبعتش"} اللينك لحد 🙏 ولو حد من صحابك عايز يدخل، خليه يسجل على الموقع الأول.`;
   if(kind==="form")return `أهلاً يا ${n} 🤍\n\nمبسوطين ${b?"بيكي":"بيك"} معانا في خدمة الشباب ✨ علشان نكمّل بياناتك عندنا، ${b?"ادخلي":"ادخل"} على اللينك ده و${b?"املي":"املا"} البيانات (دقيقة واحدة):\n${SITE}#data\n\n${b?"هتدخلي":"هتدخل"} برقم موبايلك والرقم السري اللي ${b?"سجلتي":"سجلت"} بيه 🙏`;
   if(kind==="reg")return `أهلاً يا ${n} 🤍\n\nعملنا جروب واتساب خاص لشباب *+25* ✨ وعلشان ${b?"تدخليه":"تدخله"} لازم ${b?"تسجلي":"تسجل"} على موقع الخدمة الأول (دقيقة واحدة):\n${SITE}\n\nأول ما حسابك يتقبل هبعتلك لينك الجروب 🙏`;
@@ -2020,7 +2024,7 @@ const aflKind=r=>r.db&&r.db!=="ok"?"new":"hi";
 const aflUrl=(r,kind)=>{const w=waNum(r.wa||r.phone);return w?`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(aflMsg(r,kind))}`:""};
 const AFL={rows:null,at:0,busy:false,who:"",f:"",link:"",q:""};
 function aflLoad(force){if(!D||!D.level||!D.afl||AFL.busy)return;if(!force&&AFL.rows&&Date.now()-AFL.at<120000)return;
-  AFL.busy=true;callApi("aflList",{},r=>{AFL.busy=false;Object.assign(AFL,{rows:r.rows||[],all:r.all,lead:r.lead,p25:r.p25,me:r.me,srvs:r.srvs||[],link:r.link||"",at:Date.now()});if(location.hash==="#follow")renderFollow()},
+  AFL.busy=true;callApi("aflList",{},r=>{AFL.busy=false;Object.assign(AFL,{rows:r.rows||[],pend:r.pend||[],dq:r.dq||null,all:r.all,lead:r.lead,p25:r.p25,me:r.me,srvs:r.srvs||[],link:r.link||"",at:Date.now()});if(location.hash==="#follow")renderFollow()},
     m=>{AFL.busy=false;AFL.err=m;AFL.at=Date.now();if(location.hash==="#follow")renderFollow()})}
 const accTag=r=>r.acc==="مقبول"?`<span class="af-t ok">✅ حساب مقبول</span>`:r.acc==="مستني"?`<span class="af-t mid">⏳ مستني موافقة</span>`:`<span class="af-t">معندوش حساب</span>`;
 const p25Ok=r=>r.meet==="الربع قرن"&&r.acc==="مقبول";
@@ -2038,19 +2042,38 @@ function aflPanel(){if(!D||!D.afl||!D.level)return "";
   const row=r=>{const w=waNum(r.wa||r.phone),k=r.src+":"+r.row,ag=age(r.birth),lk=AFL.link,own=!!AFL.me&&n2(r.srv||"")===AFL.me;
     const grpB=r.meet==="الربع قرن"?(p25Ok(r)?(lk?`<a class="af-b af-grp${r.grp?" sent":""}" href="${aflUrl(r,"grp")}" target="_blank" rel="noopener">${r.grp?"✓ لينك الجروب اتبعت":"🔐 ابعت لينك الجروب"}</a>`:""):!r.acc&&w?`<a class="af-b af-reg" href="${aflUrl(r,"reg")}" target="_blank" rel="noopener">📝 ابعت لينك التسجيل</a>`:""):"";
     return `<div class="af-r${r.sent?" done":""}" data-k="${k}"><div class="af-h"><b>${esc(r.nick?r.nick+" ("+r.name+")":r.name)}</b><span class="small muted">${ag!==""?ag+" سنة · ":""}${r.meet==="الربع قرن"?"+25":"جامعيين"}${AFL.all?" · "+(r.srv?esc(r.srv.split(" ").slice(0,2).join(" ")):`<span class="err">مش متوزع</span>`):""}</span></div>
-      <div class="af-tags">${r.src==="a"&&DBS[r.db]?`<span class="af-t db-${DBS[r.db][0]}" title="${esc(r.dbh)}">${({ok:"✅ في الداتا",name:"⚠️ الاسم بس",phone:"⛔ الرقم باسم حد تاني","new":"🆕 جديد"})[r.db]}</span>`:""}${accTag(r)}${r.moved?`<span class="af-t" title="${esc(r.moved)}">↔ اتنقل</span>`:""}${r.wa?`<span class="af-t" dir="ltr">💬 ${esc(r.wa)}</span>`:""}</div>
-      <div class="af-btns">${w?`<a class="af-b af-wa${r.sent?" sent":""}" href="${aflUrl(r,aflKind(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتكلم · كلمه تاني":"💬 كلمه واتساب"}</a>`:`<span class="err small">⚠️ مفيش رقم</span>`}${grpB}<button type="button" class="af-nb${r.note?" has":""}" aria-label="ملاحظة">📝</button>${own?`<button type="button" class="af-de" title="عدّل بياناته">✏️ بياناته</button>`:""}${r.sent?`<button type="button" class="af-un" title="${esc(r.sent)}">↩︎</button>`:""}${AFL.lead?sel(r):""}</div>
+      <div class="af-tags">${r.src==="a"&&DBS[r.db]?`<span class="af-t db-${DBS[r.db][0]}" title="${esc(r.dbh)}">${({ok:"✅ في الداتا",name:"⚠️ الاسم بس",phone:"⛔ الرقم باسم حد تاني","new":"🆕 جديد"})[r.db]}</span>`:""}${r.conf?`<span class="af-t ok" title="الاسم والموبايل والميلاد والنوع اتأكدوا">✔ بياناته مؤكدة</span>`:""}${r.inc?`<span class="af-t mid">📋 بياناته ناقصة</span>`:""}${accTag(r)}${r.moved?`<span class="af-t" title="${esc(r.moved)}">↔ اتنقل</span>`:""}${r.wa?`<span class="af-t" dir="ltr">💬 ${esc(r.wa)}</span>`:""}</div>
+      <div class="af-btns">${w?`<a class="af-b af-wa${r.sent?" sent":""}" href="${aflUrl(r,aflKind(r))}" target="_blank" rel="noopener">${r.sent?"✓ اتكلم · كلمه تاني":"💬 كلمه واتساب"}</a>`:`<span class="err small">⚠️ مفيش رقم</span>`}${grpB}<button type="button" class="af-nb${r.note?" has":""}" aria-label="ملاحظة">📝</button>${own||AFL.lead?`<button type="button" class="af-de" title="عدّل بياناته">✏️ بياناته</button>`:""}${(own||AFL.lead)&&r.code&&!r.conf?`<button type="button" class="af-ok" title="الاسم والموبايل والميلاد والنوع صح">✓ بياناته صح</button>`:""}${r.sent?`<button type="button" class="af-un" title="${esc(r.sent)}">↩︎</button>`:""}${AFL.lead?sel(r):""}</div>
       ${r.note?`<div class="in-nt">📝 ${esc(r.note)}</div>`:""}<div class="af-df" hidden></div><div class="af-ne" hidden><input type="text" maxlength="300" class="af-ni" value="${esc(r.note||"")}" placeholder="مثلاً: رد، جه الاجتماع، الرقم غلط…"><button type="button" class="small primary af-ns">حفظ</button></div></div>`};
   const cnt=x=>R.filter(r=>(r.srv||"")===x),miss=(AFL.srvs||[]).filter(s=>!s.g);
   const done=L.filter(r=>r.sent).length;
   return `<section class="panel af" id="afl"><h3>👥 ${AFL.all?"الافتقاد":"افتقادي"} <span class="small muted">(${R.length})</span></h3>
     <p class="small muted" style="margin:0">${AFL.all?"كل مخدوم جديد بيتوزع لوحده على خادم من نوعه في اجتماعه. النقل من هنا (للأمين بس).":"دول اللي عليك. دوس «كلمه واتساب» والرسالة هتفتح جاهزة باسمه."}</p>
+    ${aflDq()}${aflPend()}
     ${AFL.lead&&miss.length?`<div class="db-st db-warn"><b>⚠️ خدام نوعهم مش متحدد (مش بيتوزع عليهم):</b>${miss.map(s=>`<span class="af-sg" data-row="${s.row}">${esc(s.name.split(" ").slice(0,2).join(" "))} <button type="button" data-g="شاب">👦</button><button type="button" data-g="بنت">👧</button></span>`).join(" ")}</div>`:""}
     ${AFL.all?`<div class="chips in-ch af-who"><button type="button" class="chip${who==="*"?" on":""}" data-s="*">الكل ${R.length}</button>${srvs.map(x=>`<button type="button" class="chip${x===who?" on":""}" data-s="${esc(x)}">${x?esc(x.split(" ").slice(0,2).join(" ")):"⚠️ مش متوزع"} ${cnt(x).length}</button>`).join("")}</div>`:""}
     <div class="chips in-ch af-f">${Object.keys(F).map(k=>`<button type="button" class="chip${k===f?" on":""}" data-f="${k}">${F[k][0]}</button>`).join("")}</div>
     <input type="search" class="af-q" placeholder="دوّر بالاسم أو الموبايل" value="${esc(AFL.q||"")}">
     <p class="small" style="margin:2px 0"><b>${done}</b> من <b>${L.length}</b> اتكلموا</p>
     <div class="af-list">${L.slice(0,150).map(row).join("")||`<p class="empty">مفيش حد هنا.</p>`}${L.length>150?`<p class="small muted">وكمان ${L.length-150}… استخدم البحث.</p>`:""}</div></section>`}
+// «⚠️ اتأكد»: كل حاجة اتغيرت أو متلخبطة في بيانات حد عليك، والقرار بدوسة (MORCOS 28 نوفمبر: داتا واحدة فاينل)
+const PFLD={"الاسم":"اسمك بالكامل","الميلاد":"تاريخ ميلادك","الموبايل":"رقم موبايلك","النوع":"","واتساب":"رقم الواتساب بتاعك"};
+function aflPend(){const L=AFL.pend||[];if(!L.length)return "";
+  const v=(f,x)=>f==="الميلاد"&&x?`<bdi dir="ltr">${esc(x)}</bdi>`+(age(x)!==""?` (${age(x)} سنة)`:""):esc(x||"—");
+  const it=x=>{const nm=esc(x.nick?x.nick+" ("+x.name+")":x.name),tg=`${x.late?`<span class="af-t mid">⏰ عدّى عليه أسبوع</span>`:""}${x.orphan?`<span class="af-t">مش مع خادم</span>`:""}${x.can==="lead"&&x.fu?`<span class="small muted"> · ${esc(x.fu.split(" ").slice(0,2).join(" "))}</span>`:""}`;
+    const ask=PFLD[x.field],wa=ask?aflUrl({name:x.name,nick:x.nick,g:x.g,phone:x.phone,ask},"chk"):"";
+    if(x.field==="تكرار"&&x.other){const a=x.me,b=x.other,cl=p=>`<div class="small">• ${esc(p.name)} · <span dir="ltr">${esc(p.phone||"—")}</span> · ${v("الميلاد",p.birth)}${p.acct?" · عنده حساب":""}</div>`;
+      return `<div class="pd-r" data-lid="${x.lid}"><b>👥 شكلهم نفس الشخص؟</b> ${tg}${cl(a)}${cl(b)}<div class="af-btns"><button type="button" class="small primary pd-b" data-p="same">✓ نفس الشخص (ادمجهم)</button><button type="button" class="small pd-b" data-p="sib">✕ اتنين مختلفين</button></div></div>`}
+    if(!PFLD.hasOwnProperty(x.field))return `<div class="pd-r" data-lid="${x.lid}"><b>${nm}</b> ${tg}<div class="small">${esc(x.field)}: ${esc(x.nw||x.old||"")} <span class="muted">(${esc(x.src||"")})</span></div><div class="af-btns"><button type="button" class="small primary pd-b" data-p="new">✓ تمام</button><button type="button" class="small pd-b" data-p="old">✕ غلط</button></div></div>`;
+    return `<div class="pd-r" data-lid="${x.lid}"><b>${nm}</b> ${tg}<div class="small">${esc(x.field)}: عندنا <b>${v(x.field,x.old)}</b> و${esc(x.src||"جه")} <b>${v(x.field,x.nw)}</b></div>
+      <div class="af-btns"><button type="button" class="small primary pd-b" data-p="new">✓ ${v(x.field,x.nw)} صح</button><button type="button" class="small pd-b" data-p="old">${v(x.field,x.old)} هو الصح</button>${wa?`<a class="af-b af-wa" href="${wa}" target="_blank" rel="noopener">💬 اسأله</a>`:""}</div></div>`};
+  return `<div class="pd-box"><b>⚠️ اتأكد (${L.length})</b><p class="small muted" style="margin:2px 0 6px">بيانات اتغيرت أو مش متطابقة. اختار الصح، ولو مش متأكد اسأله واتساب. ${AFL.lead?"اللي عدّى عليه أسبوع من غير قرار بيوصلك.":"لو سبتها أسبوع هتروح للأمين."}</p>${L.slice(0,40).map(it).join("")}${L.length>40?`<p class="small muted">وكمان ${L.length-40}…</p>`:""}</div>`}
+// «🧭 صحة البيانات» للأمناء: قد إيه الداتا مؤكدة ومين متأخر
+function aflDq(){const q=AFL.dq;if(!q||!q.total)return "";const pc=x=>Math.round(100*x/q.total);
+  const S=Object.keys(q.bySrv).map(k=>[k,q.bySrv[k]]).sort((a,b)=>(b[1].late-a[1].late)||(b[1].open-a[1].open)||(a[1].conf/a[1].n-b[1].conf/b[1].n));
+  return `<details class="pd-dq"><summary><b>🧭 صحة البيانات</b> · ${pc(q.conf)}% مؤكدة · ${pc(q.full)}% كاملة</summary>
+    <div class="p25-n"><div><b>${q.total}</b>شخص</div><div><b>${q.conf}</b>مؤكد</div><div><b>${q.full}</b>بياناته كاملة</div><div><b>${q.acct}</b>عنده حساب</div></div>
+    <table class="pd-t"><tr><th>الخادم</th><th>عليه</th><th>مؤكد</th><th>مستني قرار</th></tr>${S.map(([k,b])=>`<tr><td>${k?esc(q.names[k]||k):`<span class="err">مش متوزع</span>`}</td><td>${b.n}</td><td>${b.n?Math.round(100*b.conf/b.n):0}%</td><td>${b.open}${b.late?` <span class="err">(${b.late} متأخر)</span>`:""}</td></tr>`).join("")}</table></details>`}
 function aflFind(el){const k=el.closest("[data-k]").dataset.k.split(":");return AFL.rows.find(r=>r.src===k[0]&&r.row===+k[1])}
 function aflBind(F){const box=F.querySelector("#afl");if(!box)return;
   box.querySelectorAll(".af-who .chip").forEach(b=>b.onclick=()=>{AFL.who=b.dataset.s;renderFollow()});
@@ -2063,6 +2086,12 @@ function aflBind(F){const box=F.querySelector("#afl");if(!box)return;
   box.querySelectorAll(".af-un").forEach(b=>b.onclick=()=>{mark(aflFind(b),"aflMark","sent",true);renderFollow()});
   box.querySelectorAll(".af-de").forEach(b=>b.onclick=()=>{const r=aflFind(b),bx=b.closest(".af-r").querySelector(".af-df");if(!bx.hidden){bx.hidden=true;return}
     bx.hidden=false;bx.innerHTML=`<p class="small muted">بيحمّل…</p>`;callApi("aflData",{src:r.src,row:r.row},d=>aflDataForm(bx,r,d),m=>{bx.innerHTML=`<p class="err small">${esc(m)}</p>`})});
+  box.querySelectorAll(".pd-b").forEach(b=>b.onclick=()=>{const c=b.closest(".pd-r"),lid=+c.dataset.lid;
+    if(b.dataset.p==="same"&&!confirm("تدمجهم في شخص واحد؟ الحضور والحجوزات هيتجمعوا عليه."))return;
+    c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
+    callApi("pplFix",{lid,pick:b.dataset.p},()=>{AFL.pend=(AFL.pend||[]).filter(x=>x.lid!==lid);aflLoad(true);renderFollow()},m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);alert(m);renderFollow()})});
+  box.querySelectorAll(".af-ok").forEach(b=>b.onclick=()=>{const r=aflFind(b);b.disabled=true;b.textContent="…";
+    callApi("aflOk",{src:r.src,row:r.row},()=>{r.conf=true;AFL.pend=(AFL.pend||[]).filter(x=>x.code!==r.code||x.field==="تكرار");renderFollow()},m=>{b.disabled=false;b.textContent="✓ بياناته صح";alert(m)})});
   box.querySelectorAll(".af-nb").forEach(b=>b.onclick=()=>{const e=b.closest(".af-r").querySelector(".af-ne");e.hidden=!e.hidden;if(!e.hidden)e.querySelector("input").focus()});
   box.querySelectorAll(".af-ns").forEach(b=>b.onclick=()=>{const r=aflFind(b),v=b.closest(".af-r").querySelector(".af-ni").value.trim(),old=r.note;b.disabled=true;r.note=v;
     callApi("aflNote",{src:r.src,row:r.row,note:v},()=>renderFollow(),m=>{r.note=old;b.disabled=false;alert(m)})});
@@ -2073,13 +2102,18 @@ function aflBind(F){const box=F.querySelector("#afl");if(!box)return;
     callApi("aflSrvG",{row,g:b.dataset.g},()=>{const s=AFL.srvs.find(x=>x.row===row);if(s)s.g=b.dataset.g;renderFollow()},m=>{b.disabled=false;alert(m)})});
 }
 // الخادم المسؤول بس بيعدّل بيانات مخدومه (MORCOS 27 نوفمبر). الاسم والموبايل الأصلي ثابتين، ورقم الواتساب لو مختلف بيبقى هو اللي الزراير بتفتحه
-function aflDataForm(bx,r,d){const v=d.data||{},F=(d.fields||[]).slice().sort((a,b)=>(b[0]==="wa")-(a[0]==="wa"));
-  bx.innerHTML=`<form class="rgf af-dfm" novalidate><p class="small muted" style="margin:0">انت بس (الخادم المسؤول) و${r.g==="بنت"?"هي":"هو"} ${r.g==="بنت"?"نفسها":"نفسه"} اللي تقدروا تعدلوا البيانات دي.${d.saved?` آخر تعديل: ${esc(d.by||"")} ${esc(d.saved)}`:""}</p>
+function aflDataForm(bx,r,d){const v=d.data||{},C=d.core||null,F=(d.fields||[]).slice().sort((a,b)=>(b[0]==="wa")-(a[0]==="wa"));
+  bx.innerHTML=`<form class="rgf af-dfm" novalidate><p class="small muted" style="margin:0">انت بس (الخادم المسؤول) و${r.g==="بنت"?"هي":"هو"} ${r.g==="بنت"?"نفسها":"نفسه"} اللي تقدروا تعدلوا البيانات دي.${d.saved?` آخر تعديل: ${esc(d.saved)}`:""}</p>
+    ${C?`<fieldset class="af-core"><legend class="small"><b>الأساسي</b> · لما تحفظ يبقى ده <b>المؤكد</b> في كل الموقع</legend>
+      <label class="fld"><span>الاسم الرسمي (ثلاثي)</span><input name="name" maxlength="80" value="${esc(C.name||"")}"></label>
+      <label class="fld"><span>الموبايل</span><input name="phone" type="tel" dir="ltr" inputmode="tel" value="${esc(C.phone||"")}"></label>
+      <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" dir="ltr" value="${/^\d{4}-\d\d-\d\d$/.test(C.birth||"")?esc(C.birth):""}"></label>
+      <label class="fld"><span>النوع</span><select name="g"><option value="">—</option><option${C.g==="شاب"?" selected":""}>شاب</option><option${C.g==="بنت"?" selected":""}>بنت</option></select></label></fieldset>`:""}
     ${F.map(f=>`<label class="fld"><span>${esc(f[0]==="wa"?"رقم الواتساب (لو غير "+r.phone+")":f[1])}</span>${f[0]==="note"?`<textarea name="note" rows="2" maxlength="200">${esc(v.note||"")}</textarea>`:`<input name="${f[0]}" maxlength="200" ${f[0]==="wa"?'type="tel" dir="ltr" inputmode="tel" placeholder="01xxxxxxxxx"':""} value="${esc(v[f[0]]||"")}">`}</label>`).join("")}
     <div class="btns"><button type="submit" class="small primary">احفظ</button><button type="button" class="small af-dx">إلغاء</button></div><p class="msg small"></p></form>`;
   const f=bx.querySelector("form"),msg=f.querySelector(".msg");f.querySelector(".af-dx").onclick=()=>{bx.hidden=true};
-  f.onsubmit=e=>{e.preventDefault();const o={src:r.src,row:r.row};F.forEach(x=>o[x[0]]=toEn((f.elements[x[0]].value||"").trim()));const b=f.querySelector("[type=submit]");b.disabled=true;b.textContent="…";
-    callApi("aflDataSave",o,x=>{r.wa=x.wa||"";renderFollow()},m=>{b.disabled=false;b.textContent="احفظ";msg.className="msg small err";msg.textContent=m})}}
+  f.onsubmit=e=>{e.preventDefault();const o={src:r.src,row:r.row};F.forEach(x=>o[x[0]]=toEn((f.elements[x[0]].value||"").trim()));if(C)["name","phone","birth","g"].forEach(k=>o[k]=toEn((f.elements[k].value||"").trim()));const b=f.querySelector("[type=submit]");b.disabled=true;b.textContent="…";
+    callApi("aflDataSave",o,x=>{r.wa=x.wa||"";if(x.name){r.name=x.name;r.phone=x.phone;r.birth=x.birth;r.g=x.g;r.conf=x.conf;r.inc=x.inc}AFL.pend=(AFL.pend||[]).filter(y=>y.code!==r.code||y.field==="تكرار");renderFollow()},m=>{b.disabled=false;b.textContent="احفظ";msg.className="msg small err";msg.textContent=m})}}
 // جروب +25 الخاص: للأمين العام وأمناء ومساعدين +25. اللينك + الأعداد + فحص رقم لطلبات الانضمام
 function p25Panel(){if(!D||!D.afl||!D.afl.p25||!AFL.rows)return "";
   const R=AFL.rows.filter(r=>r.meet==="الربع قرن"),ok=R.filter(p25Ok),sent=ok.filter(r=>r.grp).length,no=R.filter(r=>!r.acc).length;
@@ -2100,7 +2134,7 @@ function p25Bind(F){const box=F.querySelector("#p25");if(!box)return;
 // كارت طلب التسجيل: حالة قاعدة البيانات + المسؤول + واتساب، والقبول/الرفض للأمناء بس
 function regChk(r){const c=D.afl&&D.afl.chk?D.afl.chk[normPhone(r.phone)]:null;return c||null}
 function regExtra(r){const c=regChk(r);
-  return `${c&&c.prev?`<div class="db-st db-bad"><b>⛔ الاسم ده ${c.prev==="محظور"?"عليه بلوك":"اترفض"} قبل كده برقم تاني</b>اتأكد إنه مش نفس الشخص.</div>`:""}${c?dbBox(c.s,c.h):""}${c&&c.srv?`<div class="small muted">👤 المسؤول عن افتقاده: <b>${esc(c.srv.split(" ").slice(0,2).join(" "))}</b></div>`:""}`}
+  return `${c&&c.nd&&canDecide()?`<div class="small muted">📋 بياناته ناقصة: «قبول» هيفتحلك واتساب برسالة «كمّل بياناتك» على طول.</div>`:""}${c&&c.prev?`<div class="db-st db-bad"><b>⛔ الاسم ده ${c.prev==="محظور"?"عليه بلوك":"اترفض"} قبل كده برقم تاني</b>اتأكد إنه مش نفس الشخص.</div>`:""}${c?dbBox(c.s,c.h):""}${c&&c.srv?`<div class="small muted">👤 المسؤول عن افتقاده: <b>${esc(c.srv.split(" ").slice(0,2).join(" "))}</b></div>`:""}`}
 function regWa(r){const c=regChk(r),u=aflUrl({name:r.name,nick:r.nick,g:r.gender,phone:r.phone},c&&c.s!=="ok"?"new":"hi");return u?`<a class="ap-wa" href="${u}" target="_blank" rel="noopener">💬 تواصل واتساب</a>`:""}
 
 /* ===== «كمّل بياناتك» (MORCOS 27 نوفمبر): الأمين العام بيبعته واتساب للي وافق عليه وبياناته مش عندنا.
@@ -2396,6 +2430,7 @@ const callName=p=>{const n=String(p.nick||"").trim();return n||String(p.name||""
 function welcMsg(p,kind){const b=p.gender==="بنت",n=callName(p),hi=`أهلا يا ${n} 🤍`;
   if(kind==="pin"||kind==="spin")return `${hi}\n\nمسحنا الرقم السري القديم بتاعك ✅\n\n${b?"ادخلي":"ادخل"} الموقع برقم موبايلك و${b?"اكتبي":"اكتب"} رقم سري جديد ${b?"تفتكريه":"تفتكره"}. لو الموقع سألك على الإيميل ${b?"اكتبي":"اكتب"} اللي سجلت بيه:\n${SITE}\n\nلو حصلت أي مشكلة ${b?"قوليلي":"قولّي"} 🙏`;
   if(kind==="srv")return `${hi}\n\nتم قبولك ${b?"خادمة":"خادم"}${p.group&&p.group!==OTHER&&p.group!=="الرحلات"?" في "+(p.group==="الاتنين"?"اجتماع جامعيين و+25":"اجتماع "+grpL(p.group)):""} على موقع الخدمة ✅\n\n${b?"ادخلي":"ادخل"} برقم موبايلك والرقم السري، وهتلاقي صفحة الخدام والحاجات اللي عليك:\n${SITE}\n\nربنا يبارك خدمتك 🙏`;
+  if(kind==="regd")return `${hi}\n\nتم قبول طلبك ✅ مرحبا ${b?"بيكي":"بيك"} في موقع خدمة الشباب G.S.Y. Family 🎉\n\nفاضل خطوة صغيرة: ${b?"كمّلي":"كمّل"} بياناتك عندنا (دقيقة واحدة) من اللينك ده:\n${SITE}#data\n\n${b?"هتدخلي":"هتدخل"} برقم موبايلك والرقم السري اللي ${b?"عملتيه":"عملته"} 🙏 ${b?"منوّرانا":"منوّرنا"} 🤍`;
   return `${hi}\n\nتم قبول طلبك ✅ مرحبا ${b?"بيكي":"بيك"} في موقع خدمة الشباب G.S.Y. Family 🎉\n\n${b?"ادخلي":"ادخل"} برقم موبايلك والرقم السري اللي عملته، وهتلاقي مواعيد الاجتماعات والرحلات والإيفنتات:\n${SITE}\n\n${b?"منوّرانا":"منوّرنا"} 🤍`}
 const welcUrl=(p,kind)=>{const w=waNum(p.phone);return w?`https://api.whatsapp.com/send?phone=${w}&text=${encodeURIComponent(welcMsg(p,kind))}`:""};
 // زرار واحد: أخضر لو لسه متبعتش، رمادي "اتبعت" بعد ما يدوس
@@ -2403,9 +2438,13 @@ function welcBtn(p,kind,label){const u=welcUrl(p,kind);if(!u)return `<span class
   const s=welcSent()[welcKey(kind,p.phone)];
   return `<a class="rm-wa wl-wa${s?" sent":""}" href="${u}" target="_blank" rel="noopener" data-wk="${esc(welcKey(kind,p.phone))}">${s?"✓ اتبعت · ابعت تاني":label||(/pin/.test(kind)?"📲 ابعت"+(p.gender==="بنت"?"لها":"له")+" يعمل رقم جديد":"📲 ابعت"+(p.gender==="بنت"?"لها":"له")+" ترحيب")}</a>`}
 // لما حد يتقبل: يتحط فوق في الصفحة لحد ما الرسالة تتبعت
+// القبول: لو بياناته ناقصة، نفس الدوسة بتفتح واتساب برسالة ترحيب + لينك «كمّل بياناتك» (MORCOS 28 نوفمبر)
+function regAccept(r,b){const c=regChk(r),nd=b.dataset.v==="مقبول"&&c&&c.nd;
+  if(nd){const u=welcUrl(r,"regd");if(u){window.open(u,"_blank","noopener");const s=welcSent();s[welcKey("regd",r.phone)]=new Date().toISOString();lsSet(WELC.k,JSON.stringify(s))}}
+  return x=>{r.status=b.dataset.v;if(r.status==="مقبول")welcAdd(r,nd||(x&&x.needData)?"regd":"reg")}}
 function welcAdd(p,kind){const k=welcKey(kind,p.phone);WELC.now=WELC.now.filter(x=>x.k!==k);WELC.now.unshift({k,kind,p:Object.assign({},p)})}
 function welcPanel(kinds){const L=WELC.now.filter(x=>kinds.includes(x.kind));if(!L.length)return "";
-  const T={reg:"اتقبل",srv:"اتقبل خادم",pin:"اتمسح رقمه السري",spin:"اتمسح رقمه السري"};
+  const T={reg:"اتقبل",regd:"اتقبل · لازم يكمّل بياناته",srv:"اتقبل خادم",pin:"اتمسح رقمه السري",spin:"اتمسح رقمه السري"};
   return `<section class="panel wl-box"><h3>📲 ابعتلهم رسالة ترحيب</h3><p class="small muted" style="margin:0">الرسالة جاهزة باسمه ولينك الموقع، دوس وابعت من واتساب.</p>${L.map(x=>`<div class="rm-r${welcSent()[x.k]?" done":""}"><b>${esc(dn(x.p))} <span class="small muted">· ${T[x.kind]}</span></b>${welcBtn(x.p,x.kind)}</div>`).join("")}</section>`}
 function welcBind(box,rerender){box._wlR=rerender;if(box._wl)return;box._wl=1;
   box.addEventListener("click",e=>{const a=e.target.closest(".wl-wa");if(!a)return;const s=welcSent();s[a.dataset.wk]=new Date().toISOString();lsSet(WELC.k,JSON.stringify(s));setTimeout(()=>box._wlR(),400)})}
@@ -2422,7 +2461,7 @@ function renderApprove(){
     ${regExtra(r)}
     ${canDecide()?`<div class="ap-btns ap-3"><button type="button" class="ap-ok rgd" data-row="${r.row}" data-v="مقبول">✓ قبول</button>${regWa(r)}<button type="button" class="ap-no rgd" data-row="${r.row}" data-v="مرفوض">✕ رفض</button></div>`:`<div class="ap-btns ap-3">${regWa(r)}<div class="ap-lock">🔒 مستني موافقة الأمين</div></div>`}</article>`;
   $("approve").innerHTML=`<div class="ap-head"><span><b class="num">${wait.length}</b> طلب مستني</span><button type="button" id="apRef">↻ تحديث</button></div>
-    ${welcPanel(["reg","pin"])}
+    ${welcPanel(["reg","regd","pin"])}
     ${wait.length&&!canDecide()?`<p class="small muted" style="margin:0 0 4px">🔒 القبول والرفض للأمناء بس. لو تعرف حد من دول قول للأمين.</p>`:""}
     ${fg.length?`<section class="panel tm-hot"><h3>🔑 نسيوا الرقم السري (${fg.length})</h3><p class="small muted" style="margin:0">امسحه، وبعدها الشاب يدخل برقم موبايله ويكتب رقم سري جديد، والموقع هيسأله على الإيميل اللي سجل بيه.</p>${fg.map(pinRow).join("")}</section>`:""}
     ${wait.length?wait.map(card).join(""):`<p class="empty" style="text-align:center;padding:30px 0">مفيش طلبات جديدة 🎉</p>`}
@@ -2442,7 +2481,7 @@ function renderApprove(){
     const L=R.filter(r=>r.status!=="مرفوض"&&(normAr(r.name).includes(v)||normAr(r.nick).includes(v)||String(r.phone).includes(v))).slice(0,8);
     pres.innerHTML=L.map(pinRow).join("")||`<p class="small muted">مفيش حد بالاسم ده متسجل.</p>`;pinBind(pres)};
   $("approve").querySelectorAll(".rgd").forEach(b=>b.onclick=()=>{const r=R.find(x=>x.row===+b.dataset.row),c=b.closest(".ap-card");c.querySelectorAll("button").forEach(x=>x.disabled=true);b.textContent="…";
-    callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},()=>{r.status=b.dataset.v;if(r.status==="مقبول"){welcAdd(r,"reg");renderApprove();renderNav("approve");window.scrollTo({top:0,behavior:"smooth"});return}c.classList.add("is-no");c.querySelector(".ap-btns").innerHTML=`<b>اترفض</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
+    const done=regAccept(r,b);callApi("regDecide",{row:r.row,email:r.email,status:b.dataset.v},x=>{done(x);if(r.status==="مقبول"){renderApprove();renderNav("approve");window.scrollTo({top:0,behavior:"smooth"});return}c.classList.add("is-no");c.querySelector(".ap-btns").innerHTML=`<b>اترفض</b>`;setTimeout(()=>{renderApprove();renderNav("approve")},900)},
       m=>{c.querySelectorAll("button").forEach(x=>x.disabled=false);b.textContent=m})});
 }
 /* ================= حسابات الخدام ================= */
