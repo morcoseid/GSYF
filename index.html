@@ -1479,11 +1479,11 @@ function regForm(box){
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>رقم الموبايل</span><input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="01xxxxxxxxx"><em></em></label>
     <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه بعد كده</span><input name="pin" type="text" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="off" placeholder="مثال: 1234"><small class="hint">احفظه، هتدخل بيه برقم موبايلك.</small><em></em></label>
-    <label class="fld"><span>الإيميل (اختياري)</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
+    <label class="fld"><span>الإيميل (لو نسيت الرقم السري بنبعتلك عليه)</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
     <button type="submit" class="primary rg-send">${window._afterReg?"سجّل واحجز مكانك":"سجّل"}</button><p class="msg small"></p>
     <p class="small muted" style="margin:0">بياناتك بتوصل لخدام الخدمة بس.</p></form>`;
   const f=box.querySelector("form");
-  const RC={name:REG_CHECK.name,birth:REG_CHECK.birth,phone:REG_CHECK.phone,pin:PIN_CK.pin,email:REG_CHECK.email};
+  const RC={name:REG_CHECK.name,birth:REG_CHECK.birth,phone:REG_CHECK.phone,pin:PIN_CK.pin,email:v=>/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim())?"":(v.trim()?"الإيميل مش مظبوط":"اكتب إيميلك (بنحتاجه لو نسيت الرقم السري)")};
   const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
   Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
   f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
@@ -2149,12 +2149,12 @@ function mdForm(sec,tok,p,r,edit){const d=r.data||{},F=r.fields||[],b=(p.gender|
   if(r.saved&&!edit&&!lsGet("gsyf_dgo")){mdView(sec,tok,p,r);return}
   const ph={area:"مثلاً: بهتيم، المنشية، الخلفاوي",addr:"اسم الشارع ورقم البيت أو علامة مميزة",father:"اسم أب اعترافك",qual:"مثلاً: بكالوريوس تجارة، دبلوم",job:"شغلك دلوقتي، أو طالب",wa:"لو رقم الواتساب غير "+p.phone,note:"أي حاجة "+(b?"حابة":"حابب")+" نعرفها"};
   sec.innerHTML=`<h3>📋 كمّل بياناتك</h3><p class="small" style="margin:0 0 6px">${b?"أهلاً بيكي":"أهلاً بيك"} 🤍 ${b?"املي":"املا"} البيانات دي مرة واحدة علشان نبقى ${b?"معاكي":"معاك"}. اسمك وموبايلك وميلادك عندنا خلاص.</p>
-    <form class="rgf md-f" novalidate>${F.map(f=>`<label class="fld"><span>${esc(f[1])}${/^(area|addr)$/.test(f[0])?"":" <small class=\"muted\">(اختياري)</small>"}</span>${f[0]==="note"?`<textarea name="note" maxlength="200" rows="2" placeholder="${esc(ph.note)}">${esc(d.note||"")}</textarea>`:`<input name="${f[0]}" maxlength="200" ${f[0]==="wa"?'type="tel" dir="ltr" inputmode="tel"':""} value="${esc(d[f[0]]||"")}" placeholder="${esc(ph[f[0]]||"")}">`}<em></em></label>`).join("")}
+    <form class="rgf md-f" novalidate>${F.map(f=>`<label class="fld"><span>${esc(f[1])}${/^(area|addr|father)$/.test(f[0])?"":" <small class=\"muted\">(اختياري)</small>"}</span>${f[0]==="note"?`<textarea name="note" maxlength="200" rows="2" placeholder="${esc(ph.note)}">${esc(d.note||"")}</textarea>`:`<input name="${f[0]}" maxlength="200" ${f[0]==="wa"?'type="tel" dir="ltr" inputmode="tel"':""} value="${esc(d[f[0]]||"")}" placeholder="${esc(ph[f[0]]||"")}">`}<em></em></label>`).join("")}
     <div class="btns"><button type="submit" class="primary md-s">احفظ</button>${r.saved?`<button type="button" class="md-x">إلغاء</button>`:""}</div><p class="msg small"></p></form>`;
   const f=sec.querySelector("form"),msg=f.querySelector(".msg");
   const x=f.querySelector(".md-x");if(x)x.onclick=()=>{lsDel("gsyf_dgo");mdView(sec,tok,p,r)};
   f.onsubmit=e=>{e.preventDefault();const v={};F.forEach(x=>v[x[0]]=(f.elements[x[0]].value||"").trim());if(v.wa)v.wa=toEn(v.wa);
-    let ok=true;["area","addr"].forEach(k=>{const fl=f.elements[k].closest(".fld"),bad=!v[k];fl.classList.toggle("bad",bad);fl.querySelector("em").textContent=bad?"مطلوب":"";if(bad)ok=false});
+    let ok=true;["area","addr","father"].forEach(k=>{const fl=f.elements[k].closest(".fld"),bad=!v[k];fl.classList.toggle("bad",bad);fl.querySelector("em").textContent=bad?"مطلوب":"";if(bad)ok=false});
     if(!ok){msg.textContent="";f.querySelector(".bad input").focus();return}
     const s=f.querySelector(".md-s");s.disabled=true;s.textContent="بيتحفظ…";
     callApi("myDataSave",Object.assign({tok},v),()=>{lsDel("gsyf_dgo");p.dform="done";r.data=v;r.saved="دلوقتي";sec.innerHTML=`<h3>📋 كمّل بياناتك</h3><p class="ok" style="margin:0">✅ شكراً! بياناتك اتحفظت 🤍</p>`;setTimeout(()=>mdView(sec,tok,p,r),2500)},
@@ -2544,12 +2544,12 @@ function srvRegForm(box){
     <label class="fld"><span>تاريخ الميلاد</span><input name="birth" type="date" max="${D.today}"><em></em></label>
     <label class="fld"><span>اختار رقم سري (4 أرقام) تدخل بيه</span><input name="pin" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
     <label class="fld"><span>اكتب الرقم السري تاني</span><input name="pin2" type="password" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="new-password"><em></em></label>
-    <label class="fld"><span>الإيميل (لو عندك، مش لازم)</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
+    <label class="fld"><span>الإيميل</span><input name="email" type="email" dir="ltr" autocomplete="email" placeholder="name@gmail.com"><em></em></label>
     <button type="submit" class="primary rg-send">سجّلني</button><p class="msg small"></p>
     <p class="small" style="margin:0"><a href="#" class="y-back">رجوع</a></p></form></section>`;
   const f=box.querySelector("form"),msg=f.querySelector(".msg");
   f.querySelector(".y-back").onclick=e=>{e.preventDefault();renderKhadem()};
-  const RC={name:REG_CHECK.name,phone:REG_CHECK.phone,birth:REG_CHECK.birth,pin:PIN_CK.pin,pin2:PIN_CK.pin2,email:v=>!v.trim()||REG_CHECK.email(v)===""?"":"الإيميل مش مظبوط، أو سيبه فاضي"};
+  const RC={name:REG_CHECK.name,phone:REG_CHECK.phone,birth:REG_CHECK.birth,pin:PIN_CK.pin,pin2:PIN_CK.pin2,email:v=>/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim())?"":(v.trim()?"الإيميل مش مظبوط":"اكتب إيميلك (بنحتاجه لو نسيت الرقم السري)")};
   const check=(n,show)=>{const el=f.elements[n],e=RC[n](el.value,f),fl=el.closest(".fld");if(show||fl.classList.contains("touched")){fl.querySelector("em").textContent=e;fl.classList.toggle("bad",!!e);fl.classList.toggle("good",!e&&!!el.value)}return !e};
   Object.keys(RC).forEach(n=>{const el=f.elements[n];el.addEventListener("blur",()=>{el.closest(".fld").classList.add("touched");check(n)});el.addEventListener("input",()=>check(n))});
   f.onsubmit=ev=>{ev.preventDefault();let ok=true;Object.keys(RC).forEach(n=>{f.elements[n].closest(".fld").classList.add("touched");if(!check(n,true))ok=false});
@@ -3397,6 +3397,7 @@ function chkShow(){
         <label class="chk-lb">تاريخ الميلاد<input name="birth" type="date"></label>
         <input name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="رقم الموبايل">
         <input name="pin" type="text" inputmode="numeric" maxlength="4" dir="ltr" autocomplete="off" placeholder="اختار رقم سري (4 أرقام)">
+        <input name="email" type="email" dir="ltr" autocomplete="email" placeholder="إيميلك (لو نسيت الرقم السري)">
         <button type="submit" class="chk-b">✋ سجّل وأنا حاضر</button><p class="chk-m"></p><a href="#" class="chk-l chk-bk">عندي حساب</a></form>`;
       const f=o.querySelector("form"),m=f.querySelector(".chk-m");let gd="";
       f.querySelectorAll(".chk-g2 button").forEach(b=>b.onclick=()=>{gd=b.dataset.g;f.querySelectorAll(".chk-g2 button").forEach(x=>x.setAttribute("aria-pressed",x===b))});
@@ -3407,8 +3408,9 @@ function chkShow(){
         if(!birth){err(m,"اختار تاريخ ميلادك");return}
         if(!/^01[0125]\d{8}$/.test(phone)){err(m,"اكتب رقم موبايلك صح (11 رقم يبدأ بـ 01)");return}
         if(!/^\d{4}$/.test(pin)){err(m,"اختار رقم سري 4 أرقام");return}
+        const email=f.elements.email.value.trim().toLowerCase();if(!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(email)){err(m,"اكتب إيميلك صح (بنحتاجه لو نسيت الرقم السري)");return}
         const b=f.querySelector(".chk-b");b.disabled=true;b.textContent="…";
-        callApi("register",{name,birth,phone,email:"",pin,gender:gd},r=>{lsSet("gsyf_reg",r.email||"");lsSet("gsyf_reg_st",r.status||"مستني");if(r.tok){ySave(r);send({tok:r.tok},b,m)}else{b.disabled=false;b.textContent="✋ سجّل وأنا حاضر";err(m,"الرقم ده متسجل قبل كده. ادخل بيه من «عندي حساب»")}},
+        callApi("register",{name,birth,phone,email,pin,gender:gd},r=>{lsSet("gsyf_reg",r.email||"");lsSet("gsyf_reg_st",r.status||"مستني");if(r.tok){ySave(r);send({tok:r.tok},b,m)}else{b.disabled=false;b.textContent="✋ سجّل وأنا حاضر";err(m,"الرقم ده متسجل قبل كده. ادخل بيه من «عندي حساب»")}},
           x=>{b.disabled=false;b.textContent="✋ سجّل وأنا حاضر";err(m,x)})};
       return}
     o.innerHTML=`<form class="chk-c" novalidate><div class="chk-ok">📍</div><b>سجّل حضورك باسمك</b><span>من غير رقم سري. بعد الاجتماع اطلب من الخادم يظبطلك حسابك</span>
